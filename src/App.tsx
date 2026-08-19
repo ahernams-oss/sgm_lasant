@@ -60,6 +60,7 @@ import { I0Provider } from "@/contexts/I0Context";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CategoriasComprasProvider } from "@/contexts/CategoriasComprasContext";
 import { MateriaisServicosProvider } from "@/contexts/MateriaisServicosContext";
+import { MaterialScoVinculosProvider } from "@/contexts/MaterialScoVinculosContext";
 import { RequisicaoComprasProvider } from "@/contexts/RequisicaoComprasContext";
 import { CotacaoComprasProvider } from "@/contexts/CotacaoComprasContext";
 import { PedidoCompraProvider } from "@/contexts/PedidoCompraContext";
@@ -523,6 +524,7 @@ const App = () => (
     <I0Provider>
     <CategoriasComprasProvider>
     <MateriaisServicosProvider>
+    <MaterialScoVinculosProvider>
     <RequisicaoComprasProvider>
     <CotacaoComprasProvider>
     <PedidoCompraProvider>
@@ -670,6 +672,7 @@ const App = () => (
     </PedidoCompraProvider>
     </CotacaoComprasProvider>
     </RequisicaoComprasProvider>
+    </MaterialScoVinculosProvider>
     </MateriaisServicosProvider>
     </CategoriasComprasProvider>
     </I0Provider>

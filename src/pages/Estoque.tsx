@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+import { useMaterialScoVinculos } from "@/contexts/MaterialScoVinculosContext";
 import { useEstoque, MovimentacaoEstoque, SaldoEstoque } from "@/contexts/EstoqueContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTable
 import type { ReactNode } from "react";
 
 export default function EstoquePage() {
+  const { getVinculos } = useMaterialScoVinculos();
   const { movimentacoes, inventarios, registrarMovimentacao, getSaldos, getSaldoPorMaterial, getSaldoPorLocal, getLotesFIFO, transferirEntreLocais, criarInventario, atualizarInventario, fecharInventario, atualizarValorMovimentacao } = useEstoque();
   const { materiais } = useMateriaisServicos();
   const { usuarioLogado } = useAuth();
@@ -67,13 +69,15 @@ export default function EstoquePage() {
     centroCusto: { label: "Centro de Custo" },
     local: { label: "Local" },
     qtd: { label: "Qtd", className: "text-center" },
+    codSco: { label: "Cód. SCO", className: "text-center" },
+    qtdSco: { label: "Qtd SCO", className: "text-center" },
     vlrUnit: { label: "Vlr Unit.", className: "text-center" },
     documento: { label: "Documento", className: "text-center" },
     usuario: { label: "Usuário", className: "text-center" },
   };
   const { order: colOrderMov, setOrder: setColOrderMov } = useColumnOrder(
     "compras.estoque.movimentacoes",
-    ["data", "tipo", "codigo", "material", "centroCusto", "local", "qtd", "vlrUnit", "documento", "usuario"]
+    ["data", "tipo", "codigo", "material", "centroCusto", "local", "qtd", "codSco", "qtdSco", "vlrUnit", "documento", "usuario"]
   );
 
   const colDefsAlertas: Record<string, { label: string; className?: string }> = {
@@ -116,6 +120,7 @@ export default function EstoquePage() {
   const [movDocRef, setMovDocRef] = useState("");
   const [movObs, setMovObs] = useState("");
   const [movValorUnit, setMovValorUnit] = useState("");
+  const [movVinculoId, setMovVinculoId] = useState("");
 
   // Inventário dialog
   const [invDialogOpen, setInvDialogOpen] = useState(false);
@@ -332,8 +337,15 @@ export default function EstoquePage() {
     setMovDocRef("");
     setMovObs("");
     setMovValorUnit("");
+    setMovVinculoId("");
     setMovDialogOpen(true);
   };
+
+  const vinculosMaterial = useMemo(
+    () => (movMaterialId ? getVinculos(movMaterialId) : []),
+    [movMaterialId, getVinculos]
+  );
+  const vinculoSel = vinculosMaterial.find(v => v.id === movVinculoId);
 
   const handleMovSave = async () => {
     const podeMov = movTipo === "entrada" ? podeEntrada : podeSaida;
@@ -357,6 +369,9 @@ export default function EstoquePage() {
       documentoRef: movDocRef, observacao: movObs,
       usuario: usuarioLogado?.nome || "",
       lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "", valorUnitario: valorUnit,
+      codSco: vinculoSel?.codSco || "", descricaoSco: vinculoSel?.descricaoSco || "",
+      quantidadeSco: vinculoSel ? qty * vinculoSel.fatorConversao : 0,
+      fatorConversao: vinculoSel?.fatorConversao || 1,
     });
     toast({ title: `${movTipo === "entrada" ? "Entrada" : "Saída"} registrada com sucesso` });
     setMovDialogOpen(false);
@@ -671,6 +686,8 @@ export default function EstoquePage() {
                     centroCusto: getCentroCustoFromDocRef(m.documentoRef),
                     local: m.local,
                     qtd: <span className="font-semibold">{m.quantidade.toLocaleString("pt-BR")}</span>,
+                    codSco: m.codSco ? <span className="font-mono text-xs" title={m.descricaoSco}>{m.codSco}</span> : "-",
+                    qtdSco: m.quantidadeSco ? m.quantidadeSco.toLocaleString("pt-BR") : "-",
                     vlrUnit: m.valorUnitario > 0 ? m.valorUnitario.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "-",
                     documento: <span className="text-xs">{m.documentoRef || "-"}</span>,
                     usuario: <span className="text-xs">{m.usuario}</span>,
@@ -814,6 +831,8 @@ export default function EstoquePage() {
                             value={`${m.codigo} ${m.descricao}`}
                             onSelect={() => {
                               setMovMaterialId(m.id);
+                              const vs = getVinculos(m.id);
+                              setMovVinculoId((vs.find(v => v.padrao) ?? vs[0])?.id ?? "");
                               setMovMaterialPopoverOpen(false);
                             }}
                           >
@@ -831,6 +850,35 @@ export default function EstoquePage() {
               <Label>Quantidade *</Label>
               <Input type="number" min="1" value={movQuantidade} onChange={e => setMovQuantidade(e.target.value)} />
             </div>
+            {movTipo === "saida" && movMaterialId && (
+              <div className="rounded-lg border p-3 bg-muted/30 space-y-2">
+                <Label>Código SCO (tabela contratual)</Label>
+                {vinculosMaterial.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum código SCO vinculado a este material. Cadastre o vínculo em Materiais e Serviços.
+                  </p>
+                ) : (
+                  <>
+                    <Select value={movVinculoId} onValueChange={setMovVinculoId}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o código SCO..." /></SelectTrigger>
+                      <SelectContent>
+                        {vinculosMaterial.map(v => (
+                          <SelectItem key={v.id} value={v.id}>
+                            {v.codSco} - {v.descricaoSco}{v.padrao ? " (padrão)" : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {vinculoSel && (
+                      <p className="text-xs text-muted-foreground">
+                        Quantidade SCO: {(Number(movQuantidade) || 0) * vinculoSel.fatorConversao}{" "}
+                        {vinculoSel.unidadeSco} (fator {vinculoSel.fatorConversao})
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
             <div>
               <Label>Local *</Label>
               <Select value={movLocal} onValueChange={setMovLocal}>

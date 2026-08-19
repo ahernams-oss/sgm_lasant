@@ -2172,11 +2172,14 @@ export type Database = {
       }
       estoque_movimentacoes: {
         Row: {
+          cod_sco: string | null
           created_at: string | null
           data_movimentacao: string | null
           deposito_destino: string | null
           deposito_origem: string | null
+          descricao_sco: string | null
           documento_ref: string | null
+          fator_conversao: number | null
           fornecedor_nome: string | null
           id: string
           local: string
@@ -2186,17 +2189,21 @@ export type Database = {
           material_id: string
           observacao: string | null
           quantidade: number
+          quantidade_sco: number | null
           tipo: string
           usuario: string | null
           validade: string | null
           valor_unitario: number | null
         }
         Insert: {
+          cod_sco?: string | null
           created_at?: string | null
           data_movimentacao?: string | null
           deposito_destino?: string | null
           deposito_origem?: string | null
+          descricao_sco?: string | null
           documento_ref?: string | null
+          fator_conversao?: number | null
           fornecedor_nome?: string | null
           id?: string
           local?: string
@@ -2206,17 +2213,21 @@ export type Database = {
           material_id?: string
           observacao?: string | null
           quantidade?: number
+          quantidade_sco?: number | null
           tipo?: string
           usuario?: string | null
           validade?: string | null
           valor_unitario?: number | null
         }
         Update: {
+          cod_sco?: string | null
           created_at?: string | null
           data_movimentacao?: string | null
           deposito_destino?: string | null
           deposito_origem?: string | null
+          descricao_sco?: string | null
           documento_ref?: string | null
+          fator_conversao?: number | null
           fornecedor_nome?: string | null
           id?: string
           local?: string
@@ -2226,6 +2237,7 @@ export type Database = {
           material_id?: string
           observacao?: string | null
           quantidade?: number
+          quantidade_sco?: number | null
           tipo?: string
           usuario?: string | null
           validade?: string | null
@@ -4451,6 +4463,48 @@ export type Database = {
           id?: string
           tipo?: string | null
           unidade_medida?: string | null
+        }
+        Relationships: []
+      }
+      material_sco_vinculos: {
+        Row: {
+          cod_sco: string
+          created_at: string
+          descricao_sco: string
+          fator_conversao: number
+          id: string
+          material_id: string
+          observacao: string
+          padrao: boolean
+          sco_id: string | null
+          unidade_sco: string
+          updated_at: string
+        }
+        Insert: {
+          cod_sco: string
+          created_at?: string
+          descricao_sco?: string
+          fator_conversao?: number
+          id?: string
+          material_id: string
+          observacao?: string
+          padrao?: boolean
+          sco_id?: string | null
+          unidade_sco?: string
+          updated_at?: string
+        }
+        Update: {
+          cod_sco?: string
+          created_at?: string
+          descricao_sco?: string
+          fator_conversao?: number
+          id?: string
+          material_id?: string
+          observacao?: string
+          padrao?: boolean
+          sco_id?: string | null
+          unidade_sco?: string
+          updated_at?: string
         }
         Relationships: []
       }
