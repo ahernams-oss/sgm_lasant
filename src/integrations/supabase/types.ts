@@ -4889,6 +4889,8 @@ export type Database = {
       }
       nrs_catalogo: {
         Row: {
+          anexo_nome: string | null
+          anexo_url: string | null
           codigo: string
           created_at: string
           descricao: string
@@ -4897,6 +4899,8 @@ export type Database = {
           validade_dias: number | null
         }
         Insert: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
           codigo: string
           created_at?: string
           descricao: string
@@ -4905,6 +4909,8 @@ export type Database = {
           validade_dias?: number | null
         }
         Update: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
           codigo?: string
           created_at?: string
           descricao?: string

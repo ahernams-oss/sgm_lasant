@@ -7,6 +7,8 @@ export interface NrCatalogo {
   codigo: string;
   descricao: string;
   validadeDias: number | null;
+  anexoUrl?: string | null;
+  anexoNome?: string | null;
 }
 
 interface Ctx {
@@ -23,12 +25,16 @@ const rowTo = (r: any): NrCatalogo => ({
   codigo: r.codigo ?? "",
   descricao: r.descricao ?? "",
   validadeDias: r.validade_dias ?? null,
+  anexoUrl: r.anexo_url ?? null,
+  anexoNome: r.anexo_nome ?? null,
 });
 
 const toRow = (n: Omit<NrCatalogo, "id">) => ({
   codigo: n.codigo,
   descricao: n.descricao,
   validade_dias: n.validadeDias ?? null,
+  anexo_url: n.anexoUrl ?? null,
+  anexo_nome: n.anexoNome ?? null,
 });
 
 
