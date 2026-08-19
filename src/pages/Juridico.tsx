@@ -450,6 +450,70 @@ export default function JuridicoPage() {
     await loadParcelas();
   };
 
+  const openEditarParcela = (p: Parcela) => {
+    setParcelaEditar(p);
+    setParcelaEditForm({ valor: p.valor, data_vencimento: p.data_vencimento || "", redistribuir: true });
+  };
+
+  // Parcelas em aberto posteriores à parcela editada (base do recálculo)
+  const parcelasPosteriores = useMemo(() => {
+    if (!parcelaEditar) return [] as Parcela[];
+    return parcelas
+      .filter(x => x.decisao_id === parcelaEditar.decisao_id && x.id !== parcelaEditar.id
+        && x.status !== "Pago" && x.status !== "Cancelado" && x.numero > parcelaEditar.numero)
+      .sort((a, b) => a.numero - b.numero);
+  }, [parcelas, parcelaEditar]);
+
+  const previewRecalculo = useMemo(() => {
+    if (!parcelaEditar || !parcelaEditForm.redistribuir || parcelasPosteriores.length === 0) return null;
+    const totalAberto = parcelaEditar.valor + parcelasPosteriores.reduce((s, x) => s + x.valor, 0);
+    const restante = +(totalAberto - (Number(parcelaEditForm.valor) || 0)).toFixed(2);
+    if (restante < 0) return null;
+    const base = +(restante / parcelasPosteriores.length).toFixed(2);
+    return parcelasPosteriores.map((x, i) => ({
+      parcela: x,
+      novoValor: i === parcelasPosteriores.length - 1
+        ? +(restante - base * (parcelasPosteriores.length - 1)).toFixed(2)
+        : base,
+    }));
+  }, [parcelaEditar, parcelaEditForm, parcelasPosteriores]);
+
+  const handleSalvarParcela = async () => {
+    if (!parcelaEditar) return;
+    const novoValor = Number(parcelaEditForm.valor) || 0;
+    if (novoValor <= 0) { toast.error("Informe um valor válido"); return; }
+    if (!parcelaEditForm.data_vencimento) { toast.error("Informe o vencimento"); return; }
+    if (parcelaEditForm.redistribuir && parcelasPosteriores.length > 0 && !previewRecalculo) {
+      toast.error("Valor maior que o saldo em aberto das parcelas seguintes");
+      return;
+    }
+
+    const atualizar = async (id: string, valor: number, venc?: string) => {
+      const payload: any = { valor };
+      if (venc) payload.data_vencimento = venc;
+      const { error } = await (supabase as any).from("juridico_parcelas").update(payload).eq("id", id);
+      if (error) throw error;
+      const cpPayload: any = { valor };
+      if (venc) cpPayload.data_vencimento = venc;
+      await (supabase as any).from("fin_contas_pagar").update(cpPayload).eq("juridico_parcela_id", id);
+    };
+
+    try {
+      await atualizar(parcelaEditar.id, novoValor, parcelaEditForm.data_vencimento);
+      if (previewRecalculo) {
+        for (const r of previewRecalculo) await atualizar(r.parcela.id, r.novoValor);
+      }
+      toast.success(previewRecalculo ? "Parcela alterada e demais recalculadas" : "Parcela alterada");
+      setParcelaEditar(null);
+      await loadParcelas();
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao alterar parcela");
+    }
+  };
+
+
+
   // Atualiza status visual de parcelas atrasadas (em memória)
   const parcelasComStatus = useMemo(() => {
     const hoje = new Date().toISOString().slice(0, 10);
