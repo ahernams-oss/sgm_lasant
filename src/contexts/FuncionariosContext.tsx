@@ -39,6 +39,8 @@ export interface Funcionario {
   foto: string;
   escolaridade: string; cursoFormacao: string;
   contatosEmergencia: ContatoEmergencia[]; pensaoAlimenticia: any;
+  conselhoClasse: string; conselhoNumero: string; conselhoDataExpedicao: string;
+  conselhoUf: string; conselhoAnexos: AnexoDocumento[];
 }
 
 
