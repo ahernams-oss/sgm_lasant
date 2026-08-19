@@ -324,7 +324,7 @@ export default function MateriaisServicosPage() {
         getNome={(m) => m.descricao}
       />
 
-    </div>
       <VinculosScoDialog material={vinculosMaterial} open={!!vinculosMaterial} onOpenChange={(v) => { if (!v) setVinculosMaterial(null); }} readOnly={!podeEditar} />
+    </div>
   );
 }
