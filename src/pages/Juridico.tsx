@@ -1673,6 +1673,57 @@ export default function JuridicoPage() {
           </DialogContent>
         </Dialog>
 
+        {/* ============ ALTERAR PARCELA ============ */}
+        <Dialog open={!!parcelaEditar} onOpenChange={v => { if (!v) setParcelaEditar(null); }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Alterar Parcela {parcelaEditar?.numero}</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Valor *</Label>
+                <Input type="number" step="0.01" value={parcelaEditForm.valor}
+                  onChange={e => setParcelaEditForm({ ...parcelaEditForm, valor: Number(e.target.value) })} />
+              </div>
+              <div>
+                <Label>Vencimento *</Label>
+                <Input type="date" value={parcelaEditForm.data_vencimento}
+                  onChange={e => setParcelaEditForm({ ...parcelaEditForm, data_vencimento: e.target.value })} />
+              </div>
+              <div className="md:col-span-2 flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <Label className="text-sm">Recalcular parcelas seguintes</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Mantém o total em aberto do processo, redistribuindo a diferença entre as {parcelasPosteriores.length} parcela(s) seguintes.
+                  </p>
+                </div>
+                <Switch checked={parcelaEditForm.redistribuir}
+                  onCheckedChange={v => setParcelaEditForm({ ...parcelaEditForm, redistribuir: v })} />
+              </div>
+              {parcelaEditForm.redistribuir && parcelasPosteriores.length === 0 && (
+                <p className="md:col-span-2 text-xs text-muted-foreground">Não há parcelas em aberto posteriores para recalcular.</p>
+              )}
+              {previewRecalculo && (
+                <div className="md:col-span-2 rounded-md border p-3 text-xs space-y-1 max-h-48 overflow-auto">
+                  <p className="font-semibold">Prévia do recálculo</p>
+                  {previewRecalculo.map(r => (
+                    <div key={r.parcela.id} className="flex justify-between">
+                      <span>Parcela {r.parcela.numero} — {r.parcela.data_vencimento ? new Date(r.parcela.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "-"}</span>
+                      <span className="text-muted-foreground">{fmt(r.parcela.valor)} → <span className="font-medium text-foreground">{fmt(r.novoValor)}</span></span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {parcelaEditForm.redistribuir && parcelasPosteriores.length > 0 && !previewRecalculo && (
+                <p className="md:col-span-2 text-xs text-destructive">Valor informado excede o saldo em aberto das parcelas seguintes.</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setParcelaEditar(null)}>Cancelar</Button>
+              <Button onClick={handleSalvarParcela}>Salvar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
         {/* ============ REGISTRAR PAGAMENTO ============ */}
         <Dialog open={!!parcelaPagar} onOpenChange={() => setParcelaPagar(null)}>
           <DialogContent className="max-w-lg">
