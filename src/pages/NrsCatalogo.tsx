@@ -8,10 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
-import { useNrsCatalogo, NrCatalogo } from "@/contexts/NrsCatalogoContext";
+import { useNrsCatalogo, NrCatalogo, NrRevisao } from "@/contexts/NrsCatalogoContext";
 import { usePermissao } from "@/hooks/usePermissao";
 
-const emptyForm = { codigo: "", descricao: "", validadeDias: "", anexoUrl: "", anexoNome: "" };
+const emptyForm = { codigo: "", descricao: "", validadeDias: "", anexoUrl: "", anexoNome: "", observacao: "", dataPublicacao: "", dataVigencia: "" };
+const emptyRev = { revisao: "", dataPublicacao: "", dataVigencia: "", observacao: "" };
+const fmtData = (d?: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
 
 
 
@@ -28,6 +30,8 @@ export default function NrsCatalogoPage() {
   const [pageSize, setPageSize] = useState(10);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const [uploading, setUploading] = useState(false);
+  const [revisoes, setRevisoes] = useState<NrRevisao[]>([]);
+  const [novaRev, setNovaRev] = useState(emptyRev);
 
   const handleUpload = async (file: File | undefined) => {
     if (!file) return;
@@ -48,7 +52,13 @@ export default function NrsCatalogoPage() {
   };
 
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
-  const reset = () => { setForm(emptyForm); setEditingId(null); };
+  const reset = () => { setForm(emptyForm); setEditingId(null); setRevisoes([]); setNovaRev(emptyRev); };
+
+  const addRevisao = () => {
+    if (!novaRev.revisao.trim()) { toast.error("Informe a revisão."); return; }
+    setRevisoes((p) => [...p, { ...novaRev, revisao: novaRev.revisao.trim() }]);
+    setNovaRev(emptyRev);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +71,10 @@ export default function NrsCatalogoPage() {
       validadeDias: form.validadeDias ? Number(form.validadeDias) : null,
       anexoUrl: form.anexoUrl || null,
       anexoNome: form.anexoNome || null,
+      observacao: form.observacao || null,
+      dataPublicacao: form.dataPublicacao || null,
+      dataVigencia: form.dataVigencia || null,
+      revisoes,
     };
     if (editingId) {
       await updateNr(editingId, payload);
@@ -74,7 +88,8 @@ export default function NrsCatalogoPage() {
 
   const startEdit = (nr: NrCatalogo) => {
     setEditingId(nr.id);
-    setForm({ codigo: nr.codigo, descricao: nr.descricao, validadeDias: nr.validadeDias != null ? String(nr.validadeDias) : "", anexoUrl: nr.anexoUrl ?? "", anexoNome: nr.anexoNome ?? "" });
+    setForm({ codigo: nr.codigo, descricao: nr.descricao, validadeDias: nr.validadeDias != null ? String(nr.validadeDias) : "", anexoUrl: nr.anexoUrl ?? "", anexoNome: nr.anexoNome ?? "", observacao: nr.observacao ?? "", dataPublicacao: nr.dataPublicacao ?? "", dataVigencia: nr.dataVigencia ?? "" });
+    setRevisoes(nr.revisoes ?? []);
   };
 
   const filtered = useMemo(() => {
@@ -128,6 +143,74 @@ export default function NrsCatalogoPage() {
                 <Input type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" disabled={uploading} onChange={(e) => handleUpload(e.target.files?.[0])} />
               )}
             </div>
+            <div className="md:col-span-3">
+              <label className="field-label">Data de Publicação</label>
+              <Input type="date" value={form.dataPublicacao} onChange={(e) => update("dataPublicacao", e.target.value)} />
+            </div>
+            <div className="md:col-span-3">
+              <label className="field-label">Data de Vigência</label>
+              <Input type="date" value={form.dataVigencia} onChange={(e) => update("dataVigencia", e.target.value)} />
+            </div>
+            <div className="md:col-span-6">
+              <label className="field-label">Observação</label>
+              <Textarea rows={2} value={form.observacao} onChange={(e) => update("observacao", e.target.value)} placeholder="Observações sobre a NR" />
+            </div>
+            <div className="md:col-span-6 rounded-lg border border-border p-3">
+              <p className="text-sm font-semibold text-primary mb-2">Revisões da NR</p>
+              {revisoes.length > 0 && (
+                <div className="rounded-md border border-border mb-3 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-32">Revisão</TableHead>
+                        <TableHead className="w-36">Publicação</TableHead>
+                        <TableHead className="w-36">Vigência</TableHead>
+                        <TableHead>Observação</TableHead>
+                        <TableHead className="w-16 text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {revisoes.map((r, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{r.revisao}</TableCell>
+                          <TableCell>{fmtData(r.dataPublicacao)}</TableCell>
+                          <TableCell>{fmtData(r.dataVigencia)}</TableCell>
+                          <TableCell className="text-sm">{r.observacao || "—"}</TableCell>
+                          <TableCell className="text-right">
+                            <Button type="button" size="icon" variant="ghost" className="text-destructive h-7 w-7" onClick={() => setRevisoes((p) => p.filter((_, idx) => idx !== i))}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                <div className="md:col-span-2">
+                  <label className="field-label">Revisão</label>
+                  <Input value={novaRev.revisao} onChange={(e) => setNovaRev((p) => ({ ...p, revisao: e.target.value }))} placeholder="Ex: 2022" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="field-label">Publicação</label>
+                  <Input type="date" value={novaRev.dataPublicacao} onChange={(e) => setNovaRev((p) => ({ ...p, dataPublicacao: e.target.value }))} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="field-label">Vigência</label>
+                  <Input type="date" value={novaRev.dataVigencia} onChange={(e) => setNovaRev((p) => ({ ...p, dataVigencia: e.target.value }))} />
+                </div>
+                <div className="md:col-span-4">
+                  <label className="field-label">Observação</label>
+                  <Input value={novaRev.observacao} onChange={(e) => setNovaRev((p) => ({ ...p, observacao: e.target.value }))} placeholder="Opcional" />
+                </div>
+                <div className="md:col-span-2">
+                  <Button type="button" variant="outline" className="w-full gap-2" onClick={addRevisao}>
+                    <Plus className="h-4 w-4" /> Revisão
+                  </Button>
+                </div>
+              </div>
+            </div>
             <div className="md:col-span-6">
               <label className="field-label">Descrição da NR *</label>
               <Textarea rows={2} value={form.descricao} onChange={(e) => update("descricao", e.target.value)} placeholder="Ex: Equipamentos de Proteção Individual" />
@@ -161,6 +244,9 @@ export default function NrsCatalogoPage() {
                     <TableHead className="w-32">Cod/Nome</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="w-36 text-center">Validade (dias)</TableHead>
+                    <TableHead className="w-32 text-center">Publicação</TableHead>
+                    <TableHead className="w-32 text-center">Vigência</TableHead>
+                    <TableHead className="w-24 text-center">Revisões</TableHead>
                     <TableHead className="w-24 text-center">Anexo</TableHead>
                     <TableHead className="w-24 text-right">Ações</TableHead>
                   </TableRow>
@@ -171,6 +257,9 @@ export default function NrsCatalogoPage() {
                       <TableCell className="font-medium">{nr.codigo}</TableCell>
                       <TableCell>{nr.descricao}</TableCell>
                       <TableCell className="text-center text-sm">{nr.validadeDias != null ? `${nr.validadeDias} dias` : "—"}</TableCell>
+                      <TableCell className="text-center text-sm">{fmtData(nr.dataPublicacao)}</TableCell>
+                      <TableCell className="text-center text-sm">{fmtData(nr.dataVigencia)}</TableCell>
+                      <TableCell className="text-center text-sm">{nr.revisoes?.length || 0}</TableCell>
                       <TableCell className="text-center">
                         {nr.anexoUrl ? (
                           <a href={nr.anexoUrl} target="_blank" rel="noreferrer" title={nr.anexoNome ?? "Anexo"} className="inline-flex text-primary hover:underline">
