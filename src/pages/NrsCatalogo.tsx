@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { ShieldCheck, Plus, Search, Trash2, Pencil, Paperclip, X, FileText } from "lucide-react";
+import { ShieldCheck, Plus, Search, Trash2, Pencil, Paperclip, X, FileText, FileDown, FileSpreadsheet } from "lucide-react";
+import { gerarPdfNrs, gerarExcelNrs } from "@/lib/gerarRelatorioNrs";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
