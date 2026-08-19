@@ -187,9 +187,9 @@ export default function VinculosScoDialog({ material, open, onOpenChange, readOn
 
       <DoubleConfirmDelete
         open={!!deleteId}
-        onCancel={cancelDelete}
+        onOpenChange={(v) => { if (!v) cancelDelete(); }}
         onConfirm={() => { if (deleteId) deleteVinculo(deleteId); cancelDelete(); }}
-        itemName="vínculo SCO"
+        title="Excluir vínculo SCO"
       />
     </>
   );
