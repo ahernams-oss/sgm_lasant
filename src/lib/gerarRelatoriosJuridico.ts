@@ -260,7 +260,7 @@ function sinteseReport(processos: any[], audiencias: any[]): ReportInput {
   linhas.push(["Audiências Agendadas", audiencias.filter((a) => a.status === "Agendada").length]);
   linhas.push(["Audiências Realizadas", audiencias.filter((a) => a.status === "Realizada").length]);
   return {
-    titulo: "Síntese do Contencioso Trabalhista",
+    titulo: "Síntese do Contencioso Jurídico",
     colunas: ["Indicador", "Valor"],
     linhas,
   };
