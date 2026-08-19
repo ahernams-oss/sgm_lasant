@@ -237,7 +237,7 @@ function ProtectedAppRoutes() {
         <Route path="/cargos" element={<RotaProtegida perm="cargos"><Cargos /></RotaProtegida>} />
         <Route path="/funcionarios" element={<RotaProtegida perm="funcionarios"><Funcionarios /></RotaProtegida>} />
         <Route path="/epis" element={<RotaProtegida perm="funcionarios"><EpisPage /></RotaProtegida>} />
-        <Route path="/cadastros/nrs" element={<RotaProtegida perm="cargos"><NrsCatalogoPage /></RotaProtegida>} />
+        <Route path="/cadastros/nrs" element={<RotaProtegida perm="cargos"><NrsCatalogoProvider><NrsCatalogoPage /></NrsCatalogoProvider></RotaProtegida>} />
         <Route path="/epis/catalogo" element={<RotaProtegida perm="cargos"><EpisCatalogoPage /></RotaProtegida>} />
         <Route path="/epis/recebimentos" element={<RotaProtegida perm="epi_recebimento_facial"><RelatorioRecebimentoEpis /></RotaProtegida>} />
         <Route path="/rh/treinamentos" element={<RotaProtegida perm="funcionarios"><Treinamentos /></RotaProtegida>} />
