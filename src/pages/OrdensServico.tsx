@@ -2035,7 +2035,7 @@ export default function OrdensServicoPage() {
                       <Label>Código</Label>
                       <div className="relative">
                         <Input
-                          placeholder="Código"
+                          placeholder="Código ou descrição (digite * para listar tudo)"
                           value={scoBusca}
                           onChange={e => { setScoBusca(e.target.value); setScoResultPage(1); }}
                         />
