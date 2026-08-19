@@ -293,9 +293,35 @@ export default function NrsCatalogoPage() {
         <div className="section-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <h2 className="section-title mb-0">NRs Cadastradas ({filtered.length})</h2>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar..." className="pl-9 h-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={async () => {
+                  if (!filtered.length) { toast.error("Nenhuma NR para exportar."); return; }
+                  await gerarPdfNrs(filtered, search ? `Filtro: ${search}` : undefined);
+                  toast.success("PDF gerado com sucesso.");
+                }}
+              >
+                <FileDown className="h-4 w-4" /> PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={() => {
+                  if (!filtered.length) { toast.error("Nenhuma NR para exportar."); return; }
+                  gerarExcelNrs(filtered);
+                  toast.success("Excel gerado com sucesso.");
+                }}
+              >
+                <FileSpreadsheet className="h-4 w-4" /> Excel
+              </Button>
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Pesquisar..." className="pl-9 h-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              </div>
             </div>
           </div>
 
