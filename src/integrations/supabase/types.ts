@@ -1448,6 +1448,7 @@ export type Database = {
           uf: string | null
           whatsapp_comercial: string | null
           whatsapp_compras: string | null
+          whatsapp_diretoria: string | null
           whatsapp_engenharia: string | null
           whatsapp_faturamento: string | null
           whatsapp_rh: string | null
@@ -1492,6 +1493,7 @@ export type Database = {
           uf?: string | null
           whatsapp_comercial?: string | null
           whatsapp_compras?: string | null
+          whatsapp_diretoria?: string | null
           whatsapp_engenharia?: string | null
           whatsapp_faturamento?: string | null
           whatsapp_rh?: string | null
@@ -1536,6 +1538,7 @@ export type Database = {
           uf?: string | null
           whatsapp_comercial?: string | null
           whatsapp_compras?: string | null
+          whatsapp_diretoria?: string | null
           whatsapp_engenharia?: string | null
           whatsapp_faturamento?: string | null
           whatsapp_rh?: string | null
