@@ -20,6 +20,10 @@ export interface MovimentacaoEstoque {
   depositoDestino: string;
   fornecedorNome: string;
   valorUnitario: number;
+  codSco: string;
+  descricaoSco: string;
+  quantidadeSco: number;
+  fatorConversao: number;
 }
 
 export interface ItemInventario {
@@ -92,6 +96,8 @@ const rowToMov = (r: any): MovimentacaoEstoque => ({
   depositoOrigem: r.deposito_origem ?? "", depositoDestino: r.deposito_destino ?? "",
   fornecedorNome: r.fornecedor_nome ?? "",
   valorUnitario: Number(r.valor_unitario ?? 0),
+  codSco: r.cod_sco ?? "", descricaoSco: r.descricao_sco ?? "",
+  quantidadeSco: Number(r.quantidade_sco ?? 0), fatorConversao: Number(r.fator_conversao ?? 1),
 });
 
 const rowToInv = (r: any): Inventario => ({
@@ -129,6 +135,8 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
       deposito_origem: data.depositoOrigem || "", deposito_destino: data.depositoDestino || "",
       fornecedor_nome: data.fornecedorNome || "",
       valor_unitario: data.valorUnitario || 0,
+      cod_sco: data.codSco || null, descricao_sco: data.descricaoSco || null,
+      quantidade_sco: data.quantidadeSco || null, fator_conversao: data.fatorConversao || null,
     });
     invMov();
   };

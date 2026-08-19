@@ -332,6 +332,7 @@ export default function EstoquePage() {
     setMovDocRef("");
     setMovObs("");
     setMovValorUnit("");
+    setMovVinculoId("");
     setMovDialogOpen(true);
   };
 
@@ -357,6 +358,9 @@ export default function EstoquePage() {
       documentoRef: movDocRef, observacao: movObs,
       usuario: usuarioLogado?.nome || "",
       lote: "", validade: "", depositoOrigem: "", depositoDestino: "", fornecedorNome: "", valorUnitario: valorUnit,
+      codSco: vinculoSel?.codSco || "", descricaoSco: vinculoSel?.descricaoSco || "",
+      quantidadeSco: vinculoSel ? qty * vinculoSel.fatorConversao : 0,
+      fatorConversao: vinculoSel?.fatorConversao || 1,
     });
     toast({ title: `${movTipo === "entrada" ? "Entrada" : "Saída"} registrada com sucesso` });
     setMovDialogOpen(false);
