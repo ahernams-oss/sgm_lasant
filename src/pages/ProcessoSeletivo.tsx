@@ -1101,6 +1101,10 @@ const ProcessoSeletivoPage = () => {
                                   categoriaCnh: dpDocs.cnhCategoria || "",
                                   validadeCnh: dpDocs.cnhValidade || "",
                                   certificadoReservista: dpDocs.reservistaNumero || "",
+                                  conselhoClasse: dpDocs.conselhoClasse || "",
+                                  conselhoNumero: dpDocs.conselhoNumero || "",
+                                  conselhoDataExpedicao: dpDocs.conselhoDataExpedicao || "",
+                                  conselhoUf: dpDocs.conselhoUf || "",
                                   dependentes: deps.map((d: any, i: number) => ({
                                     id: d.id || `dep-${i}`,
                                     nome: d.nome || "",

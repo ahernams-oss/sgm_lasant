@@ -30,6 +30,21 @@ export default function PortalFuncDocumentos() {
           <Field l="Endereço" v={`${f.logradouro || ""}, ${f.numero || ""} - ${f.bairro || ""} - ${f.cidade || ""}/${f.uf || ""}`} />
         </CardContent>
       </Card>
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Conselho de Classe</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Field l="Conselho" v={f.conselho_classe} />
+          <Field l="Nº de Registro" v={f.conselho_numero} />
+          <Field l="Data de Expedição" v={f.conselho_data_expedicao} />
+          <Field l="UF de Expedição" v={f.conselho_uf} />
+          <div className="col-span-2 md:col-span-4">
+            <div className="text-xs text-muted-foreground mb-1">Documentos anexados</div>
+            {(f.conselho_anexos || []).length === 0
+              ? <div className="text-sm">—</div>
+              : <ul className="text-sm list-disc pl-5">{(f.conselho_anexos || []).map((a: any) => <li key={a.id}>{a.nome}</li>)}</ul>}
+          </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader><CardTitle>Exames ASO</CardTitle></CardHeader>
         <CardContent>

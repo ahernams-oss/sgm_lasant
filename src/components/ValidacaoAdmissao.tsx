@@ -400,6 +400,10 @@ export default function ValidacaoAdmissao({ candidato, onExameChange, onDadosBan
                 <Row label="Certidão" value={dpDocs.certidaoNumero} />
                 <Row label="Tipo Certidão" value={dpDocs.certidaoTipo} />
                 <Row label="Emissão Certidão" value={dpDocs.certidaoEmissao} />
+                <Row label="Conselho de Classe" value={dpDocs.conselhoClasse} />
+                <Row label="Nº Registro Conselho" value={dpDocs.conselhoNumero} />
+                <Row label="Expedição Conselho" value={dpDocs.conselhoDataExpedicao} />
+                <Row label="UF Conselho" value={dpDocs.conselhoUf} />
               </div>
             </div>
 
