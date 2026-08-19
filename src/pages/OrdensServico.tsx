@@ -19,6 +19,7 @@ import { useSco } from "@/contexts/ScoContext";
 import { useI0 } from "@/contexts/I0Context";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
+import { useMaterialScoVinculos } from "@/contexts/MaterialScoVinculosContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
 import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
@@ -653,7 +654,12 @@ export default function OrdensServicoPage() {
       if (Array.isArray(os.materiaisEstoque) && os.materiaisEstoque.length > 0) {
         for (const mat of os.materiaisEstoque) {
           if ((Number(mat.quantidade) || 0) > 0) {
+            const vPadrao = getVinculoScoPadrao(mat.id);
             await registrarMovimentacao({
+              codSco: vPadrao?.codSco || "",
+              descricaoSco: vPadrao?.descricaoSco || "",
+              quantidadeSco: vPadrao ? (Number(mat.quantidade) || 0) * vPadrao.fatorConversao : 0,
+              fatorConversao: vPadrao?.fatorConversao || 1,
               materialId: mat.id,
               materialCodigo: mat.codigo,
               materialDescricao: mat.descricao,
