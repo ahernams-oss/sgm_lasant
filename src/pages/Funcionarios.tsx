@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, UniformeItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
+import { ConselhoClasseSection } from "@/components/ConselhoClasseSection";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
@@ -1103,6 +1104,15 @@ const Funcionarios = () => {
                     </Select>
                   </Field>
                 </div>
+
+                <ConselhoClasseSection
+                  conselhoClasse={form.conselhoClasse}
+                  conselhoNumero={form.conselhoNumero}
+                  conselhoDataExpedicao={form.conselhoDataExpedicao}
+                  conselhoUf={form.conselhoUf}
+                  conselhoAnexos={form.conselhoAnexos}
+                  onChange={(f, v) => update(f as any, v)}
+                />
 
                 {/* PERÍODO DE EXPERIÊNCIA */}
                 {form.tipoContrato === "CLT" && (
