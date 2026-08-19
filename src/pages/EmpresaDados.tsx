@@ -477,7 +477,9 @@ export default function EmpresaDados() {
             <Field label="WhatsApp SEGTRAB" field="whatsappSegtrab" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
             <Field label="WhatsApp Seleção" field="whatsappSelecao" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
             <Field label="WhatsApp Diretoria" field="whatsappDiretoria" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
+            <Field label="WhatsApp Coordenação" field="whatsappCoordenacao" placeholder="55119... ou ID do grupo" icon={MessageCircle} />
           </div>
+
         </CardContent>
       </Card>
 
