@@ -11,12 +11,18 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { NrFuncionario } from "@/contexts/FuncionariosContext";
+import { useNrsCatalogo } from "@/contexts/NrsCatalogoContext";
 import { toast } from "sonner";
 
-const NR_OPTIONS = Array.from({ length: 38 }, (_, i) => {
-  const num = String(i + 1).padStart(2, "0");
-  return `NR-${num}`;
-});
+const addDias = (data: string, dias: number | null | undefined) => {
+  if (!data || dias == null) return "";
+  const d = new Date(data + "T00:00:00");
+  if (isNaN(d.getTime())) return "";
+  d.setDate(d.getDate() + Number(dias));
+  return d.toISOString().slice(0, 10);
+};
+
+const fmtData = (d?: string) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
 
 const Field = ({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) => (
   <div className="space-y-1.5">
@@ -31,7 +37,23 @@ interface Props {
 }
 
 export function NRsFuncionarioTab({ nrs, onChange }: Props) {
-  const [novaNr, setNovaNr] = useState({ numero: "", descricao: "", dataEntrega: "" });
+  const { nrs: catalogo } = useNrsCatalogo();
+  const [novaNr, setNovaNr] = useState({ numero: "", descricao: "", dataEntrega: "", dataValidade: "" });
+
+  const selecionarNr = (codigo: string) => {
+    const cat = catalogo.find((c) => c.codigo === codigo);
+    setNovaNr((p) => ({
+      ...p,
+      numero: codigo,
+      descricao: cat?.descricao ?? p.descricao,
+      dataValidade: addDias(p.dataEntrega, cat?.validadeDias),
+    }));
+  };
+
+  const alterarDataEntrega = (data: string) => {
+    const cat = catalogo.find((c) => c.codigo === novaNr.numero);
+    setNovaNr((p) => ({ ...p, dataEntrega: data, dataValidade: addDias(data, cat?.validadeDias) }));
+  };
   const [pendingFile, setPendingFile] = useState<{ base64: string; nome: string; tipo: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formFileRef = useRef<HTMLInputElement>(null);
@@ -48,10 +70,11 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
       numero: novaNr.numero,
       descricao: novaNr.descricao,
       dataEntrega: novaNr.dataEntrega,
+      dataValidade: novaNr.dataValidade || undefined,
       ...(pendingFile ? { anexoBase64: pendingFile.base64, anexoNome: pendingFile.nome, anexoTipo: pendingFile.tipo } : {}),
     };
     onChange([...nrs, nova]);
-    setNovaNr({ numero: "", descricao: "", dataEntrega: "" });
+    setNovaNr({ numero: "", descricao: "", dataEntrega: "", dataValidade: "" });
     setPendingFile(null);
     if (formFileRef.current) formFileRef.current.value = "";
     toast.success("NR adicionada!");
@@ -131,15 +154,19 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-foreground/80">Número da NR *</Label>
-          <Select value={novaNr.numero} onValueChange={(v) => setNovaNr((p) => ({ ...p, numero: v }))}>
+          <Select value={novaNr.numero} onValueChange={selecionarNr}>
             <SelectTrigger><SelectValue placeholder="Selecione a NR" /></SelectTrigger>
             <SelectContent>
-              {NR_OPTIONS.map((nr) => (
-                <SelectItem key={nr} value={nr}>{nr}</SelectItem>
-              ))}
+              {catalogo.length === 0 ? (
+                <SelectItem value="__none" disabled>Nenhuma NR cadastrada</SelectItem>
+              ) : (
+                catalogo.map((nr) => (
+                  <SelectItem key={nr.id} value={nr.codigo}>{nr.codigo}</SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -156,8 +183,12 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
           <Input
             type="date"
             value={novaNr.dataEntrega}
-            onChange={(e) => setNovaNr((p) => ({ ...p, dataEntrega: e.target.value }))}
+            onChange={(e) => alterarDataEntrega(e.target.value)}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-foreground/80">Validade</Label>
+          <Input type="date" value={novaNr.dataValidade} readOnly className="bg-muted/40" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-foreground/80">Anexo</Label>
@@ -182,6 +213,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
                 <TableHead>Número</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Data Entrega</TableHead>
+                <TableHead>Validade</TableHead>
                 <TableHead>Anexo</TableHead>
                 <TableHead className="w-20 text-right">Ações</TableHead>
               </TableRow>
@@ -191,7 +223,8 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
                 <TableRow key={nr.id}>
                   <TableCell className="font-medium">{nr.numero}</TableCell>
                   <TableCell>{nr.descricao}</TableCell>
-                  <TableCell>{nr.dataEntrega || "—"}</TableCell>
+                  <TableCell>{fmtData(nr.dataEntrega)}</TableCell>
+                  <TableCell>{fmtData(nr.dataValidade)}</TableCell>
                   <TableCell>
                     {nr.anexoBase64 ? (
                       <div className="flex items-center gap-1">
