@@ -4887,6 +4887,33 @@ export type Database = {
           },
         ]
       }
+      nrs_catalogo: {
+        Row: {
+          codigo: string
+          created_at: string
+          data_validade: string | null
+          descricao: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          data_validade?: string | null
+          descricao: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          data_validade?: string | null
+          descricao?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       obras: {
         Row: {
           cliente_id: string
