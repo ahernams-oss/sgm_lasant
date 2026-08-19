@@ -9,6 +9,17 @@ export interface NrCatalogo {
   validadeDias: number | null;
   anexoUrl?: string | null;
   anexoNome?: string | null;
+  observacao?: string | null;
+  dataPublicacao?: string | null;
+  dataVigencia?: string | null;
+  revisoes?: NrRevisao[];
+}
+
+export interface NrRevisao {
+  revisao: string;
+  dataPublicacao?: string | null;
+  dataVigencia?: string | null;
+  observacao?: string | null;
 }
 
 interface Ctx {
@@ -27,6 +38,10 @@ const rowTo = (r: any): NrCatalogo => ({
   validadeDias: r.validade_dias ?? null,
   anexoUrl: r.anexo_url ?? null,
   anexoNome: r.anexo_nome ?? null,
+  observacao: r.observacao ?? null,
+  dataPublicacao: r.data_publicacao ?? null,
+  dataVigencia: r.data_vigencia ?? null,
+  revisoes: Array.isArray(r.revisoes) ? r.revisoes : [],
 });
 
 const toRow = (n: Omit<NrCatalogo, "id">) => ({
@@ -35,6 +50,10 @@ const toRow = (n: Omit<NrCatalogo, "id">) => ({
   validade_dias: n.validadeDias ?? null,
   anexo_url: n.anexoUrl ?? null,
   anexo_nome: n.anexoNome ?? null,
+  observacao: n.observacao ?? null,
+  data_publicacao: n.dataPublicacao || null,
+  data_vigencia: n.dataVigencia || null,
+  revisoes: n.revisoes ?? [],
 });
 
 
