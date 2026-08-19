@@ -305,9 +305,15 @@ const ExamesPage = () => {
                     </TableCell>
                     <TableCell>
                       {exame.anexo_aso_url ? (
-                        <a href={exame.anexo_aso_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                          <FileText className="h-4 w-4" />
-                        </a>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDownloadASO(exame.anexo_aso_url)}
+                          className="h-7 w-7 text-primary hover:text-primary"
+                          title="Baixar ASO"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
                       ) : (
                         <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors">
                           <Upload className="h-4 w-4" />
