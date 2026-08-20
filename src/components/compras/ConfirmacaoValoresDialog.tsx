@@ -117,6 +117,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [salvando, setSalvando] = useState(false);
   const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     if (!open) return;
