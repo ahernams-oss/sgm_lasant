@@ -387,6 +387,8 @@ export default function CotacaoComprasPage() {
       prazoEntrega: propPrazo,
       validadeProposta: propValidade,
       observacao: propObs,
+      valorFrete: Number(propFrete) || 0,
+      valorOperacao: Number(propOperacao) || 0,
       itens: propItens,
     };
     if (editingPropostaId) {
