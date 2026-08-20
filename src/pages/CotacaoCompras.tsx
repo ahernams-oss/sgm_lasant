@@ -646,11 +646,8 @@ export default function CotacaoComprasPage() {
 
     const usuario = usuarioLogado?.nome || "Comprador";
 
-    if (plano.itemizado) {
-      aprovarCotacao(plano.cotacaoId, plano.principalFornecedorId, plano.justificativa, plano.itensVencedores || []);
-    } else {
-      aprovarCotacao(plano.cotacaoId, plano.principalFornecedorId, plano.justificativa);
-    }
+
+
 
     const pedidosCriados: PedidoCompra[] = [];
     const linhasConfirmacao: any[] = [];
