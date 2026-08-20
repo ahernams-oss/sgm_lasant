@@ -561,9 +561,82 @@ export default function CotacaoComprasPage() {
       };
     }
 
-    setPlanoEmissao(plano);
+    // A aprovação (Diretoria/Coordenação) apenas homologa a cotação.
+    // A confirmação de valores e a emissão da OC ficam com o Time de Compras.
+    if (plano.itemizado) {
+      aprovarCotacao(plano.cotacaoId, plano.principalFornecedorId, plano.justificativa, plano.itensVencedores || []);
+    } else {
+      aprovarCotacao(plano.cotacaoId, plano.principalFornecedorId, plano.justificativa);
+    }
+    updateStatus(plano.requisicaoId, "Aprovada", usuarioLogado?.nome || "Aprovador",
+      "Cotação aprovada — aguardando confirmação de valores pelo Time de Compras");
+    notificarStatusReq(plano.requisicaoId, "APROVADA - AGUARDANDO CONFIRMAÇÃO DE VALORES", "Data da aprovação");
+
     setAprovarDialogOpen(false);
+    toast({ title: "Cotação aprovada!", description: "O Time de Compras deve confirmar os valores para emitir a Ordem de Compra." });
+  };
+
+  /** Reconstrói o plano de emissão de uma cotação já aprovada (uso do Time de Compras). */
+  const openConfirmacaoValores = (cot: CotacaoCompras) => {
+    const req = requisicoes.find(r => r.id === cot.requisicaoId);
+    if (!req) { toast({ title: "Requisição não encontrada", variant: "destructive" }); return; }
+
+    const itemizado = (cot.itensVencedores?.length ?? 0) > 0;
+    let plano: PlanoEmissao;
+
+    if (itemizado) {
+      const fornecedorIds = [...new Set(cot.itensVencedores.map(iv => iv.fornecedorId))];
+      plano = {
+        cotacaoId: cot.id,
+        requisicaoId: cot.requisicaoId,
+        requisicaoNumero: cot.requisicaoNumero,
+        localEntrega: req.localEntrega || "",
+        justificativa: cot.justificativaEscolha,
+        itemizado: true,
+        itensVencedores: cot.itensVencedores,
+        principalFornecedorId: fornecedorIds[0],
+        grupos: fornecedorIds.map(fornId => {
+          const prop = cot.propostas.find(p => p.fornecedorId === fornId)!;
+          const itemIds = cot.itensVencedores.filter(iv => iv.fornecedorId === fornId).map(iv => iv.itemId);
+          return {
+            fornecedorId: prop.fornecedorId,
+            fornecedorNome: prop.fornecedorNome,
+            condicaoPagamento: prop.condicaoPagamento,
+            prazoEntrega: prop.prazoEntrega,
+            itens: prop.itens.filter(i => itemIds.includes(i.itemId)).map(i => ({
+              itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+              unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario,
+            })),
+          };
+        }).filter(g => g.itens.length > 0),
+      };
+    } else {
+      const prop = cot.propostas.find(p => p.fornecedorId === cot.fornecedorVencedorId);
+      if (!prop) { toast({ title: "Proposta vencedora não encontrada", variant: "destructive" }); return; }
+      plano = {
+        cotacaoId: cot.id,
+        requisicaoId: cot.requisicaoId,
+        requisicaoNumero: cot.requisicaoNumero,
+        localEntrega: req.localEntrega || "",
+        justificativa: cot.justificativaEscolha,
+        itemizado: false,
+        principalFornecedorId: prop.fornecedorId,
+        grupos: [{
+          fornecedorId: prop.fornecedorId,
+          fornecedorNome: prop.fornecedorNome,
+          condicaoPagamento: prop.condicaoPagamento,
+          prazoEntrega: prop.prazoEntrega,
+          itens: prop.itens.map(i => ({
+            itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+            unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario,
+          })),
+        }],
+      };
+    }
+
+    setPlanoEmissao(plano);
     setConfirmacaoDialogOpen(true);
+
   };
 
   // === Emissão da OC após confirmação de valores ===
