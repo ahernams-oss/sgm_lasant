@@ -80,6 +80,8 @@ const menuItems = [
       { title: "Funcionários", url: "/funcionarios", icon: UserCheck, perm: "funcionarios" },
       { title: "EPIs", url: "/epis", icon: HardHat, perm: "funcionarios" },
       { title: "Recebimento de EPIs (Facial)", url: "/epis/recebimentos", icon: HardHat, perm: "epi_recebimento_facial" },
+      { title: "Devolução de EPIs", url: "/epis/devolucoes", icon: HardHat, perm: "funcionarios" },
+      { title: "Prontuário de EPIs", url: "/epis/prontuario", icon: HardHat, perm: "funcionarios" },
       { title: "Exames Periódicos", url: "/exames", icon: Stethoscope, perm: "funcionarios" },
       { title: "Mapa de Funcionários", url: "/mapa-funcionarios", icon: CalendarClock, perm: "mapa_funcionarios" },
       { title: "Mapa de Plantões", url: "/mapa-plantoes", icon: CalendarClock, perm: "mapa_funcionarios" },
