@@ -187,7 +187,17 @@ export default function PropostaFornecedorPage() {
   }
 
   if (submitted) {
-    return <SubmittedScreen numero={convite?.cotacao_numero} onDone={() => navigate("/portal-fornecedor")} />;
+    return (
+      <SubmittedScreen
+        numero={convite?.cotacao_numero}
+        subtotal={subtotalItens}
+        frete={Number(valorFrete) || 0}
+        operacao={Number(valorOperacao) || 0}
+        seguro={Number(valorSeguro) || 0}
+        total={valorTotal}
+        onDone={() => navigate("/portal-fornecedor")}
+      />
+    );
   }
 
   return (
@@ -377,8 +387,25 @@ export default function PropostaFornecedorPage() {
   );
 }
 
-function SubmittedScreen({ numero, onDone }: { numero?: number; onDone: () => void }) {
+function SubmittedScreen({
+  numero,
+  subtotal,
+  frete,
+  operacao,
+  seguro,
+  total,
+  onDone,
+}: {
+  numero?: number;
+  subtotal?: number;
+  frete?: number;
+  operacao?: number;
+  seguro?: number;
+  total?: number;
+  onDone: () => void;
+}) {
   const [secs, setSecs] = useState(3);
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   useEffect(() => {
     if (secs <= 0) { onDone(); return; }
     const t = setTimeout(() => setSecs(s => s - 1), 1000);
@@ -394,6 +421,15 @@ function SubmittedScreen({ numero, onDone }: { numero?: number; onDone: () => vo
             Sua proposta para a cotação COT-{String(numero).padStart(4, "0")} foi recebida com sucesso.
             O comprador será notificado automaticamente.
           </p>
+          {(total !== undefined) && (
+            <div className="rounded-lg border bg-muted/40 p-3 text-left space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal itens</span><span>{fmt(subtotal || 0)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Frete</span><span>{fmt(frete || 0)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Operação</span><span>{fmt(operacao || 0)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Seguro</span><span>{fmt(seguro || 0)}</span></div>
+              <div className="flex justify-between font-semibold border-t pt-1 mt-1"><span>Total</span><span>{fmt(total)}</span></div>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">Retornando ao Portal do Fornecedor em {secs}s...</p>
           <Button size="sm" onClick={onDone}>Voltar agora</Button>
         </CardContent>
@@ -401,3 +437,4 @@ function SubmittedScreen({ numero, onDone }: { numero?: number; onDone: () => vo
     </div>
   );
 }
+
