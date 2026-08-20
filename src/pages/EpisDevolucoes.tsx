@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { HardHat, Search, Plus, Trash2 } from "lucide-react";
+import { HardHat, Search, Plus, Trash2, ScanFace, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,7 @@ export default function EpisDevolucoes() {
   const { funcionarios } = useFuncionarios();
   const { clientes } = useClientes();
   const { cargos } = useCargos();
-  const { devolucoes, addDevolucao, deleteDevolucao } = useEpisDevolucoes();
+  const { devolucoes, addDevolucao, updateDevolucao, deleteDevolucao } = useEpisDevolucoes();
   const { usuarioLogado } = useAuth();
   const [delId, setDelId] = useState<string | null>(null);
 
@@ -48,6 +48,7 @@ export default function EpisDevolucoes() {
   const [condicao, setCondicao] = useState("Desgastado");
   const [destino, setDestino] = useState("Descarte");
   const [observacao, setObservacao] = useState("");
+  const [exigirFacial, setExigirFacial] = useState(true);
 
   const funcSel = funcionarios.find((f) => f.id === funcionarioId);
   const episFunc = ((funcSel?.epis as EpiItem[] | null) || []);
@@ -66,6 +67,37 @@ export default function EpisDevolucoes() {
     setFuncionarioId(""); setEpiItemId(""); setQuantidade("1");
     setDataDevolucao(new Date().toISOString().slice(0, 10));
     setMotivo("Desgaste"); setCondicao("Desgastado"); setDestino("Descarte"); setObservacao("");
+    setExigirFacial(true);
+  };
+
+  const gerarToken = () =>
+    crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 8);
+
+  const enviarLink = async (token: string, funcId: string, descricao: string) => {
+    const link = `${window.location.origin}/devolver-epis/${token}`;
+    const f = funcionarios.find((x) => x.id === funcId);
+    const fone = (f?.telefoneWhatsapp || f?.telefone || "").replace(/\D/g, "");
+    const msg = `Olá! Confirme a devolução do EPI "${descricao}" com reconhecimento facial pelo link seguro (válido por 7 dias): ${link}`;
+    try { await navigator.clipboard.writeText(link); } catch {}
+    if (fone) {
+      try {
+        const { enviarPlugSend } = await import("@/lib/plugsend");
+        const r = await enviarPlugSend(fone, msg);
+        if (r.success) { toast.success("Link de confirmação facial enviado por WhatsApp."); return; }
+      } catch { /* ignore */ }
+      toast.warning("Link gerado, mas o envio por WhatsApp falhou. Link copiado.");
+      return;
+    }
+    toast.info("Sem WhatsApp cadastrado. Link copiado para a área de transferência.");
+  };
+
+  const reenviarLink = async (d: any) => {
+    let token = d.token;
+    if (!token) {
+      token = gerarToken();
+      await updateDevolucao(d.id, { token, status: "aguardando_confirmacao" });
+    }
+    await enviarLink(token, d.funcionarioId, d.descricao);
   };
 
   const salvar = async () => {
@@ -74,6 +106,8 @@ export default function EpisDevolucoes() {
     if (!epi) { toast.error("Selecione o EPI a devolver."); return; }
     const qtd = Number(String(quantidade).replace(",", ".")) || 1;
     if (qtd <= 0) { toast.error("Quantidade inválida."); return; }
+
+    const token = exigirFacial ? gerarToken() : "";
 
     await addDevolucao({
       funcionarioId,
@@ -90,8 +124,15 @@ export default function EpisDevolucoes() {
       observacao,
       anexoPath: "",
       registradoPor: usuarioLogado?.nome || "",
+      token,
+      status: exigirFacial ? "aguardando_confirmacao" : "registrado",
+      telefoneEnvio: "",
+      confirmadoEm: "",
+      selfiePath: "",
+      selfiePath2: "",
     });
     toast.success("Devolução registrada no prontuário.");
+    if (exigirFacial && token) await enviarLink(token, funcionarioId, epi.descricao);
     limparForm();
     setOpen(false);
   };
@@ -175,7 +216,8 @@ export default function EpisDevolucoes() {
               <TableHead>Motivo</TableHead>
               <TableHead>Condição</TableHead>
               <TableHead>Destino</TableHead>
-              <TableHead className="w-14" />
+              <TableHead className="w-44 text-center">Confirmação facial</TableHead>
+              <TableHead className="w-24" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -192,16 +234,41 @@ export default function EpisDevolucoes() {
                 <TableCell><Badge variant="secondary">{d.motivo}</Badge></TableCell>
                 <TableCell>{d.condicao || "—"}</TableCell>
                 <TableCell>{d.destino || "—"}</TableCell>
+                <TableCell className="text-center">
+                  {d.status === "confirmado" ? (
+                    <Badge className="bg-green-600 hover:bg-green-600 text-white gap-1">
+                      <ScanFace className="h-3 w-3" /> Confirmada {d.confirmadoEm ? fmt(d.confirmadoEm) : ""}
+                    </Badge>
+                  ) : d.status === "verificado" ? (
+                    <Badge variant="secondary" className="gap-1"><ScanFace className="h-3 w-3" /> Em andamento</Badge>
+                  ) : d.token ? (
+                    <Badge variant="outline" className="gap-1"><ScanFace className="h-3 w-3" /> Aguardando</Badge>
+                  ) : (
+                    <Badge variant="outline">Sem validação facial</Badge>
+                  )}
+                </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDelId(d.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    {d.status !== "confirmado" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Enviar link de confirmação facial por WhatsApp"
+                        onClick={() => reenviarLink(d)}
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDelId(d.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-muted-foreground py-8">Nenhuma devolução registrada.</TableCell>
+                <TableCell colSpan={13} className="text-center text-muted-foreground py-8">Nenhuma devolução registrada.</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -282,6 +349,20 @@ export default function EpisDevolucoes() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{DESTINOS_EPI.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            <div className="col-span-2 flex items-start gap-2 rounded-md border p-3 bg-muted/30">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={exigirFacial}
+                onChange={(e) => setExigirFacial(e.target.checked)}
+              />
+              <div className="text-sm">
+                <span className="font-medium">Exigir confirmação por reconhecimento facial</span>
+                <p className="text-xs text-muted-foreground">
+                  Ao salvar, um link seguro (válido por 7 dias) é enviado por WhatsApp ao funcionário para confirmar a devolução com 2 selfies, igual ao recebimento de EPIs.
+                </p>
+              </div>
             </div>
             <div className="col-span-2 space-y-1">
               <Label>Observação</Label>

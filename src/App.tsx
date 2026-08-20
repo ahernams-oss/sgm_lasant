@@ -83,6 +83,7 @@ import EpisPage from "./pages/EpisPage.tsx";
 import EpisCatalogoPage from "./pages/EpisCatalogo.tsx";
 import NrsCatalogoPage from "./pages/NrsCatalogo.tsx";
 import ReceberEpis from "./pages/ReceberEpis.tsx";
+import DevolverEpis from "./pages/DevolverEpis.tsx";
 import RelatorioRecebimentoEpis from "./pages/RelatorioRecebimentoEpis.tsx";
 import EpisDevolucoes from "./pages/EpisDevolucoes.tsx";
 import ProntuarioEpis from "./pages/ProntuarioEpis.tsx";
@@ -583,6 +584,7 @@ const App = () => (
           <Route path="/portal-candidato/:processoId/:candidatoId" element={<PortalCandidato />} />
           <Route path="/equipamento/:id" element={<EquipamentoPublico />} />
           <Route path="/receber-epis/:token" element={<ReceberEpis />} />
+          <Route path="/devolver-epis/:token" element={<DevolverEpis />} />
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/app/orcamentos/instalar" element={<InstalarOrcamentos />} />
           <Route
