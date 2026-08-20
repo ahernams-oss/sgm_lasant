@@ -618,13 +618,13 @@ export default function NfesRecebidas() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Emissão</TableHead>
-                    <TableHead>Nº</TableHead>
-                    <TableHead>Prestador</TableHead>
-                    <TableHead>CNPJ</TableHead>
-                    <TableHead>Discriminação</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead>Origem</TableHead>
+                    <SortHead nfse campo="data_emissao">Emissão</SortHead>
+                    <SortHead nfse campo="numero">Nº</SortHead>
+                    <SortHead nfse campo="nome">Prestador</SortHead>
+                    <SortHead nfse campo="cnpj">CNPJ</SortHead>
+                    <SortHead nfse campo="discriminacao">Discriminação</SortHead>
+                    <SortHead nfse campo="valor_total" className="text-right">Valor</SortHead>
+                    <SortHead nfse campo="origem">Origem</SortHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
