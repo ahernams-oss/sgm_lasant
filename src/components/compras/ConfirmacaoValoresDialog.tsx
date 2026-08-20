@@ -334,15 +334,15 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[220px]">Item</TableHead>
-                <TableHead>Fornecedor</TableHead>
-                <TableHead className="text-right">Qtd</TableHead>
-                <TableHead className="text-right">Preço aprovado</TableHead>
-                <TableHead className="w-[180px]">Preço confirmado</TableHead>
-                <TableHead className="text-right">Variação</TableHead>
-                <TableHead className="w-[130px]">Alçada</TableHead>
-                <TableHead className="w-[170px]">Categoria</TableHead>
-                <TableHead className="min-w-[260px]">Justificativa</TableHead>
+                {visibilidadeColunas.item && <TableHead className="min-w-[220px]">Item</TableHead>}
+                {visibilidadeColunas.fornecedor && <TableHead>Fornecedor</TableHead>}
+                {visibilidadeColunas.quantidade && <TableHead className="text-right">Qtd</TableHead>}
+                {visibilidadeColunas.precoAprovado && <TableHead className="text-right">Preço aprovado</TableHead>}
+                {visibilidadeColunas.precoConfirmado && <TableHead className="w-[180px]">Preço confirmado</TableHead>}
+                {visibilidadeColunas.variacao && <TableHead className="text-right">Variação</TableHead>}
+                {visibilidadeColunas.alcada && <TableHead className="w-[130px]">Alçada</TableHead>}
+                {visibilidadeColunas.categoria && <TableHead className="w-[170px]">Categoria</TableHead>}
+                {visibilidadeColunas.justificativa && <TableHead className="min-w-[260px]">Justificativa</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -350,62 +350,72 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 const cat = categorias[l.key] ?? "Cost Avoidance";
                 return (
                   <TableRow key={l.key}>
-                    <TableCell className="text-sm">{l.descricao}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{l.fornecedorNome}</TableCell>
-                    <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>
-                    <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Input
-                          value={precos[l.key] ?? ""}
-                          onChange={e => setPreco(l.key, e.target.value)}
-                          inputMode="decimal"
-                          className="h-8 text-right"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 shrink-0"
-                          title="Sem variação: repetir o preço aprovado"
-                          onClick={() => manterPreco(l.key)}
+                    {visibilidadeColunas.item && <TableCell className="text-sm">{l.descricao}</TableCell>}
+                    {visibilidadeColunas.fornecedor && <TableCell className="text-xs text-muted-foreground">{l.fornecedorNome}</TableCell>}
+                    {visibilidadeColunas.quantidade && <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>}
+                    {visibilidadeColunas.precoAprovado && <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>}
+                    {visibilidadeColunas.precoConfirmado && (
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={precos[l.key] ?? ""}
+                            onChange={e => setPreco(l.key, e.target.value)}
+                            inputMode="decimal"
+                            className="h-8 text-right"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            title="Sem variação: repetir o preço aprovado"
+                            onClick={() => manterPreco(l.key)}
+                          >
+                            <BadgeCheck className="h-5 w-5 text-emerald-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.variacao && (
+                      <TableCell className={`text-right text-sm font-medium ${l.variacao < 0 ? "text-emerald-600" : l.variacao > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
+                        {brl(l.variacao)}
+                        <span className="block text-[10px] font-normal">{l.perc.toFixed(2)}%</span>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.alcada && (
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[10px] ${ALCADA_BADGE[l.alcada]}`}>
+                          {l.alcada === "Diretoria" ? "Diretoria" : l.alcada === "Expressa" ? "Expressa" : "Sem reajuste"}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.categoria && (
+                      <TableCell>
+                        <Select
+                          value={cat}
+                          onValueChange={(v: CategoriaVariacao) => {
+                            setManualCategoria(p => ({ ...p, [l.key]: true }));
+                            setCategorias(p => ({ ...p, [l.key]: v }));
+                          }}
                         >
-                          <BadgeCheck className="h-5 w-5 text-emerald-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className={`text-right text-sm font-medium ${l.variacao < 0 ? "text-emerald-600" : l.variacao > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
-                      {brl(l.variacao)}
-                      <span className="block text-[10px] font-normal">{l.perc.toFixed(2)}%</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`text-[10px] ${ALCADA_BADGE[l.alcada]}`}>
-                        {l.alcada === "Diretoria" ? "Diretoria" : l.alcada === "Expressa" ? "Expressa" : "Sem reajuste"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={cat}
-                        onValueChange={(v: CategoriaVariacao) => {
-                          setManualCategoria(p => ({ ...p, [l.key]: true }));
-                          setCategorias(p => ({ ...p, [l.key]: v }));
-                        }}
-                      >
-                        <SelectTrigger className="h-8 text-left"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <Badge variant="outline" className={`mt-1 text-[10px] ${CATEGORIA_BADGE[cat]}`}>{cat}</Badge>
-                    </TableCell>
-                    <TableCell className="min-w-[260px]">
-                      <Input
-                        value={justificativas[l.key] ?? ""}
-                        onChange={e => setJustificativas(p => ({ ...p, [l.key]: e.target.value }))}
-                        placeholder={l.alcada === "Diretoria" ? "Obrigatória (acima da alçada)" : "Opcional"}
-                        className="h-8 w-full"
-                      />
-                    </TableCell>
+                          <SelectTrigger className="h-8 text-left"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Badge variant="outline" className={`mt-1 text-[10px] ${CATEGORIA_BADGE[cat]}`}>{cat}</Badge>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.justificativa && (
+                      <TableCell className="min-w-[260px]">
+                        <Input
+                          value={justificativas[l.key] ?? ""}
+                          onChange={e => setJustificativas(p => ({ ...p, [l.key]: e.target.value }))}
+                          placeholder={l.alcada === "Diretoria" ? "Obrigatória (acima da alçada)" : "Opcional"}
+                          className="h-8 w-full"
+                        />
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
