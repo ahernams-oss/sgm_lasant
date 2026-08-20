@@ -125,10 +125,19 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
     },
   });
 
+  const finalY = (doc as any).lastAutoTable.finalY + 20;
+  const ph = doc.internal.pageSize.getHeight();
+  if (finalY < ph - 30) {
+    doc.setFontSize(8);
+    doc.line(20, finalY, 90, finalY);
+    doc.text("Funcionário", 45, finalY + 4);
+    doc.line(pw - 90, finalY, pw - 20, finalY);
+    doc.text("Responsável SESMT", pw - 65, finalY + 4);
+  }
+
   // ===== Registros fotográficos e hashes =====
   const comEvidencia = d.eventos.filter((e) => (e.fotos && e.fotos.length) || (e.hashes && e.hashes.length));
   if (comEvidencia.length) {
-    const phg = doc.internal.pageSize.getHeight();
     doc.addPage();
     let ey = 16;
     doc.setFont("helvetica", "bold");
@@ -144,7 +153,7 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
 
     comEvidencia.forEach((e) => {
       const blocoH = 52;
-      if (ey + blocoH > phg - 18) { doc.addPage(); ey = 16; }
+      if (ey + blocoH > ph - 18) { doc.addPage(); ey = 16; }
       doc.setDrawColor(200);
       doc.rect(10, ey, pw - 20, blocoH);
       doc.setFont("helvetica", "bold");
@@ -168,16 +177,6 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
     });
   }
 
-  const finalY = (doc as any).lastAutoTable.finalY + 20;
-
-  const ph = doc.internal.pageSize.getHeight();
-  if (finalY < ph - 30) {
-    doc.setFontSize(8);
-    doc.line(20, finalY, 90, finalY);
-    doc.text("Funcionário", 45, finalY + 4);
-    doc.line(pw - 90, finalY, pw - 20, finalY);
-    doc.text("Responsável SESMT", pw - 65, finalY + 4);
-  }
 
   doc.save(`Prontuario_EPIs_${d.funcionarioNome.replace(/\s+/g, "_")}.pdf`);
 }
