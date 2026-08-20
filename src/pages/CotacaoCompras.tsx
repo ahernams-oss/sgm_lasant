@@ -39,7 +39,7 @@ import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
-import ConfirmacaoValoresDialog, { AjusteConfirmacao, ItemConfirmacao, MetaConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
+import ConfirmacaoValoresDialog, { AjusteConfirmacao, AlternativaFornecedor, ItemConfirmacao, MetaConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
 import { LIMITE_ALCADA_PERCENTUAL, calcularDiasAtraso, calcularImpactoAtraso } from "@/lib/alcadaReajuste";
 import { useConfirmacoesValores } from "@/hooks/useConfirmacoesValores";
 
@@ -62,6 +62,8 @@ interface PlanoEmissao {
   principalFornecedorId: string;
   grupos: GrupoEmissao[];
   dataAprovacao?: string;
+  /** Todas as propostas da cotação — base para redirecionar itens a outro fornecedor. */
+  propostas?: GrupoEmissao[];
 }
 
 const statusColors: Record<string, string> = {
@@ -193,16 +195,32 @@ export default function CotacaoComprasPage() {
 
   const itensConfirmacao: ItemConfirmacao[] = useMemo(() => {
     if (!planoEmissao) return [];
-    return planoEmissao.grupos.flatMap(g => g.itens.map(i => ({
-      key: `${g.fornecedorId}::${i.itemId}`,
-      itemId: i.itemId,
-      descricao: i.descricao,
-      quantidade: i.quantidade,
-      unidadeMedida: i.unidadeMedida,
-      precoAprovado: i.precoUnitario,
-      fornecedorId: g.fornecedorId,
-      fornecedorNome: g.fornecedorNome,
-    })));
+    const propostas = planoEmissao.propostas ?? [];
+    return planoEmissao.grupos.flatMap(g => g.itens.map(i => {
+      const alternativas: AlternativaFornecedor[] = [
+        { fornecedorId: g.fornecedorId, fornecedorNome: g.fornecedorNome, precoUnitario: i.precoUnitario },
+        ...propostas
+          .filter(p => p.fornecedorId !== g.fornecedorId)
+          .map(p => {
+            const li = p.itens.find(x => x.itemId === i.itemId);
+            return li && li.precoUnitario > 0
+              ? { fornecedorId: p.fornecedorId, fornecedorNome: p.fornecedorNome, precoUnitario: li.precoUnitario }
+              : null;
+          })
+          .filter(Boolean) as AlternativaFornecedor[],
+      ];
+      return {
+        key: `${g.fornecedorId}::${i.itemId}`,
+        itemId: i.itemId,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida,
+        precoAprovado: i.precoUnitario,
+        fornecedorId: g.fornecedorId,
+        fornecedorNome: g.fornecedorNome,
+        alternativas,
+      };
+    }));
   }, [planoEmissao]);
 
   // Proposta form
@@ -636,6 +654,17 @@ export default function CotacaoComprasPage() {
         }],
       };
     }
+
+    plano.propostas = cot.propostas.map(p => ({
+      fornecedorId: p.fornecedorId,
+      fornecedorNome: p.fornecedorNome,
+      condicaoPagamento: p.condicaoPagamento,
+      prazoEntrega: p.prazoEntrega,
+      itens: p.itens.map(i => ({
+        itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario,
+      })),
+    }));
 
     const histAprov = [...(req.historicoStatus || [])].reverse().find(h => (h.status || "").startsWith("Aprovada"));
     plano.dataAprovacao = histAprov?.dataHora;
