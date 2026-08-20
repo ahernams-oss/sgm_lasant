@@ -83,6 +83,27 @@ export default function DashboardCompras() {
   const [filters, setFilters] = useState<DashboardFiltersState>(() => loadDashboardFilters("dashboard-compras:filters"));
   const [tipoFiltro, setTipoFiltro] = useState<"todos" | "Material" | "Serviço">("todos");
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const { confirmacoes } = useConfirmacoesValores();
+
+  const savingMetrics = useMemo(() => {
+    let saving = 0, avoidance = 0, reajuste = 0;
+    confirmacoes.forEach(c => {
+      if (c.categoria === "Saving") saving += Math.max(0, -c.variacaoValor);
+      else if (c.categoria === "Reajuste") reajuste += Math.max(0, c.variacaoValor);
+      else avoidance += c.valorConfirmado;
+    });
+    const liquido = reajuste - saving;
+    const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    return {
+      saving, avoidance, reajuste, liquido,
+      savingFmt: brl(saving), avoidanceFmt: brl(avoidance), reajusteFmt: brl(reajuste), liquidoFmt: brl(liquido),
+      chart: [
+        { name: "Saving", value: saving, color: "#10b981" },
+        { name: "Cost Avoidance", value: avoidance, color: "#3b82f6" },
+        { name: "Reajuste", value: reajuste, color: "#f59e0b" },
+      ],
+    };
+  }, [confirmacoes]);
 
   // Helper: tipo de um item (Material/Serviço) baseado no cadastro
   const tipoDoItem = useCallback((itemId: string): "Material" | "Serviço" => {
