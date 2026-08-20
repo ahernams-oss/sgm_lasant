@@ -18,7 +18,7 @@ import {
   DESTINOS_EPI,
 } from "@/contexts/EpisDevolucoesContext";
 import { useAuth } from "@/contexts/AuthContext";
-import DoubleConfirmDelete from "@/components/DoubleConfirmDelete";
+import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
 
@@ -29,7 +29,8 @@ export default function EpisDevolucoes() {
   const { clientes } = useClientes();
   const { cargos } = useCargos();
   const { devolucoes, addDevolucao, deleteDevolucao } = useEpisDevolucoes();
-  const auth = useAuth() as any;
+  const { usuarioLogado } = useAuth();
+  const [delId, setDelId] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -88,7 +89,7 @@ export default function EpisDevolucoes() {
       destino,
       observacao,
       anexoPath: "",
-      registradoPor: auth?.usuario?.nome || auth?.user?.nome || "",
+      registradoPor: usuarioLogado?.nome || "",
     });
     toast.success("Devolução registrada no prontuário.");
     limparForm();
@@ -192,15 +193,9 @@ export default function EpisDevolucoes() {
                 <TableCell>{d.condicao || "—"}</TableCell>
                 <TableCell>{d.destino || "—"}</TableCell>
                 <TableCell>
-                  <DoubleConfirmDelete
-                    itemName={`devolução de ${d.descricao}`}
-                    onConfirm={() => deleteDevolucao(d.id)}
-                    trigger={
-                      <Button variant="ghost" size="icon" className="text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
+                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDelId(d.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -219,6 +214,13 @@ export default function EpisDevolucoes() {
         onPageChange={setPage}
         pageSize={pageSize}
         onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+      />
+
+      <DoubleConfirmDelete
+        open={!!delId}
+        onOpenChange={(v) => !v && setDelId(null)}
+        onConfirm={() => { if (delId) deleteDevolucao(delId); setDelId(null); }}
+        title="Excluir devolução de EPI"
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
