@@ -329,6 +329,29 @@ export default function ProntuarioEpis() {
                         <span className="text-xs text-muted-foreground ml-auto">{fmt(ev.data)}</span>
                       </div>
                       {ev.detalhe && <p className="text-xs text-muted-foreground mt-0.5">{ev.detalhe}</p>}
+                      {ev.evidencia ? (
+                        <div className="mt-1.5 rounded-md border border-dashed p-2 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-[10px]">Reconhecimento facial</Badge>
+                            {ev.evidencia.confirmadoEm && (
+                              <span className="text-[11px] text-muted-foreground">
+                                Confirmado em {new Date(ev.evidencia.confirmadoEm).toLocaleString("pt-BR")}
+                              </span>
+                            )}
+                            {ev.evidencia.ip && <span className="text-[11px] text-muted-foreground">IP {ev.evidencia.ip}</span>}
+                            {ev.evidencia.paths.length > 0 && (
+                              <Button size="sm" variant="outline" className="h-6 px-2 ml-auto" onClick={() => abrirFotos(ev)}>
+                                <Camera className="h-3 w-3 mr-1" /> Ver fotos ({ev.evidencia.paths.length})
+                              </Button>
+                            )}
+                          </div>
+                          {ev.evidencia.hashes.map((h, hi) => (
+                            <p key={hi} className="text-[10px] font-mono text-muted-foreground break-all">
+                              Hash foto {hi + 1}: {h}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -340,6 +363,31 @@ export default function ProntuarioEpis() {
           </Card>
         </>
       )}
+
+      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Registro fotográfico — {preview?.ev.tipo} de {preview?.ev.descricao}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {preview?.urls.map((u, i) => (
+              <div key={i} className="space-y-1">
+                <img src={u} alt={`Registro facial ${i + 1}`} className="w-full rounded-md border" />
+                <p className="text-[10px] font-mono text-muted-foreground break-all">
+                  Hash: {preview.ev.evidencia?.hashes[i] || "—"}
+                </p>
+                <Button size="sm" variant="outline" className="h-7"
+                  onClick={() => baixarFoto(u, `epi-${preview.ev.tipo.toLowerCase()}-${i + 1}.jpg`)}>
+                  <Download className="h-3 w-3 mr-1" /> Baixar
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
