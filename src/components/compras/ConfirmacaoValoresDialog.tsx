@@ -43,6 +43,18 @@ export interface MetaConfirmacao {
 
 const CATEGORIAS: CategoriaVariacao[] = ["Saving", "Cost Avoidance", "Reajuste"];
 
+const COLUNAS: ColumnDef[] = [
+  { key: "item", label: "Item" },
+  { key: "fornecedor", label: "Fornecedor" },
+  { key: "quantidade", label: "Qtd" },
+  { key: "precoAprovado", label: "Preço aprovado" },
+  { key: "precoConfirmado", label: "Preço confirmado" },
+  { key: "variacao", label: "Variação" },
+  { key: "alcada", label: "Alçada" },
+  { key: "categoria", label: "Categoria" },
+  { key: "justificativa", label: "Justificativa" },
+];
+
 const CATEGORIA_BADGE: Record<CategoriaVariacao, string> = {
   "Saving": "bg-emerald-100 text-emerald-700 border-emerald-200",
   "Cost Avoidance": "bg-blue-100 text-blue-700 border-blue-200",
