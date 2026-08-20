@@ -2427,6 +2427,13 @@ export default function CotacaoComprasPage() {
 
         </DialogContent>
       </Dialog>
+
+      <ConfirmacaoValoresDialog
+        open={confirmacaoDialogOpen}
+        onOpenChange={(o) => { setConfirmacaoDialogOpen(o); if (!o) setPlanoEmissao(null); }}
+        itens={itensConfirmacao}
+        onConfirm={handleConfirmarValores}
+      />
     </div>
   );
 }
