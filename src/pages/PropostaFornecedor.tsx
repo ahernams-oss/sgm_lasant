@@ -187,7 +187,17 @@ export default function PropostaFornecedorPage() {
   }
 
   if (submitted) {
-    return <SubmittedScreen numero={convite?.cotacao_numero} onDone={() => navigate("/portal-fornecedor")} />;
+    return (
+      <SubmittedScreen
+        numero={convite?.cotacao_numero}
+        subtotal={subtotalItens}
+        frete={Number(valorFrete) || 0}
+        operacao={Number(valorOperacao) || 0}
+        seguro={Number(valorSeguro) || 0}
+        total={valorTotal}
+        onDone={() => navigate("/portal-fornecedor")}
+      />
+    );
   }
 
   return (
