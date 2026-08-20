@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    let inseridas = 0, atualizadas = 0, nfse = 0, erros = 0;
+    const nfeRows: any[] = [];
+    const nfseRows: any[] = [];
 
     for (const n of notas) {
       const chave = String(n.Chave || n.chave || "").trim();
@@ -61,55 +62,67 @@ Deno.serve(async (req) => {
       const status = STATUS_MAP[String(n.Status)] || (n.Status != null ? String(n.Status) : null);
       const isNfse = modelo !== 55 && modelo !== 65;
 
-      try {
-        if (isNfse) {
-          const row = {
-            empresa_id: empresaId,
-            chave,
-            numero: String(n.Numero ?? ""),
-            serie: String(n.Serie ?? ""),
-            prestador_cnpj: digitsOnly(n.CnpjEmissor || ""),
-            prestador_nome: n.NomeEmissor || "",
-            tomador_cnpj: digitsOnly(n.CnpjDestinatario || ""),
-            valor_servicos: Number(n.Valor) || 0,
-            valor_total: Number(n.Valor) || 0,
-            data_emissao: n.DtEmissao || null,
-            data_recebimento: n.DtRecebimento || null,
-            status,
-            origem: "brasilnfe",
-            payload: n,
-          };
-          const { data: ex } = await admin.from("nfses_tomadas").select("id").eq("chave", chave).maybeSingle();
-          if (ex?.id) { await admin.from("nfses_tomadas").update(row).eq("id", ex.id); atualizadas++; }
-          else { await admin.from("nfses_tomadas").insert(row); inseridas++; }
-          nfse++;
-        } else {
-          const row = {
-            empresa_id: empresaId,
-            chave,
-            numero: String(n.Numero ?? ""),
-            serie: String(n.Serie ?? ""),
-            emitente_cnpj: digitsOnly(n.CnpjEmissor || ""),
-            emitente_nome: n.NomeEmissor || "",
-            destinatario_cnpj: digitsOnly(n.CnpjDestinatario || ""),
-            valor_total: Number(n.Valor) || 0,
-            data_emissao: n.DtEmissao || null,
-            data_recebimento: n.DtRecebimento || null,
-            status,
-            payload: n,
-          };
-          const { data: ex } = await admin.from("nfes_recebidas").select("id").eq("chave", chave).maybeSingle();
-          if (ex?.id) { await admin.from("nfes_recebidas").update(row).eq("id", ex.id); atualizadas++; }
-          else { await admin.from("nfes_recebidas").insert(row); inseridas++; }
-        }
-      } catch (e) {
-        erros++;
-        console.error("importar-nfes-brasilnfe item erro:", chave, (e as Error).message);
+      if (isNfse) {
+        nfseRows.push({
+          empresa_id: empresaId,
+          chave,
+          numero: String(n.Numero ?? ""),
+          serie: String(n.Serie ?? ""),
+          prestador_cnpj: digitsOnly(n.CnpjEmissor || ""),
+          prestador_nome: n.NomeEmissor || "",
+          tomador_cnpj: digitsOnly(n.CnpjDestinatario || ""),
+          valor_servicos: Number(n.Valor) || 0,
+          valor_total: Number(n.Valor) || 0,
+          data_emissao: n.DtEmissao || null,
+          data_recebimento: n.DtRecebimento || null,
+          status,
+          origem: "brasilnfe",
+          payload: n,
+        });
+      } else {
+        nfeRows.push({
+          empresa_id: empresaId,
+          chave,
+          numero: String(n.Numero ?? ""),
+          serie: String(n.Serie ?? ""),
+          emitente_cnpj: digitsOnly(n.CnpjEmissor || ""),
+          emitente_nome: n.NomeEmissor || "",
+          destinatario_cnpj: digitsOnly(n.CnpjDestinatario || ""),
+          valor_total: Number(n.Valor) || 0,
+          data_emissao: n.DtEmissao || null,
+          data_recebimento: n.DtRecebimento || null,
+          status,
+          payload: n,
+        });
       }
     }
 
-    console.log(`importar-nfes-brasilnfe: ${notas.length} doc(s) — ${inseridas} novas, ${atualizadas} atualizadas`);
-    return json({ ok: true, total: notas.length, inseridas, atualizadas, nfse, erros, provider: "Brasil NFe" });
+    // dedup por chave (a API pode repetir)
+    const dedup = (rows: any[]) => Array.from(new Map(rows.map((r) => [r.chave, r])).values());
+
+    let gravadas = 0, erros = 0;
+    const CHUNK = 200;
+
+    const upsertAll = async (table: string, rows: any[]) => {
+      const list = dedup(rows);
+      for (let i = 0; i < list.length; i += CHUNK) {
+        const slice = list.slice(i, i + CHUNK);
+        const { error } = await admin.from(table).upsert(slice, { onConflict: "chave" });
+        if (error) {
+          erros += slice.length;
+          console.error(`importar-nfes-brasilnfe upsert ${table} erro:`, error.message);
+        } else {
+          gravadas += slice.length;
+        }
+      }
+      return list.length;
+    };
+
+    const totalNfse = await upsertAll("nfses_tomadas", nfseRows);
+    await upsertAll("nfes_recebidas", nfeRows);
+
+    console.log(`importar-nfes-brasilnfe: ${notas.length} doc(s) — ${gravadas} gravadas, ${erros} erros`);
+    return json({ ok: true, total: notas.length, gravadas, inseridas: gravadas, atualizadas: 0, nfse: totalNfse, erros, provider: "Brasil NFe" });
   } catch (e) {
     console.error("importar-nfes-brasilnfe erro:", e);
     return json({ ok: false, error: (e as Error).message || "Erro inesperado" }, 500);
