@@ -401,7 +401,7 @@ export default function NfesRecebidas() {
 
 
 
-  const filtrados = useMemo(() => rows.filter(r => {
+  const filtradosBase = useMemo(() => rows.filter(r => {
     if (busca) {
       const q = busca.toLowerCase();
       const hay = `${r.chave} ${r.numero ?? ""} ${r.emitente_nome ?? ""} ${r.emitente_cnpj ?? ""}`.toLowerCase();
@@ -412,7 +412,7 @@ export default function NfesRecebidas() {
     return true;
   }), [rows, busca, dataIni, dataFim]);
 
-  const filtradosNfse = useMemo(() => nfses.filter(r => {
+  const filtradosNfseBase = useMemo(() => nfses.filter(r => {
     if (busca) {
       const q = busca.toLowerCase();
       const hay = `${r.chave} ${r.numero ?? ""} ${r.prestador_nome ?? ""} ${r.prestador_cnpj ?? ""} ${r.discriminacao ?? ""}`.toLowerCase();
@@ -422,6 +422,61 @@ export default function NfesRecebidas() {
     if (dataFim && r.data_emissao && r.data_emissao.slice(0, 10) > dataFim) return false;
     return true;
   }), [nfses, busca, dataIni, dataFim]);
+
+  // ---- Ordenação por coluna ----
+  const [ordem, setOrdem] = useState<{ campo: string; dir: "asc" | "desc" }>({ campo: "data_emissao", dir: "desc" });
+  const [ordemNfse, setOrdemNfse] = useState<{ campo: string; dir: "asc" | "desc" }>({ campo: "data_emissao", dir: "desc" });
+
+  const toggleOrdem = (campo: string, nfse = false) => {
+    const set = nfse ? setOrdemNfse : setOrdem;
+    const atual = nfse ? ordemNfse : ordem;
+    set(atual.campo === campo ? { campo, dir: atual.dir === "asc" ? "desc" : "asc" } : { campo, dir: "asc" });
+    setPage(1);
+  };
+
+  const valorOrdem = (r: any, campo: string, nfse: boolean) => {
+    switch (campo) {
+      case "data_emissao": return r.data_emissao || "";
+      case "numero": return Number(numeroSerie(r).split("/")[0]) || 0;
+      case "nome": return String((nfse ? r.prestador_nome : r.emitente_nome) || "").toLowerCase();
+      case "cnpj": return String((nfse ? r.prestador_cnpj : r.emitente_cnpj) || "");
+      case "discriminacao": return String(r.discriminacao || "").toLowerCase();
+      case "valor_total": return Number(r.valor_total) || 0;
+      case "status": return String(r.status || "").toLowerCase();
+      case "origem": return String(r.origem || "").toLowerCase();
+      default: return "";
+    }
+  };
+
+  const ordenar = (list: any[], o: { campo: string; dir: "asc" | "desc" }, nfse: boolean) =>
+    [...list].sort((a, b) => {
+      const va = valorOrdem(a, o.campo, nfse);
+      const vb = valorOrdem(b, o.campo, nfse);
+      const cmp = typeof va === "number" && typeof vb === "number"
+        ? va - vb
+        : String(va).localeCompare(String(vb), "pt-BR");
+      return o.dir === "asc" ? cmp : -cmp;
+    });
+
+  const filtrados = useMemo(() => ordenar(filtradosBase, ordem, false), [filtradosBase, ordem]);
+  const filtradosNfse = useMemo(() => ordenar(filtradosNfseBase, ordemNfse, true), [filtradosNfseBase, ordemNfse]);
+
+  const SortHead = ({ campo, nfse, className, children }: { campo: string; nfse?: boolean; className?: string; children: React.ReactNode }) => {
+    const o = nfse ? ordemNfse : ordem;
+    const ativo = o.campo === campo;
+    return (
+      <TableHead className={className}>
+        <button
+          type="button"
+          onClick={() => toggleOrdem(campo, nfse)}
+          className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${ativo ? "text-foreground font-semibold" : ""}`}
+        >
+          {children}
+          <ArrowUpDown className={`h-3 w-3 ${ativo ? "opacity-100" : "opacity-40"}`} />
+        </button>
+      </TableHead>
+    );
+  };
 
   useEffect(() => { setPage(1); }, [busca, dataIni, dataFim, pageSize, tab]);
 
