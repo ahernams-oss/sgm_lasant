@@ -54,6 +54,7 @@ export default function PropostaFornecedorPage() {
   const [observacao, setObservacao] = useState("");
   const [valorFrete, setValorFrete] = useState<number | "">("");
   const [valorOperacao, setValorOperacao] = useState<number | "">("");
+  const [valorSeguro, setValorSeguro] = useState<number | "">("");
 
   useEffect(() => {
     if (!token) return;
@@ -104,8 +105,8 @@ export default function PropostaFornecedorPage() {
 
   const subtotalItens = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
   const valorTotal = useMemo(
-    () => subtotalItens + (Number(valorFrete) || 0) + (Number(valorOperacao) || 0),
-    [subtotalItens, valorFrete, valorOperacao]
+    () => subtotalItens + (Number(valorFrete) || 0) + (Number(valorOperacao) || 0) + (Number(valorSeguro) || 0),
+    [subtotalItens, valorFrete, valorOperacao, valorSeguro]
   );
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -133,6 +134,7 @@ export default function PropostaFornecedorPage() {
         observacao,
         valor_frete: Number(valorFrete) || 0,
         valor_operacao: Number(valorOperacao) || 0,
+        valor_seguro: Number(valorSeguro) || 0,
         itens: itens.map(i => ({
           itemId: i.itemId,
           descricao: i.descricao,
@@ -281,7 +283,7 @@ export default function PropostaFornecedorPage() {
             </div>
             <div className="text-right mt-3 space-y-1">
               <div className="text-sm text-muted-foreground">
-                Subtotal itens: {formatCurrency(subtotalItens)} • Frete: {formatCurrency(Number(valorFrete) || 0)} • Operação: {formatCurrency(Number(valorOperacao) || 0)}
+                Subtotal itens: {formatCurrency(subtotalItens)} • Frete: {formatCurrency(Number(valorFrete) || 0)} • Operação: {formatCurrency(Number(valorOperacao) || 0)} • Seguro: {formatCurrency(Number(valorSeguro) || 0)}
               </div>
               <Badge variant="secondary" className="text-lg px-4 py-1">
                 Total: {formatCurrency(valorTotal)}

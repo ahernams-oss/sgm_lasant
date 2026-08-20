@@ -171,6 +171,7 @@ export default function CotacaoComprasPage() {
   const [propObs, setPropObs] = useState("");
   const [propFrete, setPropFrete] = useState<number | "">("");
   const [propOperacao, setPropOperacao] = useState<number | "">("");
+  const [propSeguro, setPropSeguro] = useState<number | "">("");
   const [propItens, setPropItens] = useState<ItemCotacaoFornecedor[]>([]);
   const [iaLoading, setIaLoading] = useState(false);
   const [iaResumo, setIaResumo] = useState<{ arquivo: string; lidos: number; total: number; fornecedorNome?: string | null } | null>(null);
@@ -370,6 +371,7 @@ export default function CotacaoComprasPage() {
     setPropObs(proposta.observacao);
     setPropFrete(proposta.valorFrete ?? "");
     setPropOperacao(proposta.valorOperacao ?? "");
+    setPropSeguro(proposta.valorSeguro ?? "");
     setPropItens(proposta.itens.map(i => ({ ...i })));
     setEditingPropostaId(proposta.id);
     setPropostaCotacaoId(cotacaoId);
@@ -389,6 +391,7 @@ export default function CotacaoComprasPage() {
       observacao: propObs,
       valorFrete: Number(propFrete) || 0,
       valorOperacao: Number(propOperacao) || 0,
+      valorSeguro: Number(propSeguro) || 0,
       itens: propItens,
     };
     if (editingPropostaId) {
@@ -1103,6 +1106,7 @@ export default function CotacaoComprasPage() {
             observacao: propExt.observacao || "",
             valorFrete: Number(propExt.valor_frete) || 0,
             valorOperacao: Number(propExt.valor_operacao) || 0,
+            valorSeguro: Number(propExt.valor_seguro) || 0,
             itens: (propExt.itens as any[]).map((i: any) => ({
               itemId: i.itemId,
               descricao: i.descricao,
@@ -1570,10 +1574,10 @@ export default function CotacaoComprasPage() {
                     Subtotal itens: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0))}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Frete: {formatCurrency(Number(propFrete) || 0)} • Operação: {formatCurrency(Number(propOperacao) || 0)}
+                    Frete: {formatCurrency(Number(propFrete) || 0)} • Operação: {formatCurrency(Number(propOperacao) || 0)} • Seguro: {formatCurrency(Number(propSeguro) || 0)}
                   </div>
                   <div className="font-bold text-lg">
-                    Total: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0) + (Number(propFrete) || 0) + (Number(propOperacao) || 0))}
+                    Total: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0) + (Number(propFrete) || 0) + (Number(propOperacao) || 0) + (Number(propSeguro) || 0))}
                   </div>
                 </div>
               </CardContent>
