@@ -1496,9 +1496,18 @@ export default function CotacaoComprasPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      {c.status === "Finalizada" && !pedidos.some(p => p.cotacaoId === c.id) && (
+                        <>
+                          <DropdownMenuItem onClick={() => openConfirmacaoValores(c)}>
+                            <ShieldCheck className="mr-2 h-4 w-4" />Confirmar Valores e Emitir OC
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
                       <DropdownMenuItem onClick={() => setViewCotacao(c)}>
                         <Eye className="mr-2 h-4 w-4" />Detalhes
                       </DropdownMenuItem>
+
                       <DropdownMenuItem onClick={() => openMapa(c)} disabled={c.propostas.length === 0}>
                         <BarChart3 className="mr-2 h-4 w-4" />Mapa Comparativo
                       </DropdownMenuItem>
