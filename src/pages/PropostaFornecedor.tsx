@@ -102,7 +102,11 @@ export default function PropostaFornecedorPage() {
     setLoading(false);
   };
 
-  const valorTotal = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
+  const subtotalItens = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
+  const valorTotal = useMemo(
+    () => subtotalItens + (Number(valorFrete) || 0) + (Number(valorOperacao) || 0),
+    [subtotalItens, valorFrete, valorOperacao]
+  );
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
