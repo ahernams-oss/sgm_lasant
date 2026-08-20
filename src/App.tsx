@@ -84,6 +84,9 @@ import EpisCatalogoPage from "./pages/EpisCatalogo.tsx";
 import NrsCatalogoPage from "./pages/NrsCatalogo.tsx";
 import ReceberEpis from "./pages/ReceberEpis.tsx";
 import RelatorioRecebimentoEpis from "./pages/RelatorioRecebimentoEpis.tsx";
+import EpisDevolucoes from "./pages/EpisDevolucoes.tsx";
+import ProntuarioEpis from "./pages/ProntuarioEpis.tsx";
+import { EpisDevolucoesProvider } from "./contexts/EpisDevolucoesContext";
 import { EpisCatalogoProvider } from "@/contexts/EpisCatalogoContext";
 import { NrsCatalogoProvider } from "@/contexts/NrsCatalogoContext";
 import ExamesPage from "./pages/ExamesPage.tsx";
@@ -241,6 +244,8 @@ function ProtectedAppRoutes() {
         <Route path="/cadastros/nrs" element={<RotaProtegida perm="cargos"><NrsCatalogoProvider><NrsCatalogoPage /></NrsCatalogoProvider></RotaProtegida>} />
         <Route path="/epis/catalogo" element={<RotaProtegida perm="cargos"><EpisCatalogoPage /></RotaProtegida>} />
         <Route path="/epis/recebimentos" element={<RotaProtegida perm="epi_recebimento_facial"><RelatorioRecebimentoEpis /></RotaProtegida>} />
+        <Route path="/epis/devolucoes" element={<RotaProtegida perm="funcionarios"><EpisDevolucoesProvider><EpisDevolucoes /></EpisDevolucoesProvider></RotaProtegida>} />
+        <Route path="/epis/prontuario" element={<RotaProtegida perm="funcionarios"><EpisDevolucoesProvider><ProntuarioEpis /></EpisDevolucoesProvider></RotaProtegida>} />
         <Route path="/rh/treinamentos" element={<RotaProtegida perm="funcionarios"><Treinamentos /></RotaProtegida>} />
         <Route path="/rh/importar-holerites" element={<RotaProtegida perm="funcionarios"><ImportarHolerites /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
