@@ -522,6 +522,36 @@ export default function DashboardCompras() {
         <GradientKpiCard icon={DollarSign} label="Tempo Conclusão" value={timeMetrics.completionCount > 0 ? formatHours(timeMetrics.avgCompletion) : "N/A"} gradientIdx={5} subtitle="Média" />
       </div>
 
+      {/* Confirmação de valores pós-aprovação */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <GradientKpiCard icon={TrendingUp} label="Saving" value={savingMetrics.savingFmt} gradientIdx={2} subtitle="Economia real confirmada" />
+        <GradientKpiCard icon={CheckCircle} label="Cost Avoidance" value={savingMetrics.avoidanceFmt} gradientIdx={0} subtitle="Preço mantido pós-vencimento" />
+        <GradientKpiCard icon={AlertTriangle} label="Reajuste" value={savingMetrics.reajusteFmt} gradientIdx={1} subtitle="Aumento pós-aprovação" />
+        <GradientKpiCard icon={DollarSign} label="Impacto Líquido" value={savingMetrics.liquidoFmt} gradientIdx={savingMetrics.liquido <= 0 ? 2 : 3} subtitle="Saving − Reajuste" />
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Confirmação de Valores por Categoria</CardTitle></CardHeader>
+        <CardContent>
+          {savingMetrics.chart.every(c => c.value === 0) ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">Nenhuma confirmação de valores registrada.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={savingMetrics.chart}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" fontSize={12} />
+                <YAxis fontSize={12} />
+                <Tooltip formatter={(v: any) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                  {savingMetrics.chart.map((c, i) => <Cell key={i} fill={c.color} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
