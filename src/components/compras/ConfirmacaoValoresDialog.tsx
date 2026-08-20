@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw, ArrowLeftRight } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw, ArrowLeftRight, ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ALCADA_BADGE, Alcada, LIMITE_ALCADA_PERCENTUAL, classificarAlcada } from "@/lib/alcadaReajuste";
@@ -117,6 +117,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [salvando, setSalvando] = useState(false);
   const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     if (!open) return;
@@ -280,8 +282,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[1200px] max-h-[90vh] overflow-auto resize min-w-[600px] min-h-[400px]">
-        <DialogHeader>
+      <DialogContent className={`${fullscreen ? "max-w-[99vw] w-[99vw] max-h-[99vh] h-[99vh]" : "max-w-[95vw] w-[1200px] max-h-[90vh]"} overflow-hidden resize min-w-[600px] min-h-[400px] flex flex-col p-0`}>
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
             Confirmação de Valores — pós-aprovação da Diretoria
@@ -292,6 +294,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
             vencimento da proposta) ou <strong>Reajuste</strong>.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="overflow-auto flex-1 px-6 pb-4 space-y-4 min-h-0">
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="rounded-lg border p-3">
@@ -401,7 +405,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </Alert>
         )}
 
-        <div className="rounded-md border overflow-x-auto">
+        <div className="rounded-md border overflow-x-auto" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -533,7 +537,22 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </Table>
         </div>
 
-        <DialogFooter>
+        </div>
+
+        <DialogFooter className="px-6 pb-6 pt-2 shrink-0 gap-2">
+          <div className="flex items-center gap-1 mr-auto">
+            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" title="Diminuir zoom" onClick={() => setZoom(z => Math.max(0.75, z - 0.1))}>
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
+            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" title="Aumentar zoom" onClick={() => setZoom(z => Math.min(1.5, z + 0.1))}>
+              <ZoomIn className="h-4 w-8" />
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="h-8" title={fullscreen ? "Sair da tela cheia" : "Expandir para tela cheia"} onClick={() => setFullscreen(f => !f)}>
+              {fullscreen ? <Minimize className="h-4 w-4 mr-1" /> : <Maximize className="h-4 w-4 mr-1" />}
+              {fullscreen ? "Reduzir" : "Tela cheia"}
+            </Button>
+          </div>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>Cancelar</Button>
           <Button onClick={handleConfirm} disabled={salvando || bloqueado}>
             <CheckCircle2 className="h-4 w-4 mr-2" />
