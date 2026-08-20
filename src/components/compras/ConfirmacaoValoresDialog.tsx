@@ -103,6 +103,68 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
     }
   };
 
+  const [lendoIa, setLendoIa] = useState(false);
+
+  /** Repete o preço aprovado como confirmado (sem variação). */
+  const manterPreco = (key: string) => {
+    const item = itens.find(i => i.key === key);
+    if (!item) return;
+    setPrecos(prev => ({ ...prev, [key]: String(item.precoAprovado).replace(".", ",") }));
+    if (!manualCategoria[key]) {
+      setCategorias(prev => ({ ...prev, [key]: classificarVariacao(item.precoAprovado, item.precoAprovado) }));
+    }
+  };
+
+  const manterTodos = () => itens.forEach(i => manterPreco(i.key));
+
+  const handleArquivoIa = async (file: File | null) => {
+    if (!file) return;
+    setLendoIa(true);
+    try {
+      const base64: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke("ler-proposta-cotacao", {
+        body: {
+          fileBase64: base64,
+          mimeType: file.type || "application/pdf",
+          fileName: file.name,
+          itens: itens.map(i => ({
+            itemId: i.itemId,
+            descricao: i.descricao,
+            quantidade: i.quantidade,
+            unidadeMedida: i.unidadeMedida,
+          })),
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      const lidos: any[] = Array.isArray((data as any)?.itens) ? (data as any).itens : [];
+      let aplicados = 0;
+      lidos.forEach(li => {
+        if (li.precoUnitario == null) return;
+        itens
+          .filter(i => i.itemId === String(li.itemId))
+          .forEach(i => {
+            aplicados++;
+            setPreco(i.key, String(Number(li.precoUnitario)).replace(".", ","));
+          });
+      });
+      toast[aplicados > 0 ? "success" : "warning"](
+        aplicados > 0 ? `${aplicados} preço(s) preenchido(s) pela IA.` : "Nenhum preço foi identificado no arquivo.",
+      );
+    } catch (e) {
+      toast.error(`Não foi possível ler o arquivo: ${(e as Error).message}`);
+    } finally {
+      setLendoIa(false);
+    }
+  };
+
   const handleConfirm = async () => {
     setSalvando(true);
     const ajustes: Record<string, AjusteConfirmacao> = {};
