@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FuncionarioCombobox from "@/components/FuncionarioCombobox";
 import { useFuncionarios, EpiItem } from "@/contexts/FuncionariosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
@@ -236,16 +237,13 @@ export default function ProntuarioEpis() {
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1 min-w-[280px]">
+        <div className="space-y-1 min-w-[320px]">
           <label className="text-xs text-muted-foreground">Funcionário</label>
-          <Select value={funcionarioId} onValueChange={setFuncionarioId}>
-            <SelectTrigger><SelectValue placeholder="Selecione o funcionário" /></SelectTrigger>
-            <SelectContent className="max-h-72">
-              {[...funcionarios].sort((a, b) => a.nome.localeCompare(b.nome)).map((f) => (
-                <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FuncionarioCombobox
+            value={funcionarioId}
+            onChange={setFuncionarioId}
+            options={[...funcionarios].sort((a, b) => a.nome.localeCompare(b.nome))}
+          />
         </div>
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Período de</label>
