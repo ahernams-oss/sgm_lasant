@@ -8,7 +8,15 @@ export interface ProntuarioEvento {
   ca: string;
   quantidade: number;
   detalhe: string;
+  /** Data/hora da confirmação por reconhecimento facial */
+  confirmadoEm?: string;
+  /** Hashes SHA-256 das selfies */
+  hashes?: string[];
+  /** Imagens (dataURL) das selfies */
+  fotos?: string[];
+  ip?: string;
 }
+
 
 export interface ProntuarioDados {
   funcionarioNome: string;
