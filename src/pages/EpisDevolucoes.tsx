@@ -251,12 +251,13 @@ export default function EpisDevolucoes() {
                   <div className="flex items-center justify-end gap-1">
                     {d.status !== "confirmado" && (
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Enviar link de confirmação facial por WhatsApp"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1 text-xs"
+                        title="Reenviar link de confirmação facial por WhatsApp"
                         onClick={() => reenviarLink(d)}
                       >
-                        <Send className="h-4 w-4" />
+                        <Send className="h-3.5 w-3.5" /> Reenviar link
                       </Button>
                     )}
                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDelId(d.id)}>
