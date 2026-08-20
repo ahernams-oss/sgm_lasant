@@ -689,36 +689,77 @@ export default function CotacaoComprasPage() {
 
     const pedidosCriados: PedidoCompra[] = [];
     const linhasConfirmacao: any[] = [];
+    const redirecionamentos: { descricao: string; de: string; para: string; motivo: string }[] = [];
+
+    // Reagrupa os itens pelo fornecedor final (permite redirecionamento pós-aprovação).
+    type LinhaFinal = {
+      fornecedorId: string; fornecedorNome: string;
+      condicaoPagamento: string; prazoEntrega: string;
+      item: { itemId: string; descricao: string; quantidade: number; unidadeMedida: string; precoUnitario: number };
+      precoFinal: number;
+      aj?: AjusteConfirmacao;
+    };
+    const linhasFinais: LinhaFinal[] = [];
 
     for (const grupo of plano.grupos) {
-      const itensPedido = grupo.itens.map(i => {
+      for (const i of grupo.itens) {
         const aj = ajustes[`${grupo.fornecedorId}::${i.itemId}`];
         const precoFinal = aj?.precoConfirmado ?? i.precoUnitario;
-        return {
-          itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
-          unidadeMedida: i.unidadeMedida, precoUnitario: precoFinal,
-          valorTotal: precoFinal * i.quantidade,
-        };
-      });
+        const destinoId = aj?.fornecedorIdFinal || grupo.fornecedorId;
+        const propDestino = (plano.propostas ?? []).find(p => p.fornecedorId === destinoId);
+        if (aj?.redirecionado) {
+          redirecionamentos.push({
+            descricao: i.descricao,
+            de: grupo.fornecedorNome,
+            para: aj.fornecedorNomeFinal || propDestino?.fornecedorNome || "",
+            motivo: aj.motivoRedirecionamento || "",
+          });
+        }
+        linhasFinais.push({
+          fornecedorId: destinoId,
+          fornecedorNome: aj?.fornecedorNomeFinal || propDestino?.fornecedorNome || grupo.fornecedorNome,
+          condicaoPagamento: propDestino?.condicaoPagamento ?? grupo.condicaoPagamento,
+          prazoEntrega: propDestino?.prazoEntrega ?? grupo.prazoEntrega,
+          item: i,
+          precoFinal,
+          aj,
+        });
+      }
+    }
+
+    const fornecedoresFinais = [...new Set(linhasFinais.map(l => l.fornecedorId))];
+
+    for (const fornId of fornecedoresFinais) {
+      const linhasForn = linhasFinais.filter(l => l.fornecedorId === fornId);
+      const ref = linhasForn[0];
+      const itensPedido = linhasForn.map(l => ({
+        itemId: l.item.itemId, descricao: l.item.descricao, quantidade: l.item.quantidade,
+        unidadeMedida: l.item.unidadeMedida, precoUnitario: l.precoFinal,
+        valorTotal: l.precoFinal * l.item.quantidade,
+      }));
 
       const novo = addPedido({
         cotacaoId: plano.cotacaoId,
         requisicaoId: plano.requisicaoId,
         requisicaoNumero: plano.requisicaoNumero,
         comprador: usuario,
-        fornecedorId: grupo.fornecedorId,
-        fornecedorNome: grupo.fornecedorNome,
+        fornecedorId: ref.fornecedorId,
+        fornecedorNome: ref.fornecedorNome,
         itens: itensPedido,
-        condicaoPagamento: grupo.condicaoPagamento,
-        prazoEntrega: grupo.prazoEntrega,
+        condicaoPagamento: ref.condicaoPagamento,
+        prazoEntrega: ref.prazoEntrega,
         localEntrega: plano.localEntrega,
-        observacoes: "",
+        observacoes: linhasForn.some(l => l.aj?.redirecionado)
+          ? "Itens redirecionados na confirmação de valores: " +
+            linhasForn.filter(l => l.aj?.redirecionado).map(l => `${l.item.descricao} (${l.aj?.motivoRedirecionamento})`).join("; ")
+          : "",
       });
       pedidosCriados.push(novo);
 
-      grupo.itens.forEach(i => {
-        const aj = ajustes[`${grupo.fornecedorId}::${i.itemId}`];
-        const precoFinal = aj?.precoConfirmado ?? i.precoUnitario;
+      linhasForn.forEach(l => {
+        const i = l.item;
+        const aj = l.aj;
+        const precoFinal = l.precoFinal;
         const valorAprovado = i.precoUnitario * i.quantidade;
         const valorConfirmado = precoFinal * i.quantidade;
         linhasConfirmacao.push({
@@ -726,8 +767,8 @@ export default function CotacaoComprasPage() {
           requisicaoId: plano.requisicaoId,
           requisicaoNumero: plano.requisicaoNumero,
           pedidoId: novo.id,
-          fornecedorId: grupo.fornecedorId,
-          fornecedorNome: grupo.fornecedorNome,
+          fornecedorId: l.fornecedorId,
+          fornecedorNome: l.fornecedorNome,
           itemId: i.itemId,
           descricao: i.descricao,
           quantidade: i.quantidade,
@@ -739,7 +780,7 @@ export default function CotacaoComprasPage() {
           variacaoValor: valorConfirmado - valorAprovado,
           variacaoPercentual: i.precoUnitario > 0 ? ((precoFinal - i.precoUnitario) / i.precoUnitario) * 100 : 0,
           categoria: aj?.categoria ?? "Cost Avoidance",
-          justificativa: aj?.justificativa ?? "",
+          justificativa: [aj?.justificativa ?? "", aj?.redirecionado ? `Redirecionado: ${aj.motivoRedirecionamento}` : ""].filter(Boolean).join(" | "),
           confirmadoPor: usuario,
           alcada: aj?.alcada ?? "Sem Reajuste",
           limiteAlcadaPercentual: LIMITE_ALCADA_PERCENTUAL,
@@ -755,7 +796,7 @@ export default function CotacaoComprasPage() {
             descricao: i.descricao,
             perc: i.precoUnitario > 0 ? ((precoFinal - i.precoUnitario) / i.precoUnitario) * 100 : 0,
             variacao: valorConfirmado - valorAprovado,
-            fornecedor: grupo.fornecedorNome,
+            fornecedor: l.fornecedorNome,
           });
         }
       });
@@ -791,6 +832,11 @@ export default function CotacaoComprasPage() {
       }
       updateStatus(plano.requisicaoId, "Pedido Emitido", usuario,
         `Reajuste acima da alçada de ${LIMITE_ALCADA_PERCENTUAL}% — aditivo de verba de ${brl(totalAditivo)} notificado à Diretoria`);
+    }
+
+    if (redirecionamentos.length > 0) {
+      updateStatus(plano.requisicaoId, "Pedido Emitido", usuario,
+        `Redirecionamento de fornecedor: ${redirecionamentos.map(r => `${r.descricao} — ${r.de} → ${r.para} (${r.motivo})`).join("; ")}`);
     }
 
     concluirRevisaoConfirmacao(plano.cotacaoId);
