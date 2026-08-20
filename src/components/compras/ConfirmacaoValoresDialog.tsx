@@ -301,7 +301,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 <TableHead className="text-right">Variação</TableHead>
                 <TableHead className="w-[130px]">Alçada</TableHead>
                 <TableHead className="w-[170px]">Categoria</TableHead>
-                <TableHead className="min-w-[180px]">Justificativa</TableHead>
+                <TableHead className="min-w-[260px]">Justificativa</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -357,12 +357,12 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                       </Select>
                       <Badge variant="outline" className={`mt-1 text-[10px] ${CATEGORIA_BADGE[cat]}`}>{cat}</Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="min-w-[260px]">
                       <Input
                         value={justificativas[l.key] ?? ""}
                         onChange={e => setJustificativas(p => ({ ...p, [l.key]: e.target.value }))}
                         placeholder={l.alcada === "Diretoria" ? "Obrigatória (acima da alçada)" : "Opcional"}
-                        className="h-8"
+                        className="h-8 w-full"
                       />
                     </TableCell>
                   </TableRow>
