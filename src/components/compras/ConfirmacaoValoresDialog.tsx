@@ -84,8 +84,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
       aprovado += l.valorAprovado;
       confirmado += l.valorConfirmado;
       const cat = categorias[l.key] ?? "Cost Avoidance";
-      if (cat === "Saving") saving += Math.abs(Math.min(l.variacao, 0)) || Math.abs(l.variacao);
-      else if (cat === "Reajuste") reajuste += Math.abs(l.variacao);
+      if (cat === "Saving") saving += Math.max(0, -l.variacao);
+      else if (cat === "Reajuste") reajuste += Math.max(0, l.variacao);
       else avoidance += l.valorConfirmado;
     });
     return { saving, reajuste, avoidance, aprovado, confirmado };
