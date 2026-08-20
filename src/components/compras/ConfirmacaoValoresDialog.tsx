@@ -206,7 +206,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[1200px] max-h-[90vh] overflow-auto resize min-w-[600px] min-h-[400px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
