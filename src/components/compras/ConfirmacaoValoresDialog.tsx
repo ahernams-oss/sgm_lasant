@@ -283,7 +283,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`${fullscreen ? "max-w-[99vw] w-[99vw] max-h-[99vh] h-[99vh]" : "max-w-[95vw] w-[1200px] max-h-[90vh]"} overflow-hidden resize min-w-[600px] min-h-[400px] flex flex-col p-0`}>
-        <DialogHeader>
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
             Confirmação de Valores — pós-aprovação da Diretoria
@@ -294,6 +294,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
             vencimento da proposta) ou <strong>Reajuste</strong>.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="overflow-auto flex-1 px-6 pb-4 space-y-4 min-h-0">
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="rounded-lg border p-3">
