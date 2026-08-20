@@ -248,7 +248,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 <TableHead>Fornecedor</TableHead>
                 <TableHead className="text-right">Qtd</TableHead>
                 <TableHead className="text-right">Preço aprovado</TableHead>
-                <TableHead className="w-[140px]">Preço confirmado</TableHead>
+                <TableHead className="w-[180px]">Preço confirmado</TableHead>
                 <TableHead className="text-right">Variação</TableHead>
                 <TableHead className="w-[170px]">Categoria</TableHead>
                 <TableHead className="min-w-[180px]">Justificativa</TableHead>
