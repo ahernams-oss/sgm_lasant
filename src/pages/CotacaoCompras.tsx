@@ -169,6 +169,8 @@ export default function CotacaoComprasPage() {
   const [propPrazo, setPropPrazo] = useState("");
   const [propValidade, setPropValidade] = useState("");
   const [propObs, setPropObs] = useState("");
+  const [propFrete, setPropFrete] = useState<number | "">("");
+  const [propOperacao, setPropOperacao] = useState<number | "">("");
   const [propItens, setPropItens] = useState<ItemCotacaoFornecedor[]>([]);
   const [iaLoading, setIaLoading] = useState(false);
   const [iaResumo, setIaResumo] = useState<{ arquivo: string; lidos: number; total: number; fornecedorNome?: string | null } | null>(null);
@@ -354,6 +356,7 @@ export default function CotacaoComprasPage() {
     if (!req) return;
     setPropItens(req.itens.map(i => ({ itemId: i.id, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: 0, prazoEntrega: "", observacao: "" })));
     setPropFornecedorId(""); setPropCondicao(""); setPropPrazo(""); setPropValidade(""); setPropObs("");
+    setPropFrete(""); setPropOperacao("");
     setEditingPropostaId(null);
     setPropostaCotacaoId(cotacaoId);
     setPropostaDialogOpen(true);
@@ -365,6 +368,8 @@ export default function CotacaoComprasPage() {
     setPropPrazo(proposta.prazoEntrega);
     setPropValidade(proposta.validadeProposta);
     setPropObs(proposta.observacao);
+    setPropFrete(proposta.valorFrete ?? "");
+    setPropOperacao(proposta.valorOperacao ?? "");
     setPropItens(proposta.itens.map(i => ({ ...i })));
     setEditingPropostaId(proposta.id);
     setPropostaCotacaoId(cotacaoId);
@@ -382,6 +387,8 @@ export default function CotacaoComprasPage() {
       prazoEntrega: propPrazo,
       validadeProposta: propValidade,
       observacao: propObs,
+      valorFrete: Number(propFrete) || 0,
+      valorOperacao: Number(propOperacao) || 0,
       itens: propItens,
     };
     if (editingPropostaId) {
@@ -1509,6 +1516,18 @@ export default function CotacaoComprasPage() {
                 <Input type="date" value={propValidade} onChange={e => setPropValidade(e.target.value)} />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Custos de Frete (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={propFrete} placeholder="0,00"
+                  onChange={e => setPropFrete(e.target.value === "" ? "" : Number(e.target.value))} />
+              </div>
+              <div>
+                <Label>Custos de Operação (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={propOperacao} placeholder="0,00"
+                  onChange={e => setPropOperacao(e.target.value === "" ? "" : Number(e.target.value))} />
+              </div>
+            </div>
             <div>
               <Label>Observações</Label>
               <Textarea value={propObs} onChange={e => setPropObs(e.target.value)} rows={2} />
@@ -1544,8 +1563,16 @@ export default function CotacaoComprasPage() {
                     ))}
                   </TableBody>
                 </Table>
-                <div className="text-right mt-2 font-bold text-lg">
-                  Total: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0))}
+                <div className="text-right mt-2 space-y-1">
+                  <div className="text-sm text-muted-foreground">
+                    Subtotal itens: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0))}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Frete: {formatCurrency(Number(propFrete) || 0)} • Operação: {formatCurrency(Number(propOperacao) || 0)}
+                  </div>
+                  <div className="font-bold text-lg">
+                    Total: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0) + (Number(propFrete) || 0) + (Number(propOperacao) || 0))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
