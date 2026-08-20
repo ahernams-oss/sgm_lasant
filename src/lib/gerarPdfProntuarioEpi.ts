@@ -125,7 +125,51 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
     },
   });
 
+  // ===== Registros fotográficos e hashes =====
+  const comEvidencia = d.eventos.filter((e) => (e.fotos && e.fotos.length) || (e.hashes && e.hashes.length));
+  if (comEvidencia.length) {
+    const phg = doc.internal.pageSize.getHeight();
+    doc.addPage();
+    let ey = 16;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Registros fotográficos e hashes de autenticidade", 12, ey);
+    ey += 6;
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(90);
+    doc.text("Imagens capturadas por reconhecimento facial no ato da entrega/devolução. O hash SHA-256 garante a integridade do arquivo.", 12, ey);
+    doc.setTextColor(0);
+    ey += 6;
+
+    comEvidencia.forEach((e) => {
+      const blocoH = 52;
+      if (ey + blocoH > phg - 18) { doc.addPage(); ey = 16; }
+      doc.setDrawColor(200);
+      doc.rect(10, ey, pw - 20, blocoH);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.text(`${e.tipo} — ${e.descricao}`, 13, ey + 5);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.text(`Data: ${fmt(e.data)}${e.ca ? `   CA: ${e.ca}` : ""}   Qtd: ${e.quantidade}`, 13, ey + 10);
+      doc.text(
+        `Confirmação facial: ${e.confirmadoEm ? new Date(e.confirmadoEm).toLocaleString("pt-BR") : "—"}${e.ip ? `   IP: ${e.ip}` : ""}`,
+        13,
+        ey + 14.5
+      );
+      (e.hashes || []).forEach((h, i) => {
+        doc.text(`Hash foto ${i + 1}: ${h}`, 13, ey + 19 + i * 4.5, { maxWidth: pw - 120 });
+      });
+      (e.fotos || []).slice(0, 2).forEach((f, i) => {
+        try { doc.addImage(f, "JPEG", pw - 20 - 34 - i * 36, ey + 6, 32, 40); } catch { /* ignore */ }
+      });
+      ey += blocoH + 4;
+    });
+  }
+
   const finalY = (doc as any).lastAutoTable.finalY + 20;
+
   const ph = doc.internal.pageSize.getHeight();
   if (finalY < ph - 30) {
     doc.setFontSize(8);
