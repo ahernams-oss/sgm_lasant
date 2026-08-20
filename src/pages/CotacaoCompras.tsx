@@ -459,6 +459,8 @@ export default function CotacaoComprasPage() {
 
     if (!podeAprovar(valorAprovacao, "compras")) return;
 
+    let plano: PlanoEmissao;
+
     if (finModoItemizado) {
       const allAssigned = req.itens.every(i => finItensVencedores[i.id]);
       if (!allAssigned) { toast({ title: "Selecione um fornecedor para cada item", variant: "destructive" }); return; }
@@ -470,75 +472,148 @@ export default function CotacaoComprasPage() {
       });
 
       const fornecedorIds = [...new Set(itensVencedores.map(iv => iv.fornecedorId))];
-      const principalFornecedorId = fornecedorIds[0];
 
-      aprovarCotacao(aprovarCotacaoId, principalFornecedorId, finJustificativa, itensVencedores);
-
-      const pedidosCriados: PedidoCompra[] = [];
-      for (const fornId of fornecedorIds) {
-        const prop = cot.propostas.find(p => p.fornecedorId === fornId);
-        if (!prop) continue;
-        const itemIds = itensVencedores.filter(iv => iv.fornecedorId === fornId).map(iv => iv.itemId);
-        const itensPedido = prop.itens
-          .filter(i => itemIds.includes(i.itemId))
-          .map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade }));
-
-        const novo = addPedido({
-          cotacaoId: cot.id,
-          requisicaoId: cot.requisicaoId,
-          requisicaoNumero: cot.requisicaoNumero,
-          comprador: usuarioLogado?.nome || "Comprador",
-          fornecedorId: prop.fornecedorId,
-          fornecedorNome: prop.fornecedorNome,
-          itens: itensPedido,
-          condicaoPagamento: prop.condicaoPagamento,
-          prazoEntrega: prop.prazoEntrega,
-          localEntrega: req.localEntrega || "",
-          observacoes: "",
-        });
-        pedidosCriados.push(novo);
-      }
-
-      await Promise.all(pedidosCriados.map(p => assinarPedidoAutomatico(p)));
-      await Promise.all(pedidosCriados.map(p => notificarPedidoNoGrupo(p, cot.requisicaoId)));
-
-      updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador",
-        fornecedorIds.length > 1
-          ? `${fornecedorIds.length} pedidos gerados (aprovação por item)`
-          : "Pedido gerado após aprovação"
-      );
-      notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
-
-      toast({ title: `Cotação aprovada! ${fornecedorIds.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
+      plano = {
+        cotacaoId: cot.id,
+        requisicaoId: cot.requisicaoId,
+        requisicaoNumero: cot.requisicaoNumero,
+        localEntrega: req.localEntrega || "",
+        justificativa: finJustificativa,
+        itemizado: true,
+        itensVencedores,
+        principalFornecedorId: fornecedorIds[0],
+        grupos: fornecedorIds.map(fornId => {
+          const prop = cot.propostas.find(p => p.fornecedorId === fornId)!;
+          const itemIds = itensVencedores.filter(iv => iv.fornecedorId === fornId).map(iv => iv.itemId);
+          return {
+            fornecedorId: prop.fornecedorId,
+            fornecedorNome: prop.fornecedorNome,
+            condicaoPagamento: prop.condicaoPagamento,
+            prazoEntrega: prop.prazoEntrega,
+            itens: prop.itens.filter(i => itemIds.includes(i.itemId)).map(i => ({
+              itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+              unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario,
+            })),
+          };
+        }).filter(g => g.itens.length > 0),
+      };
     } else {
       if (!finVencedorId) { toast({ title: "Selecione o fornecedor vencedor", variant: "destructive" }); return; }
-      aprovarCotacao(aprovarCotacaoId, finVencedorId, finJustificativa);
-
-      const propVencedora = cot.propostas.find(p => p.fornecedorId === finVencedorId);
-      if (propVencedora) {
-        const novoPedido = addPedido({
-          cotacaoId: cot.id,
-          requisicaoId: cot.requisicaoId,
-          requisicaoNumero: cot.requisicaoNumero,
-          comprador: usuarioLogado?.nome || "Comprador",
-          fornecedorId: propVencedora.fornecedorId,
-          fornecedorNome: propVencedora.fornecedorNome,
-          itens: propVencedora.itens.map(i => ({ itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario, valorTotal: i.precoUnitario * i.quantidade })),
-          condicaoPagamento: propVencedora.condicaoPagamento,
-          prazoEntrega: propVencedora.prazoEntrega,
-          localEntrega: req.localEntrega || "",
-          observacoes: "",
-        });
-        await assinarPedidoAutomatico(novoPedido);
-        await notificarPedidoNoGrupo(novoPedido, cot.requisicaoId);
-        updateStatus(cot.requisicaoId, "Pedido Emitido", usuarioLogado?.nome || "Aprovador", "Pedido gerado e assinado eletronicamente após aprovação");
-        notificarStatusReq(cot.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
-      }
-      toast({ title: "Cotação aprovada e pedido emitido com assinatura eletrônica!" });
+      const prop = cot.propostas.find(p => p.fornecedorId === finVencedorId);
+      if (!prop) return;
+      plano = {
+        cotacaoId: cot.id,
+        requisicaoId: cot.requisicaoId,
+        requisicaoNumero: cot.requisicaoNumero,
+        localEntrega: req.localEntrega || "",
+        justificativa: finJustificativa,
+        itemizado: false,
+        principalFornecedorId: prop.fornecedorId,
+        grupos: [{
+          fornecedorId: prop.fornecedorId,
+          fornecedorNome: prop.fornecedorNome,
+          condicaoPagamento: prop.condicaoPagamento,
+          prazoEntrega: prop.prazoEntrega,
+          itens: prop.itens.map(i => ({
+            itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+            unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario,
+          })),
+        }],
+      };
     }
 
+    setPlanoEmissao(plano);
     setAprovarDialogOpen(false);
+    setConfirmacaoDialogOpen(true);
   };
+
+  // === Emissão da OC após confirmação de valores ===
+  const handleConfirmarValores = async (ajustes: Record<string, AjusteConfirmacao>) => {
+    const plano = planoEmissao;
+    if (!plano) return;
+
+    const usuario = usuarioLogado?.nome || "Comprador";
+
+    if (plano.itemizado) {
+      aprovarCotacao(plano.cotacaoId, plano.principalFornecedorId, plano.justificativa, plano.itensVencedores || []);
+    } else {
+      aprovarCotacao(plano.cotacaoId, plano.principalFornecedorId, plano.justificativa);
+    }
+
+    const pedidosCriados: PedidoCompra[] = [];
+    const linhasConfirmacao: any[] = [];
+
+    for (const grupo of plano.grupos) {
+      const itensPedido = grupo.itens.map(i => {
+        const aj = ajustes[`${grupo.fornecedorId}::${i.itemId}`];
+        const precoFinal = aj?.precoConfirmado ?? i.precoUnitario;
+        return {
+          itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+          unidadeMedida: i.unidadeMedida, precoUnitario: precoFinal,
+          valorTotal: precoFinal * i.quantidade,
+        };
+      });
+
+      const novo = addPedido({
+        cotacaoId: plano.cotacaoId,
+        requisicaoId: plano.requisicaoId,
+        requisicaoNumero: plano.requisicaoNumero,
+        comprador: usuario,
+        fornecedorId: grupo.fornecedorId,
+        fornecedorNome: grupo.fornecedorNome,
+        itens: itensPedido,
+        condicaoPagamento: grupo.condicaoPagamento,
+        prazoEntrega: grupo.prazoEntrega,
+        localEntrega: plano.localEntrega,
+        observacoes: "",
+      });
+      pedidosCriados.push(novo);
+
+      grupo.itens.forEach(i => {
+        const aj = ajustes[`${grupo.fornecedorId}::${i.itemId}`];
+        const precoFinal = aj?.precoConfirmado ?? i.precoUnitario;
+        const valorAprovado = i.precoUnitario * i.quantidade;
+        const valorConfirmado = precoFinal * i.quantidade;
+        linhasConfirmacao.push({
+          cotacaoId: plano.cotacaoId,
+          requisicaoId: plano.requisicaoId,
+          requisicaoNumero: plano.requisicaoNumero,
+          pedidoId: novo.id,
+          fornecedorId: grupo.fornecedorId,
+          fornecedorNome: grupo.fornecedorNome,
+          itemId: i.itemId,
+          descricao: i.descricao,
+          quantidade: i.quantidade,
+          unidadeMedida: i.unidadeMedida,
+          precoAprovado: i.precoUnitario,
+          precoConfirmado: precoFinal,
+          valorAprovado,
+          valorConfirmado,
+          variacaoValor: valorConfirmado - valorAprovado,
+          variacaoPercentual: i.precoUnitario > 0 ? ((precoFinal - i.precoUnitario) / i.precoUnitario) * 100 : 0,
+          categoria: aj?.categoria ?? "Cost Avoidance",
+          justificativa: aj?.justificativa ?? "",
+          confirmadoPor: usuario,
+        });
+      });
+    }
+
+    await registrarConfirmacoes(linhasConfirmacao);
+    await Promise.all(pedidosCriados.map(p => assinarPedidoAutomatico(p)));
+    await Promise.all(pedidosCriados.map(p => notificarPedidoNoGrupo(p, plano.requisicaoId)));
+
+    updateStatus(plano.requisicaoId, "Pedido Emitido", usuario,
+      pedidosCriados.length > 1
+        ? `${pedidosCriados.length} pedidos gerados após confirmação de valores`
+        : "Pedido gerado após confirmação de valores"
+    );
+    notificarStatusReq(plano.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
+
+    toast({ title: `Valores confirmados! ${pedidosCriados.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
+    setConfirmacaoDialogOpen(false);
+    setPlanoEmissao(null);
+  };
+
 
   const openMapa = (cot: CotacaoCompras) => { setMapaCotacao(cot); setMapaDialogOpen(true); };
 
