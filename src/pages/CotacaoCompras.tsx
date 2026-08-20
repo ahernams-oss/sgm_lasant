@@ -356,6 +356,7 @@ export default function CotacaoComprasPage() {
     if (!req) return;
     setPropItens(req.itens.map(i => ({ itemId: i.id, descricao: i.descricao, quantidade: i.quantidade, unidadeMedida: i.unidadeMedida, precoUnitario: 0, prazoEntrega: "", observacao: "" })));
     setPropFornecedorId(""); setPropCondicao(""); setPropPrazo(""); setPropValidade(""); setPropObs("");
+    setPropFrete(""); setPropOperacao("");
     setEditingPropostaId(null);
     setPropostaCotacaoId(cotacaoId);
     setPropostaDialogOpen(true);
@@ -367,6 +368,8 @@ export default function CotacaoComprasPage() {
     setPropPrazo(proposta.prazoEntrega);
     setPropValidade(proposta.validadeProposta);
     setPropObs(proposta.observacao);
+    setPropFrete(proposta.valorFrete ?? "");
+    setPropOperacao(proposta.valorOperacao ?? "");
     setPropItens(proposta.itens.map(i => ({ ...i })));
     setEditingPropostaId(proposta.id);
     setPropostaCotacaoId(cotacaoId);
