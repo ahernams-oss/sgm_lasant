@@ -230,7 +230,7 @@ export default function ProntuarioEpis() {
             <p className="text-sm text-muted-foreground">Histórico contínuo de recebimento e recolhimento por funcionário</p>
           </div>
         </div>
-        <Button size="sm" onClick={exportar} disabled={!func}>
+        <Button size="sm" onClick={exportar} disabled={!func || gerando}>
           <FileDown className="h-4 w-4 mr-1" /> Gerar prontuário (PDF)
         </Button>
       </div>
