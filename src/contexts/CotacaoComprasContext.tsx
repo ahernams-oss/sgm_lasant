@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 
-export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Finalizada" | "Cancelada";
+export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Revisão de Confirmação" | "Finalizada" | "Cancelada";
 
 export interface ItemCotacaoFornecedor {
   itemId: string; descricao: string; quantidade: number; unidadeMedida: string;
@@ -32,6 +32,7 @@ interface CotacaoComprasContextType {
   submeterAprovacao: (cotacaoId: string) => void;
   aprovarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
   finalizarCotacao: (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => void;
+  concluirRevisaoConfirmacao: (cotacaoId: string) => void;
   cancelarCotacao: (cotacaoId: string) => void;
   getCotacaoByRequisicao: (requisicaoId: string) => CotacaoCompras | undefined;
 }
@@ -115,11 +116,17 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
   const aprovarCotacao = async (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
     const c = cotacoes.find(c => c.id === cotacaoId);
     if (!c) return;
-    await saveAndReload(cotacaoId, { ...c, status: "Finalizada", fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] });
+    await saveAndReload(cotacaoId, { ...c, status: "Revisão de Confirmação", fornecedorVencedorId, justificativaEscolha: justificativa, itensVencedores: itensVencedores || [] });
   };
 
   const finalizarCotacao = async (cotacaoId: string, fornecedorVencedorId: string, justificativa: string, itensVencedores?: ItemVencedor[]) => {
     await aprovarCotacao(cotacaoId, fornecedorVencedorId, justificativa, itensVencedores);
+  };
+
+  const concluirRevisaoConfirmacao = async (cotacaoId: string) => {
+    const c = cotacoes.find(c => c.id === cotacaoId);
+    if (!c) return;
+    await saveAndReload(cotacaoId, { ...c, status: "Finalizada" });
   };
 
   const cancelarCotacao = async (cotacaoId: string) => {
@@ -131,7 +138,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
   const getCotacaoByRequisicao = (requisicaoId: string) => cotacoes.find(c => c.requisicaoId === requisicaoId);
 
   return (
-    <CotacaoComprasContext.Provider value={{ cotacoes, addCotacao, addProposta, updateProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao, getCotacaoByRequisicao }}>
+    <CotacaoComprasContext.Provider value={{ cotacoes, addCotacao, addProposta, updateProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, concluirRevisaoConfirmacao, cancelarCotacao, getCotacaoByRequisicao }}>
       {children}
     </CotacaoComprasContext.Provider>
   );

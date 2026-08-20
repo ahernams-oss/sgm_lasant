@@ -65,12 +65,13 @@ interface PlanoEmissao {
 const statusColors: Record<string, string> = {
   "Em Andamento": "bg-yellow-100 text-yellow-800",
   "Aguardando Aprovação": "bg-blue-100 text-blue-800",
+  "Revisão de Confirmação": "bg-orange-100 text-orange-800",
   Finalizada: "bg-green-100 text-green-800",
   Cancelada: "bg-red-200 text-red-900",
 };
 
 export default function CotacaoComprasPage() {
-  const { cotacoes, addCotacao, addProposta, updateProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, cancelarCotacao } = useCotacaoCompras();
+  const { cotacoes, addCotacao, addProposta, updateProposta, removeProposta, submeterAprovacao, aprovarCotacao, finalizarCotacao, concluirRevisaoConfirmacao, cancelarCotacao } = useCotacaoCompras();
   const { requisicoes, updateStatus } = useRequisicaoCompras();
   const { addPedido, pedidos } = usePedidoCompra();
   const { clientes } = useClientes();
@@ -718,6 +719,8 @@ export default function CotacaoComprasPage() {
     );
     notificarStatusReq(plano.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
 
+    concluirRevisaoConfirmacao(plano.cotacaoId);
+
     toast({ title: `Valores confirmados! ${pedidosCriados.length} pedido(s) emitido(s) e assinado(s) eletronicamente.` });
     setConfirmacaoDialogOpen(false);
     setPlanoEmissao(null);
@@ -1356,6 +1359,7 @@ export default function CotacaoComprasPage() {
                 <SelectItem value="Todos">Todos os Status</SelectItem>
                 <SelectItem value="Em Andamento">Em Andamento</SelectItem>
                 <SelectItem value="Aguardando Aprovação">Aguardando Aprovação</SelectItem>
+                <SelectItem value="Revisão de Confirmação">Revisão de Confirmação</SelectItem>
                 <SelectItem value="Finalizada">Finalizada</SelectItem>
                 <SelectItem value="Cancelada">Cancelada</SelectItem>
               </SelectContent>
@@ -1496,7 +1500,7 @@ export default function CotacaoComprasPage() {
                       <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {c.status === "Finalizada" && !pedidos.some(p => p.cotacaoId === c.id) && (
+                      {c.status === "Revisão de Confirmação" && !pedidos.some(p => p.cotacaoId === c.id) && (
                         <>
                           <DropdownMenuItem onClick={() => openConfirmacaoValores(c)}>
                             <ShieldCheck className="mr-2 h-4 w-4" />Confirmar Valores e Emitir OC
