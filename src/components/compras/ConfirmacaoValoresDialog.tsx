@@ -350,7 +350,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                           setCategorias(p => ({ ...p, [l.key]: v }));
                         }}
                       >
-                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-left"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                         </SelectContent>
