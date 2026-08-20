@@ -1522,7 +1522,7 @@ export default function CotacaoComprasPage() {
                 <Input type="date" value={propValidade} onChange={e => setPropValidade(e.target.value)} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Custos de Frete (R$)</Label>
                 <Input type="number" min="0" step="0.01" value={propFrete} placeholder="0,00"
@@ -1532,6 +1532,11 @@ export default function CotacaoComprasPage() {
                 <Label>Custos de Operação (R$)</Label>
                 <Input type="number" min="0" step="0.01" value={propOperacao} placeholder="0,00"
                   onChange={e => setPropOperacao(e.target.value === "" ? "" : Number(e.target.value))} />
+              </div>
+              <div>
+                <Label>Custo de Seguro (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={propSeguro} placeholder="0,00"
+                  onChange={e => setPropSeguro(e.target.value === "" ? "" : Number(e.target.value))} />
               </div>
             </div>
             <div>
