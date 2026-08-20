@@ -87,6 +87,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const [justificativas, setJustificativas] = useState<Record<string, string>>({});
   const [manualCategoria, setManualCategoria] = useState<Record<string, boolean>>({});
   const [salvando, setSalvando] = useState(false);
+  const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
 
   useEffect(() => {
     if (!open) return;
