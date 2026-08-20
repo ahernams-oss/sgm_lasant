@@ -131,6 +131,8 @@ export default function PropostaFornecedorPage() {
         prazo_entrega: prazoEntrega,
         validade_proposta: validadeProposta,
         observacao,
+        valor_frete: Number(valorFrete) || 0,
+        valor_operacao: Number(valorOperacao) || 0,
         itens: itens.map(i => ({
           itemId: i.itemId,
           descricao: i.descricao,
