@@ -264,12 +264,24 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                     <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>
                     <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>
                     <TableCell>
-                      <Input
-                        value={precos[l.key] ?? ""}
-                        onChange={e => setPreco(l.key, e.target.value)}
-                        inputMode="decimal"
-                        className="h-8 text-right"
-                      />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={precos[l.key] ?? ""}
+                          onChange={e => setPreco(l.key, e.target.value)}
+                          inputMode="decimal"
+                          className="h-8 text-right"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          title="Sem variação: repetir o preço aprovado"
+                          onClick={() => manterPreco(l.key)}
+                        >
+                          <BadgeCheck className="h-5 w-5 text-emerald-600" />
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className={`text-right text-sm font-medium ${l.variacao < 0 ? "text-emerald-600" : l.variacao > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
                       {brl(l.variacao)}
