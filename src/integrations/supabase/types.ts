@@ -1183,6 +1183,8 @@ export type Database = {
           observacao: string | null
           prazo_entrega: string | null
           validade_proposta: string | null
+          valor_frete: number
+          valor_operacao: number
           valor_total: number
         }
         Insert: {
@@ -1194,6 +1196,8 @@ export type Database = {
           observacao?: string | null
           prazo_entrega?: string | null
           validade_proposta?: string | null
+          valor_frete?: number
+          valor_operacao?: number
           valor_total?: number
         }
         Update: {
@@ -1205,6 +1209,8 @@ export type Database = {
           observacao?: string | null
           prazo_entrega?: string | null
           validade_proposta?: string | null
+          valor_frete?: number
+          valor_operacao?: number
           valor_total?: number
         }
         Relationships: [
