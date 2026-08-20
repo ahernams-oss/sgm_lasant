@@ -87,8 +87,10 @@ export default function DashboardCompras() {
   const { confirmacoes } = useConfirmacoesValores();
 
   const savingMetrics = useMemo(() => {
-    let saving = 0, avoidance = 0, reajuste = 0;
+    let saving = 0, avoidance = 0, reajuste = 0, impactoAtraso = 0, itensAtraso = 0, acimaAlcada = 0;
     confirmacoes.forEach(c => {
+      if ((c.impactoAtraso ?? 0) > 0) { impactoAtraso += c.impactoAtraso; itensAtraso++; }
+      if (c.requerDiretoria) acimaAlcada++;
       if (c.categoria === "Saving") saving += Math.max(0, -c.variacaoValor);
       else if (c.categoria === "Reajuste") reajuste += Math.max(0, c.variacaoValor);
       else avoidance += c.valorConfirmado;
@@ -96,8 +98,9 @@ export default function DashboardCompras() {
     const liquido = reajuste - saving;
     const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     return {
-      saving, avoidance, reajuste, liquido,
+      saving, avoidance, reajuste, liquido, impactoAtraso, itensAtraso, acimaAlcada,
       savingFmt: brl(saving), avoidanceFmt: brl(avoidance), reajusteFmt: brl(reajuste), liquidoFmt: brl(liquido),
+      impactoAtrasoFmt: brl(impactoAtraso),
       chart: [
         { name: "Saving", value: saving, color: "#10b981" },
         { name: "Cost Avoidance", value: avoidance, color: "#3b82f6" },
@@ -550,6 +553,7 @@ export default function DashboardCompras() {
         <GradientKpiCard icon={CheckCircle} label="Cost Avoidance" value={savingMetrics.avoidanceFmt} gradientIdx={0} subtitle="Preço mantido pós-vencimento" />
         <GradientKpiCard icon={AlertTriangle} label="Reajuste" value={savingMetrics.reajusteFmt} gradientIdx={1} subtitle="Aumento pós-aprovação" />
         <GradientKpiCard icon={DollarSign} label="Impacto Líquido" value={savingMetrics.liquidoFmt} gradientIdx={savingMetrics.liquido <= 0 ? 2 : 3} subtitle="Saving − Reajuste" />
+        <GradientKpiCard icon={AlertTriangle} label="Impacto por Atraso de Aprovação" value={savingMetrics.impactoAtrasoFmt} gradientIdx={3} subtitle={`${savingMetrics.itensAtraso} item(ns) • ${savingMetrics.acimaAlcada} acima da alçada`} />
       </div>
 
       <Card>
