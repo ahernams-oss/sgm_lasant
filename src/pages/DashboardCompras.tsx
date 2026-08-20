@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
 import RelatoriosComprasDialog from "@/components/compras/RelatoriosComprasDialog";
+import { useConfirmacoesValores } from "@/hooks/useConfirmacoesValores";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
