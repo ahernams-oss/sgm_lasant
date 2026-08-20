@@ -339,6 +339,14 @@ export default function PropostaFornecedorPage() {
                   onChange={e => setValorOperacao(e.target.value === "" ? "" : Number(e.target.value))}
                 />
               </div>
+              <div>
+                <Label>Custo de Seguro (R$)</Label>
+                <Input
+                  type="number" min="0" step="0.01" placeholder="0,00"
+                  value={valorSeguro}
+                  onChange={e => setValorSeguro(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </div>
             </div>
             <div>
               <Label>Observações</Label>
