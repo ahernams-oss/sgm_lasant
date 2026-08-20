@@ -545,12 +545,12 @@ export default function NfesRecebidas() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Emissão</TableHead>
-                    <TableHead>Nº/Série</TableHead>
-                    <TableHead>Emitente</TableHead>
-                    <TableHead>CNPJ</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead>Status</TableHead>
+                    <SortHead campo="data_emissao">Emissão</SortHead>
+                    <SortHead campo="numero">Nº/Série</SortHead>
+                    <SortHead campo="nome">Emitente</SortHead>
+                    <SortHead campo="cnpj">CNPJ</SortHead>
+                    <SortHead campo="valor_total" className="text-right">Valor</SortHead>
+                    <SortHead campo="status">Status</SortHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
