@@ -12,7 +12,7 @@ export interface PropostaFornecedor {
   id: string; fornecedorId: string; fornecedorNome: string;
   condicaoPagamento: string; prazoEntrega: string; validadeProposta: string;
   observacao: string; itens: ItemCotacaoFornecedor[]; valorTotal: number;
-  valorFrete?: number; valorOperacao?: number;
+  valorFrete?: number; valorOperacao?: number; valorSeguro?: number;
 }
 export interface ItemVencedor { itemId: string; fornecedorId: string; fornecedorNome: string; }
 
@@ -86,7 +86,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
     const c = cotacoes.find(c => c.id === cotacaoId);
     if (!c || c.status === "Finalizada" || c.status === "Cancelada") return;
     const valorTotal = proposta.itens.reduce((sum, i) => sum + i.precoUnitario * i.quantidade, 0)
-      + (Number(proposta.valorFrete) || 0) + (Number(proposta.valorOperacao) || 0);
+      + (Number(proposta.valorFrete) || 0) + (Number(proposta.valorOperacao) || 0) + (Number(proposta.valorSeguro) || 0);
     const updated = { ...c, propostas: [...c.propostas, { ...proposta, id: crypto.randomUUID(), valorTotal }] };
     await saveAndReload(cotacaoId, updated);
   };
@@ -95,7 +95,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
     const c = cotacoes.find(c => c.id === cotacaoId);
     if (!c || c.status === "Finalizada" || c.status === "Cancelada") return;
     const valorTotal = proposta.itens.reduce((sum, i) => sum + i.precoUnitario * i.quantidade, 0)
-      + (Number(proposta.valorFrete) || 0) + (Number(proposta.valorOperacao) || 0);
+      + (Number(proposta.valorFrete) || 0) + (Number(proposta.valorOperacao) || 0) + (Number(proposta.valorSeguro) || 0);
     const updated = { ...c, propostas: c.propostas.map(p => p.id === propostaId ? { ...proposta, id: propostaId, valorTotal } : p) };
     await saveAndReload(cotacaoId, updated);
   };
