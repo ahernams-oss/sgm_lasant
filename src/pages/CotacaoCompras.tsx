@@ -184,6 +184,23 @@ export default function CotacaoComprasPage() {
   const [aprovarCotacaoId, setAprovarCotacaoId] = useState("");
   const [mapaDialogOpen, setMapaDialogOpen] = useState(false);
   const [mapaCotacao, setMapaCotacao] = useState<CotacaoCompras | null>(null);
+  const [confirmacaoDialogOpen, setConfirmacaoDialogOpen] = useState(false);
+  const [planoEmissao, setPlanoEmissao] = useState<PlanoEmissao | null>(null);
+  const { registrarConfirmacoes } = useConfirmacoesValores();
+
+  const itensConfirmacao: ItemConfirmacao[] = useMemo(() => {
+    if (!planoEmissao) return [];
+    return planoEmissao.grupos.flatMap(g => g.itens.map(i => ({
+      key: `${g.fornecedorId}::${i.itemId}`,
+      itemId: i.itemId,
+      descricao: i.descricao,
+      quantidade: i.quantidade,
+      unidadeMedida: i.unidadeMedida,
+      precoAprovado: i.precoUnitario,
+      fornecedorId: g.fornecedorId,
+      fornecedorNome: g.fornecedorNome,
+    })));
+  }, [planoEmissao]);
 
   // Proposta form
   const [propFornecedorId, setPropFornecedorId] = useState("");
