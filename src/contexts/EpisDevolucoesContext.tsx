@@ -18,6 +18,12 @@ export interface EpiDevolucao {
   observacao: string;
   anexoPath: string;
   registradoPor: string;
+  token: string;
+  status: string;
+  telefoneEnvio: string;
+  confirmadoEm: string;
+  selfiePath: string;
+  selfiePath2: string;
   createdAt: string;
 }
 
@@ -61,6 +67,12 @@ const rowTo = (r: any): EpiDevolucao => ({
   observacao: r.observacao ?? "",
   anexoPath: r.anexo_path ?? "",
   registradoPor: r.registrado_por ?? "",
+  token: r.token ?? "",
+  status: r.status ?? "registrado",
+  telefoneEnvio: r.telefone_envio ?? "",
+  confirmadoEm: r.confirmado_em ?? "",
+  selfiePath: r.selfie_path ?? "",
+  selfiePath2: r.selfie_path_2 ?? "",
   createdAt: r.created_at ?? "",
 });
 
@@ -79,6 +91,9 @@ const toRow = (d: Partial<Omit<EpiDevolucao, "id" | "createdAt">>) => ({
   observacao: d.observacao || null,
   anexo_path: d.anexoPath || null,
   registrado_por: d.registradoPor || null,
+  ...(d.token !== undefined ? { token: d.token || null } : {}),
+  ...(d.status !== undefined ? { status: d.status || "registrado" } : {}),
+  ...(d.telefoneEnvio !== undefined ? { telefone_envio: d.telefoneEnvio || null } : {}),
 });
 
 const QK = ["epis_devolucoes"] as const;
