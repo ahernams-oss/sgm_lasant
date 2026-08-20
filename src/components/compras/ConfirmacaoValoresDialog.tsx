@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface ItemConfirmacao {
   key: string;
