@@ -39,7 +39,7 @@ import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
-import ConfirmacaoValoresDialog, { AjusteConfirmacao, ItemConfirmacao, MetaConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
+import ConfirmacaoValoresDialog, { AjusteConfirmacao, AlternativaFornecedor, ItemConfirmacao, MetaConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
 import { LIMITE_ALCADA_PERCENTUAL, calcularDiasAtraso, calcularImpactoAtraso } from "@/lib/alcadaReajuste";
 import { useConfirmacoesValores } from "@/hooks/useConfirmacoesValores";
 
@@ -62,6 +62,8 @@ interface PlanoEmissao {
   principalFornecedorId: string;
   grupos: GrupoEmissao[];
   dataAprovacao?: string;
+  /** Todas as propostas da cotação — base para redirecionar itens a outro fornecedor. */
+  propostas?: GrupoEmissao[];
 }
 
 const statusColors: Record<string, string> = {
@@ -193,16 +195,32 @@ export default function CotacaoComprasPage() {
 
   const itensConfirmacao: ItemConfirmacao[] = useMemo(() => {
     if (!planoEmissao) return [];
-    return planoEmissao.grupos.flatMap(g => g.itens.map(i => ({
-      key: `${g.fornecedorId}::${i.itemId}`,
-      itemId: i.itemId,
-      descricao: i.descricao,
-      quantidade: i.quantidade,
-      unidadeMedida: i.unidadeMedida,
-      precoAprovado: i.precoUnitario,
-      fornecedorId: g.fornecedorId,
-      fornecedorNome: g.fornecedorNome,
-    })));
+    const propostas = planoEmissao.propostas ?? [];
+    return planoEmissao.grupos.flatMap(g => g.itens.map(i => {
+      const alternativas: AlternativaFornecedor[] = [
+        { fornecedorId: g.fornecedorId, fornecedorNome: g.fornecedorNome, precoUnitario: i.precoUnitario },
+        ...propostas
+          .filter(p => p.fornecedorId !== g.fornecedorId)
+          .map(p => {
+            const li = p.itens.find(x => x.itemId === i.itemId);
+            return li && li.precoUnitario > 0
+              ? { fornecedorId: p.fornecedorId, fornecedorNome: p.fornecedorNome, precoUnitario: li.precoUnitario }
+              : null;
+          })
+          .filter(Boolean) as AlternativaFornecedor[],
+      ];
+      return {
+        key: `${g.fornecedorId}::${i.itemId}`,
+        itemId: i.itemId,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida,
+        precoAprovado: i.precoUnitario,
+        fornecedorId: g.fornecedorId,
+        fornecedorNome: g.fornecedorNome,
+        alternativas,
+      };
+    }));
   }, [planoEmissao]);
 
   // Proposta form
@@ -637,6 +655,17 @@ export default function CotacaoComprasPage() {
       };
     }
 
+    plano.propostas = cot.propostas.map(p => ({
+      fornecedorId: p.fornecedorId,
+      fornecedorNome: p.fornecedorNome,
+      condicaoPagamento: p.condicaoPagamento,
+      prazoEntrega: p.prazoEntrega,
+      itens: p.itens.map(i => ({
+        itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
+        unidadeMedida: i.unidadeMedida, precoUnitario: i.precoUnitario,
+      })),
+    }));
+
     const histAprov = [...(req.historicoStatus || [])].reverse().find(h => (h.status || "").startsWith("Aprovada"));
     plano.dataAprovacao = histAprov?.dataHora;
 
@@ -660,36 +689,77 @@ export default function CotacaoComprasPage() {
 
     const pedidosCriados: PedidoCompra[] = [];
     const linhasConfirmacao: any[] = [];
+    const redirecionamentos: { descricao: string; de: string; para: string; motivo: string }[] = [];
+
+    // Reagrupa os itens pelo fornecedor final (permite redirecionamento pós-aprovação).
+    type LinhaFinal = {
+      fornecedorId: string; fornecedorNome: string;
+      condicaoPagamento: string; prazoEntrega: string;
+      item: { itemId: string; descricao: string; quantidade: number; unidadeMedida: string; precoUnitario: number };
+      precoFinal: number;
+      aj?: AjusteConfirmacao;
+    };
+    const linhasFinais: LinhaFinal[] = [];
 
     for (const grupo of plano.grupos) {
-      const itensPedido = grupo.itens.map(i => {
+      for (const i of grupo.itens) {
         const aj = ajustes[`${grupo.fornecedorId}::${i.itemId}`];
         const precoFinal = aj?.precoConfirmado ?? i.precoUnitario;
-        return {
-          itemId: i.itemId, descricao: i.descricao, quantidade: i.quantidade,
-          unidadeMedida: i.unidadeMedida, precoUnitario: precoFinal,
-          valorTotal: precoFinal * i.quantidade,
-        };
-      });
+        const destinoId = aj?.fornecedorIdFinal || grupo.fornecedorId;
+        const propDestino = (plano.propostas ?? []).find(p => p.fornecedorId === destinoId);
+        if (aj?.redirecionado) {
+          redirecionamentos.push({
+            descricao: i.descricao,
+            de: grupo.fornecedorNome,
+            para: aj.fornecedorNomeFinal || propDestino?.fornecedorNome || "",
+            motivo: aj.motivoRedirecionamento || "",
+          });
+        }
+        linhasFinais.push({
+          fornecedorId: destinoId,
+          fornecedorNome: aj?.fornecedorNomeFinal || propDestino?.fornecedorNome || grupo.fornecedorNome,
+          condicaoPagamento: propDestino?.condicaoPagamento ?? grupo.condicaoPagamento,
+          prazoEntrega: propDestino?.prazoEntrega ?? grupo.prazoEntrega,
+          item: i,
+          precoFinal,
+          aj,
+        });
+      }
+    }
+
+    const fornecedoresFinais = [...new Set(linhasFinais.map(l => l.fornecedorId))];
+
+    for (const fornId of fornecedoresFinais) {
+      const linhasForn = linhasFinais.filter(l => l.fornecedorId === fornId);
+      const ref = linhasForn[0];
+      const itensPedido = linhasForn.map(l => ({
+        itemId: l.item.itemId, descricao: l.item.descricao, quantidade: l.item.quantidade,
+        unidadeMedida: l.item.unidadeMedida, precoUnitario: l.precoFinal,
+        valorTotal: l.precoFinal * l.item.quantidade,
+      }));
 
       const novo = addPedido({
         cotacaoId: plano.cotacaoId,
         requisicaoId: plano.requisicaoId,
         requisicaoNumero: plano.requisicaoNumero,
         comprador: usuario,
-        fornecedorId: grupo.fornecedorId,
-        fornecedorNome: grupo.fornecedorNome,
+        fornecedorId: ref.fornecedorId,
+        fornecedorNome: ref.fornecedorNome,
         itens: itensPedido,
-        condicaoPagamento: grupo.condicaoPagamento,
-        prazoEntrega: grupo.prazoEntrega,
+        condicaoPagamento: ref.condicaoPagamento,
+        prazoEntrega: ref.prazoEntrega,
         localEntrega: plano.localEntrega,
-        observacoes: "",
+        observacoes: linhasForn.some(l => l.aj?.redirecionado)
+          ? "Itens redirecionados na confirmação de valores: " +
+            linhasForn.filter(l => l.aj?.redirecionado).map(l => `${l.item.descricao} (${l.aj?.motivoRedirecionamento})`).join("; ")
+          : "",
       });
       pedidosCriados.push(novo);
 
-      grupo.itens.forEach(i => {
-        const aj = ajustes[`${grupo.fornecedorId}::${i.itemId}`];
-        const precoFinal = aj?.precoConfirmado ?? i.precoUnitario;
+      linhasForn.forEach(l => {
+        const i = l.item;
+        const aj = l.aj;
+        const precoFinal = l.precoFinal;
         const valorAprovado = i.precoUnitario * i.quantidade;
         const valorConfirmado = precoFinal * i.quantidade;
         linhasConfirmacao.push({
@@ -697,8 +767,8 @@ export default function CotacaoComprasPage() {
           requisicaoId: plano.requisicaoId,
           requisicaoNumero: plano.requisicaoNumero,
           pedidoId: novo.id,
-          fornecedorId: grupo.fornecedorId,
-          fornecedorNome: grupo.fornecedorNome,
+          fornecedorId: l.fornecedorId,
+          fornecedorNome: l.fornecedorNome,
           itemId: i.itemId,
           descricao: i.descricao,
           quantidade: i.quantidade,
@@ -710,7 +780,7 @@ export default function CotacaoComprasPage() {
           variacaoValor: valorConfirmado - valorAprovado,
           variacaoPercentual: i.precoUnitario > 0 ? ((precoFinal - i.precoUnitario) / i.precoUnitario) * 100 : 0,
           categoria: aj?.categoria ?? "Cost Avoidance",
-          justificativa: aj?.justificativa ?? "",
+          justificativa: [aj?.justificativa ?? "", aj?.redirecionado ? `Redirecionado: ${aj.motivoRedirecionamento}` : ""].filter(Boolean).join(" | "),
           confirmadoPor: usuario,
           alcada: aj?.alcada ?? "Sem Reajuste",
           limiteAlcadaPercentual: LIMITE_ALCADA_PERCENTUAL,
@@ -726,7 +796,7 @@ export default function CotacaoComprasPage() {
             descricao: i.descricao,
             perc: i.precoUnitario > 0 ? ((precoFinal - i.precoUnitario) / i.precoUnitario) * 100 : 0,
             variacao: valorConfirmado - valorAprovado,
-            fornecedor: grupo.fornecedorNome,
+            fornecedor: l.fornecedorNome,
           });
         }
       });
@@ -762,6 +832,11 @@ export default function CotacaoComprasPage() {
       }
       updateStatus(plano.requisicaoId, "Pedido Emitido", usuario,
         `Reajuste acima da alçada de ${LIMITE_ALCADA_PERCENTUAL}% — aditivo de verba de ${brl(totalAditivo)} notificado à Diretoria`);
+    }
+
+    if (redirecionamentos.length > 0) {
+      updateStatus(plano.requisicaoId, "Pedido Emitido", usuario,
+        `Redirecionamento de fornecedor: ${redirecionamentos.map(r => `${r.descricao} — ${r.de} → ${r.para} (${r.motivo})`).join("; ")}`);
     }
 
     concluirRevisaoConfirmacao(plano.cotacaoId);
