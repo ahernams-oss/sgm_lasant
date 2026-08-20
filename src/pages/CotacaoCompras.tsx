@@ -39,6 +39,28 @@ import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
+import ConfirmacaoValoresDialog, { AjusteConfirmacao, ItemConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
+import { useConfirmacoesValores } from "@/hooks/useConfirmacoesValores";
+
+interface GrupoEmissao {
+  fornecedorId: string;
+  fornecedorNome: string;
+  condicaoPagamento: string;
+  prazoEntrega: string;
+  itens: { itemId: string; descricao: string; quantidade: number; unidadeMedida: string; precoUnitario: number }[];
+}
+
+interface PlanoEmissao {
+  cotacaoId: string;
+  requisicaoId: string;
+  requisicaoNumero: number;
+  localEntrega: string;
+  justificativa: string;
+  itemizado: boolean;
+  itensVencedores?: ItemVencedor[];
+  principalFornecedorId: string;
+  grupos: GrupoEmissao[];
+}
 
 const statusColors: Record<string, string> = {
   "Em Andamento": "bg-yellow-100 text-yellow-800",
