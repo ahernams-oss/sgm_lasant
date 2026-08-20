@@ -271,7 +271,10 @@ export default function PropostaFornecedorPage() {
                 </TableBody>
               </Table>
             </div>
-            <div className="text-right mt-3">
+            <div className="text-right mt-3 space-y-1">
+              <div className="text-sm text-muted-foreground">
+                Subtotal itens: {formatCurrency(subtotalItens)} • Frete: {formatCurrency(Number(valorFrete) || 0)} • Operação: {formatCurrency(Number(valorOperacao) || 0)}
+              </div>
               <Badge variant="secondary" className="text-lg px-4 py-1">
                 Total: {formatCurrency(valorTotal)}
               </Badge>
