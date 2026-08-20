@@ -12,6 +12,7 @@ export interface PropostaFornecedor {
   id: string; fornecedorId: string; fornecedorNome: string;
   condicaoPagamento: string; prazoEntrega: string; validadeProposta: string;
   observacao: string; itens: ItemCotacaoFornecedor[]; valorTotal: number;
+  valorFrete?: number; valorOperacao?: number;
 }
 export interface ItemVencedor { itemId: string; fornecedorId: string; fornecedorNome: string; }
 
