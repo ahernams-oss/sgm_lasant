@@ -52,6 +52,8 @@ export default function PropostaFornecedorPage() {
   const [prazoEntrega, setPrazoEntrega] = useState("");
   const [validadeProposta, setValidadeProposta] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [valorFrete, setValorFrete] = useState<number | "">("");
+  const [valorOperacao, setValorOperacao] = useState<number | "">("");
 
   useEffect(() => {
     if (!token) return;
@@ -100,7 +102,11 @@ export default function PropostaFornecedorPage() {
     setLoading(false);
   };
 
-  const valorTotal = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
+  const subtotalItens = useMemo(() => itens.reduce((s, i) => s + (i.naoTem ? 0 : i.precoUnitario * i.quantidade), 0), [itens]);
+  const valorTotal = useMemo(
+    () => subtotalItens + (Number(valorFrete) || 0) + (Number(valorOperacao) || 0),
+    [subtotalItens, valorFrete, valorOperacao]
+  );
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -125,6 +131,8 @@ export default function PropostaFornecedorPage() {
         prazo_entrega: prazoEntrega,
         validade_proposta: validadeProposta,
         observacao,
+        valor_frete: Number(valorFrete) || 0,
+        valor_operacao: Number(valorOperacao) || 0,
         itens: itens.map(i => ({
           itemId: i.itemId,
           descricao: i.descricao,
@@ -271,7 +279,10 @@ export default function PropostaFornecedorPage() {
                 </TableBody>
               </Table>
             </div>
-            <div className="text-right mt-3">
+            <div className="text-right mt-3 space-y-1">
+              <div className="text-sm text-muted-foreground">
+                Subtotal itens: {formatCurrency(subtotalItens)} • Frete: {formatCurrency(Number(valorFrete) || 0)} • Operação: {formatCurrency(Number(valorOperacao) || 0)}
+              </div>
               <Badge variant="secondary" className="text-lg px-4 py-1">
                 Total: {formatCurrency(valorTotal)}
               </Badge>
@@ -308,6 +319,22 @@ export default function PropostaFornecedorPage() {
                   type="date"
                   value={validadeProposta}
                   onChange={e => setValidadeProposta(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Custos de Frete (R$)</Label>
+                <Input
+                  type="number" min="0" step="0.01" placeholder="0,00"
+                  value={valorFrete}
+                  onChange={e => setValorFrete(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label>Custos de Operação (R$)</Label>
+                <Input
+                  type="number" min="0" step="0.01" placeholder="0,00"
+                  value={valorOperacao}
+                  onChange={e => setValorOperacao(e.target.value === "" ? "" : Number(e.target.value))}
                 />
               </div>
             </div>

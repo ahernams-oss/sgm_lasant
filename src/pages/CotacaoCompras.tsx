@@ -1101,6 +1101,8 @@ export default function CotacaoComprasPage() {
             prazoEntrega: propExt.prazo_entrega || "",
             validadeProposta: propExt.validade_proposta || "",
             observacao: propExt.observacao || "",
+            valorFrete: Number(propExt.valor_frete) || 0,
+            valorOperacao: Number(propExt.valor_operacao) || 0,
             itens: (propExt.itens as any[]).map((i: any) => ({
               itemId: i.itemId,
               descricao: i.descricao,
