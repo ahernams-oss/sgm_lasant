@@ -1185,6 +1185,7 @@ export type Database = {
           validade_proposta: string | null
           valor_frete: number
           valor_operacao: number
+          valor_seguro: number
           valor_total: number
         }
         Insert: {
@@ -1198,6 +1199,7 @@ export type Database = {
           validade_proposta?: string | null
           valor_frete?: number
           valor_operacao?: number
+          valor_seguro?: number
           valor_total?: number
         }
         Update: {
@@ -1211,6 +1213,7 @@ export type Database = {
           validade_proposta?: string | null
           valor_frete?: number
           valor_operacao?: number
+          valor_seguro?: number
           valor_total?: number
         }
         Relationships: [
