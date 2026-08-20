@@ -275,6 +275,32 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
             <BadgeCheck className="h-4 w-4 mr-2 text-emerald-600" />
             Manter todos os preços
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="sm">
+                <Settings2 className="h-4 w-4 mr-2" />
+                Colunas
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Exibir colunas</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {COLUNAS.map(col => (
+                <DropdownMenuCheckboxItem
+                  key={col.key}
+                  checked={!!visibilidadeColunas[col.key]}
+                  onCheckedChange={() => toggleColuna(col.key)}
+                >
+                  {col.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={resetColunas}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Restaurar padrão
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {linhasDiretoria.length === 0 ? (
