@@ -1650,6 +1650,66 @@ export type Database = {
         }
         Relationships: []
       }
+      epis_devolucoes: {
+        Row: {
+          anexo_path: string | null
+          ca: string | null
+          codigo: string | null
+          condicao: string | null
+          created_at: string
+          data_devolucao: string
+          data_entrega: string | null
+          descricao: string
+          destino: string | null
+          epi_item_id: string | null
+          funcionario_id: string
+          id: string
+          motivo: string
+          observacao: string | null
+          quantidade: number
+          registrado_por: string | null
+          updated_at: string
+        }
+        Insert: {
+          anexo_path?: string | null
+          ca?: string | null
+          codigo?: string | null
+          condicao?: string | null
+          created_at?: string
+          data_devolucao?: string
+          data_entrega?: string | null
+          descricao: string
+          destino?: string | null
+          epi_item_id?: string | null
+          funcionario_id: string
+          id?: string
+          motivo?: string
+          observacao?: string | null
+          quantidade?: number
+          registrado_por?: string | null
+          updated_at?: string
+        }
+        Update: {
+          anexo_path?: string | null
+          ca?: string | null
+          codigo?: string | null
+          condicao?: string | null
+          created_at?: string
+          data_devolucao?: string
+          data_entrega?: string | null
+          descricao?: string
+          destino?: string | null
+          epi_item_id?: string | null
+          funcionario_id?: string
+          id?: string
+          motivo?: string
+          observacao?: string | null
+          quantidade?: number
+          registrado_por?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       epis_recebimentos: {
         Row: {
           confirmado_em: string | null
