@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface ItemConfirmacao {
   key: string;
@@ -101,6 +103,68 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
     }
   };
 
+  const [lendoIa, setLendoIa] = useState(false);
+
+  /** Repete o preço aprovado como confirmado (sem variação). */
+  const manterPreco = (key: string) => {
+    const item = itens.find(i => i.key === key);
+    if (!item) return;
+    setPrecos(prev => ({ ...prev, [key]: String(item.precoAprovado).replace(".", ",") }));
+    if (!manualCategoria[key]) {
+      setCategorias(prev => ({ ...prev, [key]: classificarVariacao(item.precoAprovado, item.precoAprovado) }));
+    }
+  };
+
+  const manterTodos = () => itens.forEach(i => manterPreco(i.key));
+
+  const handleArquivoIa = async (file: File | null) => {
+    if (!file) return;
+    setLendoIa(true);
+    try {
+      const base64: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke("ler-proposta-cotacao", {
+        body: {
+          fileBase64: base64,
+          mimeType: file.type || "application/pdf",
+          fileName: file.name,
+          itens: itens.map(i => ({
+            itemId: i.itemId,
+            descricao: i.descricao,
+            quantidade: i.quantidade,
+            unidadeMedida: i.unidadeMedida,
+          })),
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      const lidos: any[] = Array.isArray((data as any)?.itens) ? (data as any).itens : [];
+      let aplicados = 0;
+      lidos.forEach(li => {
+        if (li.precoUnitario == null) return;
+        itens
+          .filter(i => i.itemId === String(li.itemId))
+          .forEach(i => {
+            aplicados++;
+            setPreco(i.key, String(Number(li.precoUnitario)).replace(".", ","));
+          });
+      });
+      toast[aplicados > 0 ? "success" : "warning"](
+        aplicados > 0 ? `${aplicados} preço(s) preenchido(s) pela IA.` : "Nenhum preço foi identificado no arquivo.",
+      );
+    } catch (e) {
+      toast.error(`Não foi possível ler o arquivo: ${(e as Error).message}`);
+    } finally {
+      setLendoIa(false);
+    }
+  };
+
   const handleConfirm = async () => {
     setSalvando(true);
     const ajustes: Record<string, AjusteConfirmacao> = {};
@@ -152,6 +216,30 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            id="ia-confirmacao-file"
+            type="file"
+            accept="application/pdf,image/*"
+            className="hidden"
+            onChange={e => { handleArquivoIa(e.target.files?.[0] ?? null); e.currentTarget.value = ""; }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={lendoIa}
+            onClick={() => document.getElementById("ia-confirmacao-file")?.click()}
+          >
+            {lendoIa ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+            {lendoIa ? "Lendo documento..." : "Ler preços por IA (PDF/imagem)"}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={manterTodos}>
+            <BadgeCheck className="h-4 w-4 mr-2 text-emerald-600" />
+            Manter todos os preços
+          </Button>
+        </div>
+
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
@@ -160,7 +248,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 <TableHead>Fornecedor</TableHead>
                 <TableHead className="text-right">Qtd</TableHead>
                 <TableHead className="text-right">Preço aprovado</TableHead>
-                <TableHead className="w-[140px]">Preço confirmado</TableHead>
+                <TableHead className="w-[180px]">Preço confirmado</TableHead>
                 <TableHead className="text-right">Variação</TableHead>
                 <TableHead className="w-[170px]">Categoria</TableHead>
                 <TableHead className="min-w-[180px]">Justificativa</TableHead>
@@ -176,12 +264,24 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                     <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>
                     <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>
                     <TableCell>
-                      <Input
-                        value={precos[l.key] ?? ""}
-                        onChange={e => setPreco(l.key, e.target.value)}
-                        inputMode="decimal"
-                        className="h-8 text-right"
-                      />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={precos[l.key] ?? ""}
+                          onChange={e => setPreco(l.key, e.target.value)}
+                          inputMode="decimal"
+                          className="h-8 text-right"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          title="Sem variação: repetir o preço aprovado"
+                          onClick={() => manterPreco(l.key)}
+                        >
+                          <BadgeCheck className="h-5 w-5 text-emerald-600" />
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className={`text-right text-sm font-medium ${l.variacao < 0 ? "text-emerald-600" : l.variacao > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
                       {brl(l.variacao)}
