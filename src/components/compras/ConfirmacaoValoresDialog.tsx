@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ALCADA_BADGE, Alcada, LIMITE_ALCADA_PERCENTUAL, classificarAlcada } from "@/lib/alcadaReajuste";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -26,6 +29,14 @@ export interface AjusteConfirmacao {
   precoConfirmado: number;
   categoria: CategoriaVariacao;
   justificativa: string;
+  alcada: Alcada;
+  requerDiretoria: boolean;
+}
+
+export interface MetaConfirmacao {
+  /** Diretoria notificada para aceite do aditivo de verba. */
+  aceiteDiretoria: boolean;
+  aprovadoPorAlcada: string;
 }
 
 const CATEGORIAS: CategoriaVariacao[] = ["Saving", "Cost Avoidance", "Reajuste"];
@@ -50,10 +61,13 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   itens: ItemConfirmacao[];
-  onConfirm: (ajustes: Record<string, AjusteConfirmacao>) => void | Promise<void>;
+  onConfirm: (ajustes: Record<string, AjusteConfirmacao>, meta: MetaConfirmacao) => void | Promise<void>;
+  /** Nome do coordenador/comprador que exerce a alçada expressa. */
+  responsavel?: string;
 }
 
-export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, onConfirm }: Props) {
+export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, onConfirm, responsavel = "" }: Props) {
+  const [aceiteDiretoria, setAceiteDiretoria] = useState(false);
   const [precos, setPrecos] = useState<Record<string, string>>({});
   const [categorias, setCategorias] = useState<Record<string, CategoriaVariacao>>({});
   const [justificativas, setJustificativas] = useState<Record<string, string>>({});
@@ -68,7 +82,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
       p[i.key] = String(i.precoAprovado).replace(".", ",");
       c[i.key] = "Cost Avoidance";
     });
-    setPrecos(p); setCategorias(c); setJustificativas({}); setManualCategoria({}); setSalvando(false);
+    setPrecos(p); setCategorias(c); setJustificativas({}); setManualCategoria({}); setSalvando(false); setAceiteDiretoria(false);
   }, [open, itens]);
 
   const linhas = useMemo(() => itens.map(i => {
@@ -77,7 +91,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
     const valorConfirmado = precoConfirmado * i.quantidade;
     const variacao = valorConfirmado - valorAprovado;
     const perc = i.precoAprovado > 0 ? ((precoConfirmado - i.precoAprovado) / i.precoAprovado) * 100 : 0;
-    return { ...i, precoConfirmado, valorAprovado, valorConfirmado, variacao, perc };
+    const alcada = classificarAlcada(perc);
+    return { ...i, precoConfirmado, valorAprovado, valorConfirmado, variacao, perc, alcada };
   }), [itens, precos]);
 
   const totais = useMemo(() => {
@@ -92,6 +107,11 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
     });
     return { saving, reajuste, avoidance, aprovado, confirmado };
   }, [linhas, categorias]);
+
+  const linhasDiretoria = useMemo(() => linhas.filter(l => l.alcada === "Diretoria"), [linhas]);
+  const totalAditivo = useMemo(() => linhasDiretoria.reduce((s, l) => s + Math.max(0, l.variacao), 0), [linhasDiretoria]);
+  const semJustificativa = useMemo(() => linhasDiretoria.some(l => !(justificativas[l.key] ?? "").trim()), [linhasDiretoria, justificativas]);
+  const bloqueado = linhasDiretoria.length > 0 && (!aceiteDiretoria || semJustificativa);
 
   const setPreco = (key: string, value: string) => {
     setPrecos(prev => ({ ...prev, [key]: value }));
@@ -173,10 +193,12 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
         precoConfirmado: l.precoConfirmado > 0 ? l.precoConfirmado : l.precoAprovado,
         categoria: categorias[l.key] ?? "Cost Avoidance",
         justificativa: justificativas[l.key] ?? "",
+        alcada: l.alcada,
+        requerDiretoria: l.alcada === "Diretoria",
       };
     });
     try {
-      await onConfirm(ajustes);
+      await onConfirm(ajustes, { aceiteDiretoria, aprovadoPorAlcada: responsavel });
     } finally {
       setSalvando(false);
     }
@@ -240,6 +262,33 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </Button>
         </div>
 
+        {linhasDiretoria.length === 0 ? (
+          <Alert>
+            <ShieldCheck className="h-4 w-4" />
+            <AlertTitle>Alçada de aprovação expressa</AlertTitle>
+            <AlertDescription className="text-xs">
+              Reajustes de até {LIMITE_ALCADA_PERCENTUAL}% são aprovados de forma expressa pelo Coordenador de
+              Compras/Manutenção{responsavel ? ` (${responsavel})` : ""}. Acima disso, a Diretoria é notificada para aceite do aditivo de verba.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Acima da alçada — aceite da Diretoria necessário</AlertTitle>
+            <AlertDescription className="text-xs space-y-2">
+              <p>
+                {linhasDiretoria.length} item(ns) com reajuste acima de {LIMITE_ALCADA_PERCENTUAL}%, totalizando um
+                aditivo de verba de <strong>{brl(totalAditivo)}</strong>. Informe a justificativa nesses itens e confirme
+                a notificação à Diretoria.
+              </p>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={aceiteDiretoria} onCheckedChange={v => setAceiteDiretoria(!!v)} />
+                <span className="flex items-center gap-1"><Gavel className="h-3 w-3" /> Notificar a Diretoria e registrar o aceite do aditivo de verba</span>
+              </label>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
@@ -250,6 +299,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 <TableHead className="text-right">Preço aprovado</TableHead>
                 <TableHead className="w-[180px]">Preço confirmado</TableHead>
                 <TableHead className="text-right">Variação</TableHead>
+                <TableHead className="w-[130px]">Alçada</TableHead>
                 <TableHead className="w-[170px]">Categoria</TableHead>
                 <TableHead className="min-w-[180px]">Justificativa</TableHead>
               </TableRow>
@@ -288,6 +338,11 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                       <span className="block text-[10px] font-normal">{l.perc.toFixed(2)}%</span>
                     </TableCell>
                     <TableCell>
+                      <Badge variant="outline" className={`text-[10px] ${ALCADA_BADGE[l.alcada]}`}>
+                        {l.alcada === "Diretoria" ? "Diretoria" : l.alcada === "Expressa" ? "Expressa" : "Sem reajuste"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <Select
                         value={cat}
                         onValueChange={(v: CategoriaVariacao) => {
@@ -306,7 +361,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                       <Input
                         value={justificativas[l.key] ?? ""}
                         onChange={e => setJustificativas(p => ({ ...p, [l.key]: e.target.value }))}
-                        placeholder="Opcional"
+                        placeholder={l.alcada === "Diretoria" ? "Obrigatória (acima da alçada)" : "Opcional"}
                         className="h-8"
                       />
                     </TableCell>
@@ -319,7 +374,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>Cancelar</Button>
-          <Button onClick={handleConfirm} disabled={salvando}>
+          <Button onClick={handleConfirm} disabled={salvando || bloqueado}>
             <CheckCircle2 className="h-4 w-4 mr-2" />
             {salvando ? "Emitindo..." : "Confirmar valores e emitir OC"}
           </Button>
