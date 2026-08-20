@@ -764,21 +764,29 @@ export type Database = {
       }
       compras_confirmacoes_valores: {
         Row: {
+          alcada: string
+          aprovado_por_alcada: string | null
           categoria: string
           confirmado_em: string
           confirmado_por: string | null
           cotacao_id: string | null
           created_at: string
           descricao: string | null
+          dias_atraso_aprovacao: number
+          diretoria_aceite: boolean
+          diretoria_notificada_em: string | null
           fornecedor_id: string | null
           fornecedor_nome: string | null
           id: string
+          impacto_atraso: number
           item_id: string | null
           justificativa: string | null
+          limite_alcada_percentual: number
           pedido_id: string | null
           preco_aprovado: number
           preco_confirmado: number
           quantidade: number
+          requer_diretoria: boolean
           requisicao_id: string | null
           requisicao_numero: number | null
           unidade_medida: string | null
@@ -789,21 +797,29 @@ export type Database = {
           variacao_valor: number
         }
         Insert: {
+          alcada?: string
+          aprovado_por_alcada?: string | null
           categoria?: string
           confirmado_em?: string
           confirmado_por?: string | null
           cotacao_id?: string | null
           created_at?: string
           descricao?: string | null
+          dias_atraso_aprovacao?: number
+          diretoria_aceite?: boolean
+          diretoria_notificada_em?: string | null
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
           id?: string
+          impacto_atraso?: number
           item_id?: string | null
           justificativa?: string | null
+          limite_alcada_percentual?: number
           pedido_id?: string | null
           preco_aprovado?: number
           preco_confirmado?: number
           quantidade?: number
+          requer_diretoria?: boolean
           requisicao_id?: string | null
           requisicao_numero?: number | null
           unidade_medida?: string | null
@@ -814,21 +830,29 @@ export type Database = {
           variacao_valor?: number
         }
         Update: {
+          alcada?: string
+          aprovado_por_alcada?: string | null
           categoria?: string
           confirmado_em?: string
           confirmado_por?: string | null
           cotacao_id?: string | null
           created_at?: string
           descricao?: string | null
+          dias_atraso_aprovacao?: number
+          diretoria_aceite?: boolean
+          diretoria_notificada_em?: string | null
           fornecedor_id?: string | null
           fornecedor_nome?: string | null
           id?: string
+          impacto_atraso?: number
           item_id?: string | null
           justificativa?: string | null
+          limite_alcada_percentual?: number
           pedido_id?: string | null
           preco_aprovado?: number
           preco_confirmado?: number
           quantidade?: number
+          requer_diretoria?: boolean
           requisicao_id?: string | null
           requisicao_numero?: number | null
           unidade_medida?: string | null
