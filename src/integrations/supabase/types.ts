@@ -762,6 +762,84 @@ export type Database = {
           },
         ]
       }
+      compras_confirmacoes_valores: {
+        Row: {
+          categoria: string
+          confirmado_em: string
+          confirmado_por: string | null
+          cotacao_id: string | null
+          created_at: string
+          descricao: string | null
+          fornecedor_id: string | null
+          fornecedor_nome: string | null
+          id: string
+          item_id: string | null
+          justificativa: string | null
+          pedido_id: string | null
+          preco_aprovado: number
+          preco_confirmado: number
+          quantidade: number
+          requisicao_id: string | null
+          requisicao_numero: number | null
+          unidade_medida: string | null
+          updated_at: string
+          valor_aprovado: number
+          valor_confirmado: number
+          variacao_percentual: number
+          variacao_valor: number
+        }
+        Insert: {
+          categoria?: string
+          confirmado_em?: string
+          confirmado_por?: string | null
+          cotacao_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          item_id?: string | null
+          justificativa?: string | null
+          pedido_id?: string | null
+          preco_aprovado?: number
+          preco_confirmado?: number
+          quantidade?: number
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          unidade_medida?: string | null
+          updated_at?: string
+          valor_aprovado?: number
+          valor_confirmado?: number
+          variacao_percentual?: number
+          variacao_valor?: number
+        }
+        Update: {
+          categoria?: string
+          confirmado_em?: string
+          confirmado_por?: string | null
+          cotacao_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          fornecedor_id?: string | null
+          fornecedor_nome?: string | null
+          id?: string
+          item_id?: string | null
+          justificativa?: string | null
+          pedido_id?: string | null
+          preco_aprovado?: number
+          preco_confirmado?: number
+          quantidade?: number
+          requisicao_id?: string | null
+          requisicao_numero?: number | null
+          unidade_medida?: string | null
+          updated_at?: string
+          valor_aprovado?: number
+          valor_confirmado?: number
+          variacao_percentual?: number
+          variacao_valor?: number
+        }
+        Relationships: []
+      }
       comunicacao_avisos: {
         Row: {
           ativo: boolean | null
