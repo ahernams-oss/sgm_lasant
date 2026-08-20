@@ -401,3 +401,4 @@ function SubmittedScreen({ numero, onDone }: { numero?: number; onDone: () => vo
     </div>
   );
 }
+
