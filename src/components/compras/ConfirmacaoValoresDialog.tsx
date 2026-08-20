@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw, ArrowLeftRight } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw, ArrowLeftRight, ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ALCADA_BADGE, Alcada, LIMITE_ALCADA_PERCENTUAL, classificarAlcada } from "@/lib/alcadaReajuste";
