@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw, ArrowLeftRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ALCADA_BADGE, Alcada, LIMITE_ALCADA_PERCENTUAL, classificarAlcada } from "@/lib/alcadaReajuste";
@@ -25,7 +25,28 @@ export interface ItemConfirmacao {
   precoAprovado: number;
   fornecedorId: string;
   fornecedorNome: string;
+  /** Fornecedores que cotaram este item (permite redirecionamento pós-aprovação). */
+  alternativas?: AlternativaFornecedor[];
 }
+
+export interface AlternativaFornecedor {
+  fornecedorId: string;
+  fornecedorNome: string;
+  precoUnitario: number;
+}
+
+export type MotivoRedirecionamento =
+  | "Pedido mínimo não atingido"
+  | "Indisponibilidade de estoque"
+  | "Prazo de entrega"
+  | "Outros";
+
+export const MOTIVOS_REDIRECIONAMENTO: MotivoRedirecionamento[] = [
+  "Pedido mínimo não atingido",
+  "Indisponibilidade de estoque",
+  "Prazo de entrega",
+  "Outros",
+];
 
 export interface AjusteConfirmacao {
   precoConfirmado: number;
@@ -33,6 +54,11 @@ export interface AjusteConfirmacao {
   justificativa: string;
   alcada: Alcada;
   requerDiretoria: boolean;
+  /** Fornecedor final do item (pode diferir do aprovado). */
+  fornecedorIdFinal: string;
+  fornecedorNomeFinal: string;
+  redirecionado: boolean;
+  motivoRedirecionamento: string;
 }
 
 export interface MetaConfirmacao {
@@ -51,6 +77,7 @@ const COLUNAS: ColumnDef[] = [
   { key: "precoConfirmado", label: "Preço confirmado" },
   { key: "variacao", label: "Variação" },
   { key: "alcada", label: "Alçada" },
+  { key: "motivo", label: "Motivo do redirecionamento" },
   { key: "categoria", label: "Categoria" },
   { key: "justificativa", label: "Justificativa" },
 ];
@@ -86,6 +113,8 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const [categorias, setCategorias] = useState<Record<string, CategoriaVariacao>>({});
   const [justificativas, setJustificativas] = useState<Record<string, string>>({});
   const [manualCategoria, setManualCategoria] = useState<Record<string, boolean>>({});
+  const [fornecedores, setFornecedores] = useState<Record<string, string>>({});
+  const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [salvando, setSalvando] = useState(false);
   const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
 
@@ -93,11 +122,15 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
     if (!open) return;
     const p: Record<string, string> = {};
     const c: Record<string, CategoriaVariacao> = {};
+    const f: Record<string, string> = {};
     itens.forEach(i => {
       p[i.key] = String(i.precoAprovado).replace(".", ",");
       c[i.key] = "Cost Avoidance";
+      f[i.key] = i.fornecedorId;
     });
-    setPrecos(p); setCategorias(c); setJustificativas({}); setManualCategoria({}); setSalvando(false); setAceiteDiretoria(false);
+    setPrecos(p); setCategorias(c); setJustificativas({}); setManualCategoria({});
+    setFornecedores(f); setMotivos({});
+    setSalvando(false); setAceiteDiretoria(false);
   }, [open, itens]);
 
   const linhas = useMemo(() => itens.map(i => {
@@ -107,8 +140,12 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
     const variacao = valorConfirmado - valorAprovado;
     const perc = i.precoAprovado > 0 ? ((precoConfirmado - i.precoAprovado) / i.precoAprovado) * 100 : 0;
     const alcada = classificarAlcada(perc);
-    return { ...i, precoConfirmado, valorAprovado, valorConfirmado, variacao, perc, alcada };
-  }), [itens, precos]);
+    const fornecedorIdFinal = fornecedores[i.key] ?? i.fornecedorId;
+    const alt = (i.alternativas ?? []).find(a => a.fornecedorId === fornecedorIdFinal);
+    const fornecedorNomeFinal = fornecedorIdFinal === i.fornecedorId ? i.fornecedorNome : (alt?.fornecedorNome ?? i.fornecedorNome);
+    const redirecionado = fornecedorIdFinal !== i.fornecedorId;
+    return { ...i, precoConfirmado, valorAprovado, valorConfirmado, variacao, perc, alcada, fornecedorIdFinal, fornecedorNomeFinal, redirecionado };
+  }), [itens, precos, fornecedores]);
 
   const totais = useMemo(() => {
     let saving = 0, reajuste = 0, avoidance = 0, aprovado = 0, confirmado = 0;
@@ -126,7 +163,25 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const linhasDiretoria = useMemo(() => linhas.filter(l => l.alcada === "Diretoria"), [linhas]);
   const totalAditivo = useMemo(() => linhasDiretoria.reduce((s, l) => s + Math.max(0, l.variacao), 0), [linhasDiretoria]);
   const semJustificativa = useMemo(() => linhasDiretoria.some(l => !(justificativas[l.key] ?? "").trim()), [linhasDiretoria, justificativas]);
-  const bloqueado = linhasDiretoria.length > 0 && (!aceiteDiretoria || semJustificativa);
+  const linhasRedirecionadas = useMemo(() => linhas.filter(l => l.redirecionado), [linhas]);
+  const semMotivo = useMemo(() => linhasRedirecionadas.some(l => !(motivos[l.key] ?? "").trim()), [linhasRedirecionadas, motivos]);
+  const bloqueado = (linhasDiretoria.length > 0 && (!aceiteDiretoria || semJustificativa)) || semMotivo;
+
+  /** Redireciona o item a outro fornecedor que cotou, adotando o preço dele. */
+  const setFornecedor = (key: string, fornecedorId: string) => {
+    setFornecedores(prev => ({ ...prev, [key]: fornecedorId }));
+    const item = itens.find(i => i.key === key);
+    if (!item) return;
+    const alt = (item.alternativas ?? []).find(a => a.fornecedorId === fornecedorId);
+    const preco = fornecedorId === item.fornecedorId ? item.precoAprovado : alt?.precoUnitario;
+    if (preco != null && preco > 0) {
+      setPrecos(prev => ({ ...prev, [key]: String(preco).replace(".", ",") }));
+      if (!manualCategoria[key]) {
+        setCategorias(prev => ({ ...prev, [key]: classificarVariacao(item.precoAprovado, preco) }));
+      }
+    }
+    if (fornecedorId === item.fornecedorId) setMotivos(prev => ({ ...prev, [key]: "" }));
+  };
 
   const setPreco = (key: string, value: string) => {
     setPrecos(prev => ({ ...prev, [key]: value }));
@@ -210,6 +265,10 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
         justificativa: justificativas[l.key] ?? "",
         alcada: l.alcada,
         requerDiretoria: l.alcada === "Diretoria",
+        fornecedorIdFinal: l.fornecedorIdFinal,
+        fornecedorNomeFinal: l.fornecedorNomeFinal,
+        redirecionado: l.redirecionado,
+        motivoRedirecionamento: l.redirecionado ? (motivos[l.key] ?? "") : "",
       };
     });
     try {
@@ -330,17 +389,30 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </Alert>
         )}
 
+        {linhasRedirecionadas.length > 0 && (
+          <Alert>
+            <ArrowLeftRight className="h-4 w-4" />
+            <AlertTitle>Redirecionamento de fornecedor</AlertTitle>
+            <AlertDescription className="text-xs">
+              {linhasRedirecionadas.length} item(ns) serão destinados a outro fornecedor que cotou a oferta
+              (pedido mínimo não atingido, indisponibilidade de estoque ou prazo). Informe o motivo em cada item —
+              as Ordens de Compra serão reagrupadas por fornecedor final.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 {visibilidadeColunas.item && <TableHead className="min-w-[220px]">Item</TableHead>}
-                {visibilidadeColunas.fornecedor && <TableHead>Fornecedor</TableHead>}
+                {visibilidadeColunas.fornecedor && <TableHead className="w-[220px]">Fornecedor</TableHead>}
                 {visibilidadeColunas.quantidade && <TableHead className="text-right">Qtd</TableHead>}
                 {visibilidadeColunas.precoAprovado && <TableHead className="text-right">Preço aprovado</TableHead>}
                 {visibilidadeColunas.precoConfirmado && <TableHead className="w-[180px]">Preço confirmado</TableHead>}
                 {visibilidadeColunas.variacao && <TableHead className="text-right">Variação</TableHead>}
                 {visibilidadeColunas.alcada && <TableHead className="w-[130px]">Alçada</TableHead>}
+                {visibilidadeColunas.motivo && <TableHead className="w-[210px]">Motivo do redirecionamento</TableHead>}
                 {visibilidadeColunas.categoria && <TableHead className="w-[170px]">Categoria</TableHead>}
                 {visibilidadeColunas.justificativa && <TableHead className="min-w-[260px]">Justificativa</TableHead>}
               </TableRow>
@@ -351,7 +423,29 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 return (
                   <TableRow key={l.key}>
                     {visibilidadeColunas.item && <TableCell className="text-sm">{l.descricao}</TableCell>}
-                    {visibilidadeColunas.fornecedor && <TableCell className="text-xs text-muted-foreground">{l.fornecedorNome}</TableCell>}
+                    {visibilidadeColunas.fornecedor && (
+                      <TableCell className="text-xs">
+                        {(l.alternativas?.length ?? 0) > 1 ? (
+                          <Select value={l.fornecedorIdFinal} onValueChange={v => setFornecedor(l.key, v)}>
+                            <SelectTrigger className="h-8 text-left text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {l.alternativas!.map(a => (
+                                <SelectItem key={a.fornecedorId} value={a.fornecedorId} className="text-xs">
+                                  {a.fornecedorNome}{a.fornecedorId === l.fornecedorId ? " (aprovado)" : ` — ${brl(a.precoUnitario)}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-muted-foreground">{l.fornecedorNome}</span>
+                        )}
+                        {l.redirecionado && (
+                          <Badge variant="outline" className="mt-1 text-[10px] bg-purple-100 text-purple-700 border-purple-200">
+                            <ArrowLeftRight className="h-3 w-3 mr-1" /> Redirecionado
+                          </Badge>
+                        )}
+                      </TableCell>
+                    )}
                     {visibilidadeColunas.quantidade && <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>}
                     {visibilidadeColunas.precoAprovado && <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>}
                     {visibilidadeColunas.precoConfirmado && (
@@ -387,6 +481,22 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                         <Badge variant="outline" className={`text-[10px] ${ALCADA_BADGE[l.alcada]}`}>
                           {l.alcada === "Diretoria" ? "Diretoria" : l.alcada === "Expressa" ? "Expressa" : "Sem reajuste"}
                         </Badge>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.motivo && (
+                      <TableCell>
+                        {l.redirecionado ? (
+                          <Select value={motivos[l.key] ?? ""} onValueChange={v => setMotivos(p => ({ ...p, [l.key]: v }))}>
+                            <SelectTrigger className="h-8 text-left text-xs">
+                              <SelectValue placeholder="Obrigatório" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {MOTIVOS_REDIRECIONAMENTO.map(m => <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                     )}
                     {visibilidadeColunas.categoria && (
