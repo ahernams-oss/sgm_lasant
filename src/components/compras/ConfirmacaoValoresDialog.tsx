@@ -7,12 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CategoriaVariacao, classificarVariacao } from "@/hooks/useConfirmacoesValores";
-import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel } from "lucide-react";
+import { CheckCircle2, TrendingDown, TrendingUp, ShieldCheck, Upload, Loader2, BadgeCheck, AlertTriangle, Gavel, Settings2, RotateCcw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ALCADA_BADGE, Alcada, LIMITE_ALCADA_PERCENTUAL, classificarAlcada } from "@/lib/alcadaReajuste";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useColumnVisibility, ColumnDef } from "@/hooks/useColumnVisibility";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export interface ItemConfirmacao {
   key: string;
@@ -40,6 +42,18 @@ export interface MetaConfirmacao {
 }
 
 const CATEGORIAS: CategoriaVariacao[] = ["Saving", "Cost Avoidance", "Reajuste"];
+
+const COLUNAS: ColumnDef[] = [
+  { key: "item", label: "Item" },
+  { key: "fornecedor", label: "Fornecedor" },
+  { key: "quantidade", label: "Qtd" },
+  { key: "precoAprovado", label: "Preço aprovado" },
+  { key: "precoConfirmado", label: "Preço confirmado" },
+  { key: "variacao", label: "Variação" },
+  { key: "alcada", label: "Alçada" },
+  { key: "categoria", label: "Categoria" },
+  { key: "justificativa", label: "Justificativa" },
+];
 
 const CATEGORIA_BADGE: Record<CategoriaVariacao, string> = {
   "Saving": "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -73,6 +87,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const [justificativas, setJustificativas] = useState<Record<string, string>>({});
   const [manualCategoria, setManualCategoria] = useState<Record<string, boolean>>({});
   const [salvando, setSalvando] = useState(false);
+  const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
 
   useEffect(() => {
     if (!open) return;
@@ -260,6 +275,32 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
             <BadgeCheck className="h-4 w-4 mr-2 text-emerald-600" />
             Manter todos os preços
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="sm">
+                <Settings2 className="h-4 w-4 mr-2" />
+                Colunas
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Exibir colunas</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {COLUNAS.map(col => (
+                <DropdownMenuCheckboxItem
+                  key={col.key}
+                  checked={!!visibilidadeColunas[col.key]}
+                  onCheckedChange={() => toggleColuna(col.key)}
+                >
+                  {col.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={resetColunas}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Restaurar padrão
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {linhasDiretoria.length === 0 ? (
@@ -293,15 +334,15 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[220px]">Item</TableHead>
-                <TableHead>Fornecedor</TableHead>
-                <TableHead className="text-right">Qtd</TableHead>
-                <TableHead className="text-right">Preço aprovado</TableHead>
-                <TableHead className="w-[180px]">Preço confirmado</TableHead>
-                <TableHead className="text-right">Variação</TableHead>
-                <TableHead className="w-[130px]">Alçada</TableHead>
-                <TableHead className="w-[170px]">Categoria</TableHead>
-                <TableHead className="min-w-[260px]">Justificativa</TableHead>
+                {visibilidadeColunas.item && <TableHead className="min-w-[220px]">Item</TableHead>}
+                {visibilidadeColunas.fornecedor && <TableHead>Fornecedor</TableHead>}
+                {visibilidadeColunas.quantidade && <TableHead className="text-right">Qtd</TableHead>}
+                {visibilidadeColunas.precoAprovado && <TableHead className="text-right">Preço aprovado</TableHead>}
+                {visibilidadeColunas.precoConfirmado && <TableHead className="w-[180px]">Preço confirmado</TableHead>}
+                {visibilidadeColunas.variacao && <TableHead className="text-right">Variação</TableHead>}
+                {visibilidadeColunas.alcada && <TableHead className="w-[130px]">Alçada</TableHead>}
+                {visibilidadeColunas.categoria && <TableHead className="w-[170px]">Categoria</TableHead>}
+                {visibilidadeColunas.justificativa && <TableHead className="min-w-[260px]">Justificativa</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -309,62 +350,72 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
                 const cat = categorias[l.key] ?? "Cost Avoidance";
                 return (
                   <TableRow key={l.key}>
-                    <TableCell className="text-sm">{l.descricao}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{l.fornecedorNome}</TableCell>
-                    <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>
-                    <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Input
-                          value={precos[l.key] ?? ""}
-                          onChange={e => setPreco(l.key, e.target.value)}
-                          inputMode="decimal"
-                          className="h-8 text-right"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 shrink-0"
-                          title="Sem variação: repetir o preço aprovado"
-                          onClick={() => manterPreco(l.key)}
+                    {visibilidadeColunas.item && <TableCell className="text-sm">{l.descricao}</TableCell>}
+                    {visibilidadeColunas.fornecedor && <TableCell className="text-xs text-muted-foreground">{l.fornecedorNome}</TableCell>}
+                    {visibilidadeColunas.quantidade && <TableCell className="text-right text-sm">{l.quantidade} {l.unidadeMedida}</TableCell>}
+                    {visibilidadeColunas.precoAprovado && <TableCell className="text-right text-sm">{brl(l.precoAprovado)}</TableCell>}
+                    {visibilidadeColunas.precoConfirmado && (
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={precos[l.key] ?? ""}
+                            onChange={e => setPreco(l.key, e.target.value)}
+                            inputMode="decimal"
+                            className="h-8 text-right"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            title="Sem variação: repetir o preço aprovado"
+                            onClick={() => manterPreco(l.key)}
+                          >
+                            <BadgeCheck className="h-5 w-5 text-emerald-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.variacao && (
+                      <TableCell className={`text-right text-sm font-medium ${l.variacao < 0 ? "text-emerald-600" : l.variacao > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
+                        {brl(l.variacao)}
+                        <span className="block text-[10px] font-normal">{l.perc.toFixed(2)}%</span>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.alcada && (
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[10px] ${ALCADA_BADGE[l.alcada]}`}>
+                          {l.alcada === "Diretoria" ? "Diretoria" : l.alcada === "Expressa" ? "Expressa" : "Sem reajuste"}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.categoria && (
+                      <TableCell>
+                        <Select
+                          value={cat}
+                          onValueChange={(v: CategoriaVariacao) => {
+                            setManualCategoria(p => ({ ...p, [l.key]: true }));
+                            setCategorias(p => ({ ...p, [l.key]: v }));
+                          }}
                         >
-                          <BadgeCheck className="h-5 w-5 text-emerald-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className={`text-right text-sm font-medium ${l.variacao < 0 ? "text-emerald-600" : l.variacao > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
-                      {brl(l.variacao)}
-                      <span className="block text-[10px] font-normal">{l.perc.toFixed(2)}%</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`text-[10px] ${ALCADA_BADGE[l.alcada]}`}>
-                        {l.alcada === "Diretoria" ? "Diretoria" : l.alcada === "Expressa" ? "Expressa" : "Sem reajuste"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={cat}
-                        onValueChange={(v: CategoriaVariacao) => {
-                          setManualCategoria(p => ({ ...p, [l.key]: true }));
-                          setCategorias(p => ({ ...p, [l.key]: v }));
-                        }}
-                      >
-                        <SelectTrigger className="h-8 text-left"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <Badge variant="outline" className={`mt-1 text-[10px] ${CATEGORIA_BADGE[cat]}`}>{cat}</Badge>
-                    </TableCell>
-                    <TableCell className="min-w-[260px]">
-                      <Input
-                        value={justificativas[l.key] ?? ""}
-                        onChange={e => setJustificativas(p => ({ ...p, [l.key]: e.target.value }))}
-                        placeholder={l.alcada === "Diretoria" ? "Obrigatória (acima da alçada)" : "Opcional"}
-                        className="h-8 w-full"
-                      />
-                    </TableCell>
+                          <SelectTrigger className="h-8 text-left"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Badge variant="outline" className={`mt-1 text-[10px] ${CATEGORIA_BADGE[cat]}`}>{cat}</Badge>
+                      </TableCell>
+                    )}
+                    {visibilidadeColunas.justificativa && (
+                      <TableCell className="min-w-[260px]">
+                        <Input
+                          value={justificativas[l.key] ?? ""}
+                          onChange={e => setJustificativas(p => ({ ...p, [l.key]: e.target.value }))}
+                          placeholder={l.alcada === "Diretoria" ? "Obrigatória (acima da alçada)" : "Opcional"}
+                          className="h-8 w-full"
+                        />
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
