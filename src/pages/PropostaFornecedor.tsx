@@ -52,6 +52,8 @@ export default function PropostaFornecedorPage() {
   const [prazoEntrega, setPrazoEntrega] = useState("");
   const [validadeProposta, setValidadeProposta] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [valorFrete, setValorFrete] = useState<number | "">("");
+  const [valorOperacao, setValorOperacao] = useState<number | "">("");
 
   useEffect(() => {
     if (!token) return;
