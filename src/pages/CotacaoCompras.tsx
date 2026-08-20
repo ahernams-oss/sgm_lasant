@@ -39,7 +39,8 @@ import { downloadPdfCotacao } from "@/lib/gerarPdfCotacao";
 import { downloadPdfPedidoCotacaoTodos, gerarBlobPedidoCotacao } from "@/lib/gerarPdfPedidoCotacao";
 import { Switch } from "@/components/ui/switch";
 import { format, subDays, isAfter } from "date-fns";
-import ConfirmacaoValoresDialog, { AjusteConfirmacao, ItemConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
+import ConfirmacaoValoresDialog, { AjusteConfirmacao, ItemConfirmacao, MetaConfirmacao } from "@/components/compras/ConfirmacaoValoresDialog";
+import { LIMITE_ALCADA_PERCENTUAL, calcularDiasAtraso, calcularImpactoAtraso } from "@/lib/alcadaReajuste";
 import { useConfirmacoesValores } from "@/hooks/useConfirmacoesValores";
 
 interface GrupoEmissao {
@@ -60,6 +61,7 @@ interface PlanoEmissao {
   itensVencedores?: ItemVencedor[];
   principalFornecedorId: string;
   grupos: GrupoEmissao[];
+  dataAprovacao?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -635,17 +637,23 @@ export default function CotacaoComprasPage() {
       };
     }
 
+    const histAprov = [...(req.historicoStatus || [])].reverse().find(h => (h.status || "").startsWith("Aprovada"));
+    plano.dataAprovacao = histAprov?.dataHora;
+
     setPlanoEmissao(plano);
     setConfirmacaoDialogOpen(true);
 
   };
 
   // === Emissão da OC após confirmação de valores ===
-  const handleConfirmarValores = async (ajustes: Record<string, AjusteConfirmacao>) => {
+  const handleConfirmarValores = async (ajustes: Record<string, AjusteConfirmacao>, meta: MetaConfirmacao) => {
     const plano = planoEmissao;
     if (!plano) return;
 
     const usuario = usuarioLogado?.nome || "Comprador";
+    const diasAtraso = calcularDiasAtraso(plano.dataAprovacao);
+    const agora = new Date().toISOString();
+    const itensDiretoria: { descricao: string; perc: number; variacao: number; fornecedor: string }[] = [];
 
 
 
@@ -704,7 +712,23 @@ export default function CotacaoComprasPage() {
           categoria: aj?.categoria ?? "Cost Avoidance",
           justificativa: aj?.justificativa ?? "",
           confirmadoPor: usuario,
+          alcada: aj?.alcada ?? "Sem Reajuste",
+          limiteAlcadaPercentual: LIMITE_ALCADA_PERCENTUAL,
+          aprovadoPorAlcada: aj?.alcada === "Expressa" ? (meta.aprovadoPorAlcada || usuario) : null,
+          requerDiretoria: !!aj?.requerDiretoria,
+          diretoriaNotificadaEm: aj?.requerDiretoria ? agora : null,
+          diretoriaAceite: aj?.requerDiretoria ? meta.aceiteDiretoria : false,
+          diasAtrasoAprovacao: diasAtraso,
+          impactoAtraso: calcularImpactoAtraso(valorConfirmado - valorAprovado, diasAtraso),
         });
+        if (aj?.requerDiretoria) {
+          itensDiretoria.push({
+            descricao: i.descricao,
+            perc: i.precoUnitario > 0 ? ((precoFinal - i.precoUnitario) / i.precoUnitario) * 100 : 0,
+            variacao: valorConfirmado - valorAprovado,
+            fornecedor: grupo.fornecedorNome,
+          });
+        }
       });
     }
 
@@ -718,6 +742,27 @@ export default function CotacaoComprasPage() {
         : "Pedido gerado após confirmação de valores"
     );
     notificarStatusReq(plano.requisicaoId, "APROVADA - PEDIDO EMITIDO (COMPRADO)", "Data da aprovação");
+
+    if (itensDiretoria.length > 0) {
+      const jid = (empresa?.whatsappDiretoria || "").trim();
+      const totalAditivo = itensDiretoria.reduce((s, i) => s + Math.max(0, i.variacao), 0);
+      const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      if (jid) {
+        const linhas = [
+          "*ACEITE DE ADITIVO DE VERBA — ACIMA DA ALÇADA*", "",
+          `Requisição: ${plano.requisicaoNumero}`,
+          `Confirmado por: ${usuario}`,
+          `Dias entre aprovação e confirmação: ${diasAtraso}`, "",
+          ...itensDiretoria.map(i => `• ${i.descricao} (${i.fornecedor}): ${i.perc.toFixed(2)}% / ${brl(i.variacao)}`),
+          "",
+          `Total do aditivo: ${brl(totalAditivo)}`,
+          meta.aceiteDiretoria ? "Aceite registrado pelo Time de Compras." : "Aguardando aceite da Diretoria.",
+        ];
+        try { await enviarWhatsApp(jid, linhas.join("\n")); } catch (e) { console.error(e); }
+      }
+      updateStatus(plano.requisicaoId, "Pedido Emitido", usuario,
+        `Reajuste acima da alçada de ${LIMITE_ALCADA_PERCENTUAL}% — aditivo de verba de ${brl(totalAditivo)} notificado à Diretoria`);
+    }
 
     concluirRevisaoConfirmacao(plano.cotacaoId);
 
@@ -2516,6 +2561,7 @@ export default function CotacaoComprasPage() {
         onOpenChange={(o) => { setConfirmacaoDialogOpen(o); if (!o) setPlanoEmissao(null); }}
         itens={itensConfirmacao}
         onConfirm={handleConfirmarValores}
+        responsavel={usuarioLogado?.nome || ""}
       />
     </div>
   );

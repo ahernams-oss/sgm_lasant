@@ -25,6 +25,14 @@ export interface ConfirmacaoValor {
   justificativa: string;
   confirmadoPor: string;
   confirmadoEm: string;
+  alcada: string;
+  limiteAlcadaPercentual: number;
+  aprovadoPorAlcada: string;
+  requerDiretoria: boolean;
+  diretoriaNotificadaEm: string | null;
+  diretoriaAceite: boolean;
+  diasAtrasoAprovacao: number;
+  impactoAtraso: number;
 }
 
 export const QK_CONFIRMACOES = ["compras_confirmacoes_valores"] as const;
@@ -51,6 +59,14 @@ const rowToConfirmacao = (r: any): ConfirmacaoValor => ({
   justificativa: r.justificativa ?? "",
   confirmadoPor: r.confirmado_por ?? "",
   confirmadoEm: r.confirmado_em ?? "",
+  alcada: r.alcada ?? "Automática",
+  limiteAlcadaPercentual: Number(r.limite_alcada_percentual) || 10,
+  aprovadoPorAlcada: r.aprovado_por_alcada ?? "",
+  requerDiretoria: !!r.requer_diretoria,
+  diretoriaNotificadaEm: r.diretoria_notificada_em ?? null,
+  diretoriaAceite: !!r.diretoria_aceite,
+  diasAtrasoAprovacao: Number(r.dias_atraso_aprovacao) || 0,
+  impactoAtraso: Number(r.impacto_atraso) || 0,
 });
 
 export function useConfirmacoesValores() {
@@ -84,6 +100,14 @@ export function useConfirmacoesValores() {
         categoria: l.categoria,
         justificativa: l.justificativa,
         confirmado_por: l.confirmadoPor,
+        alcada: l.alcada ?? "Automática",
+        limite_alcada_percentual: l.limiteAlcadaPercentual ?? 10,
+        aprovado_por_alcada: l.aprovadoPorAlcada ?? null,
+        requer_diretoria: l.requerDiretoria ?? false,
+        diretoria_notificada_em: l.diretoriaNotificadaEm ?? null,
+        diretoria_aceite: l.diretoriaAceite ?? false,
+        dias_atraso_aprovacao: l.diasAtrasoAprovacao ?? 0,
+        impacto_atraso: l.impactoAtraso ?? 0,
       });
     }
     qc.invalidateQueries({ queryKey: QK_CONFIRMACOES });
