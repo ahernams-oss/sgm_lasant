@@ -169,6 +169,8 @@ export default function CotacaoComprasPage() {
   const [propPrazo, setPropPrazo] = useState("");
   const [propValidade, setPropValidade] = useState("");
   const [propObs, setPropObs] = useState("");
+  const [propFrete, setPropFrete] = useState<number | "">("");
+  const [propOperacao, setPropOperacao] = useState<number | "">("");
   const [propItens, setPropItens] = useState<ItemCotacaoFornecedor[]>([]);
   const [iaLoading, setIaLoading] = useState(false);
   const [iaResumo, setIaResumo] = useState<{ arquivo: string; lidos: number; total: number; fornecedorNome?: string | null } | null>(null);
