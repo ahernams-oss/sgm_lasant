@@ -1656,57 +1656,96 @@ export type Database = {
           ca: string | null
           codigo: string | null
           condicao: string | null
+          confirmado_em: string | null
+          cpf_verificado: boolean
           created_at: string
           data_devolucao: string
           data_entrega: string | null
           descricao: string
           destino: string | null
           epi_item_id: string | null
+          expires_at: string
           funcionario_id: string
           id: string
+          ip: string | null
           motivo: string
           observacao: string | null
           quantidade: number
           registrado_por: string | null
+          selfie_hash: string | null
+          selfie_hash_2: string | null
+          selfie_path: string | null
+          selfie_path_2: string | null
+          status: string
+          telefone_envio: string | null
+          token: string | null
           updated_at: string
+          user_agent: string | null
+          verificado_em: string | null
         }
         Insert: {
           anexo_path?: string | null
           ca?: string | null
           codigo?: string | null
           condicao?: string | null
+          confirmado_em?: string | null
+          cpf_verificado?: boolean
           created_at?: string
           data_devolucao?: string
           data_entrega?: string | null
           descricao: string
           destino?: string | null
           epi_item_id?: string | null
+          expires_at?: string
           funcionario_id: string
           id?: string
+          ip?: string | null
           motivo?: string
           observacao?: string | null
           quantidade?: number
           registrado_por?: string | null
+          selfie_hash?: string | null
+          selfie_hash_2?: string | null
+          selfie_path?: string | null
+          selfie_path_2?: string | null
+          status?: string
+          telefone_envio?: string | null
+          token?: string | null
           updated_at?: string
+          user_agent?: string | null
+          verificado_em?: string | null
         }
         Update: {
           anexo_path?: string | null
           ca?: string | null
           codigo?: string | null
           condicao?: string | null
+          confirmado_em?: string | null
+          cpf_verificado?: boolean
           created_at?: string
           data_devolucao?: string
           data_entrega?: string | null
           descricao?: string
           destino?: string | null
           epi_item_id?: string | null
+          expires_at?: string
           funcionario_id?: string
           id?: string
+          ip?: string | null
           motivo?: string
           observacao?: string | null
           quantidade?: number
           registrado_por?: string | null
+          selfie_hash?: string | null
+          selfie_hash_2?: string | null
+          selfie_path?: string | null
+          selfie_path_2?: string | null
+          status?: string
+          telefone_envio?: string | null
+          token?: string | null
           updated_at?: string
+          user_agent?: string | null
+          verificado_em?: string | null
         }
         Relationships: []
       }
