@@ -1563,8 +1563,16 @@ export default function CotacaoComprasPage() {
                     ))}
                   </TableBody>
                 </Table>
-                <div className="text-right mt-2 font-bold text-lg">
-                  Total: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0))}
+                <div className="text-right mt-2 space-y-1">
+                  <div className="text-sm text-muted-foreground">
+                    Subtotal itens: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0))}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Frete: {formatCurrency(Number(propFrete) || 0)} • Operação: {formatCurrency(Number(propOperacao) || 0)}
+                  </div>
+                  <div className="font-bold text-lg">
+                    Total: {formatCurrency(propItens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0) + (Number(propFrete) || 0) + (Number(propOperacao) || 0))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
