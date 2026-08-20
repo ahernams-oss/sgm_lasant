@@ -405,7 +405,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </Alert>
         )}
 
-        <div className="rounded-md border overflow-x-auto">
+        <div className="rounded-md border overflow-x-auto" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
           <Table>
             <TableHeader>
               <TableRow>
