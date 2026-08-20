@@ -216,6 +216,30 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            id="ia-confirmacao-file"
+            type="file"
+            accept="application/pdf,image/*"
+            className="hidden"
+            onChange={e => { handleArquivoIa(e.target.files?.[0] ?? null); e.currentTarget.value = ""; }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={lendoIa}
+            onClick={() => document.getElementById("ia-confirmacao-file")?.click()}
+          >
+            {lendoIa ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+            {lendoIa ? "Lendo documento..." : "Ler preços por IA (PDF/imagem)"}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={manterTodos}>
+            <BadgeCheck className="h-4 w-4 mr-2 text-emerald-600" />
+            Manter todos os preços
+          </Button>
+        </div>
+
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
