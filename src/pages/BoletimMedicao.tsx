@@ -201,7 +201,7 @@ export default function BoletimMedicaoPage() {
 
   const baixarPdf = async (b: BoletimMedicao) => {
     try {
-      await gerarPdfBoletimMedicao(b, empresa);
+      await gerarPdfBoletimMedicao(b, empresa, porBoletim(b.id) as any);
     } catch (e) {
       console.error(e);
       toast.error("Erro ao gerar o PDF do boletim");
