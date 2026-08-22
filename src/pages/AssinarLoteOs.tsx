@@ -10,7 +10,7 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
-import TokenAssinaturaEmail from "@/components/TokenAssinaturaEmail";
+import { TokenAssinaturaEmail } from "@/components/TokenAssinaturaEmail";
 import { purposeAssinatura, verificarTokenAssinatura } from "@/lib/otpAssinatura";
 
 
@@ -207,7 +207,7 @@ export default function AssinarLoteOs() {
     await refresh();
     setSigning(false);
     setOpenConfirm(false);
-    setSenha("");
+    setSenha(""); setToken("");
     setSelectedIds(new Set());
 
     if (ok > 0) {
