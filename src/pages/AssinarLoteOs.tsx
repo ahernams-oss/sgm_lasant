@@ -44,6 +44,15 @@ import {
 import { toast } from "sonner";
 import { FileSignature, Search, ShieldCheck } from "lucide-react";
 
+const labelPapel = (p: PapelOsAssinatura) =>
+  p === "solicitante"
+    ? "Solicitante"
+    : p === "fiscal"
+    ? "Fiscal do Contrato 1"
+    : p === "fiscal_2"
+    ? "Fiscal do Contrato 2"
+    : "Fiscal do Contrato 3";
+
 export default function AssinarLoteOs() {
   const { ordens } = useOrdensServico();
   const { usuarioLogado } = useAuth();
@@ -131,7 +140,8 @@ export default function AssinarLoteOs() {
     [clientes]
   );
 
-  const podePapel = papel === "fiscal" ? podeFiscal : true;
+  const isFiscalPapel = papel === "fiscal" || papel === "fiscal_2" || papel === "fiscal_3";
+  const podePapel = isFiscalPapel ? podeFiscal : true;
 
   const handleAssinarLote = async () => {
     if (!podeAssinarLote) {
@@ -160,7 +170,7 @@ export default function AssinarLoteOs() {
       toast.error(otp.error || "Token inválido ou expirado.");
       return;
     }
-    if (papel === "fiscal" && !podeFiscal) {
+    if (isFiscalPapel && !podeFiscal) {
       toast.error("Sem permissão para assinar como Fiscal do Contrato.");
       return;
     }
@@ -214,7 +224,7 @@ export default function AssinarLoteOs() {
 
     if (ok > 0) {
       toast.success(
-        `${ok} OS assinada(s) como ${papel === "fiscal" ? "Fiscal do Contrato" : "Solicitante"}.${
+        `${ok} OS assinada(s) como ${labelPapel(papel)}.${
           fail > 0 ? ` ${fail} falharam.` : ""
         }`
       );
@@ -257,7 +267,9 @@ export default function AssinarLoteOs() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="fiscal">Fiscal do Contrato</SelectItem>
+              <SelectItem value="fiscal">Fiscal do Contrato 1</SelectItem>
+              <SelectItem value="fiscal_2">Fiscal do Contrato 2</SelectItem>
+              <SelectItem value="fiscal_3">Fiscal do Contrato 3</SelectItem>
               <SelectItem value="solicitante">Solicitante</SelectItem>
             </SelectContent>
           </Select>
@@ -416,7 +428,7 @@ export default function AssinarLoteOs() {
             <p>
               Você assinará <strong>{selectedIds.size} OS</strong> como{" "}
               <strong>
-                {papel === "fiscal" ? "Fiscal do Contrato" : "Solicitante"}
+                {labelPapel(papel)}
               </strong>
               .
             </p>
@@ -446,7 +458,7 @@ export default function AssinarLoteOs() {
                 usuarioId={usuarioLogado.id}
                 purpose={purposeAssinatura("os", "lote", papel)}
                 documento={`Assinatura em lote de ${selectedIds.size} Ordem(ns) de Serviço`}
-                papel={papel === "fiscal" ? "Fiscal do Contrato" : "Solicitante"}
+                papel={labelPapel(papel)}
                 token={token}
                 onTokenChange={setToken}
               />
