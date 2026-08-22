@@ -420,9 +420,18 @@ export default function AssinarLoteOs() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="Digite sua senha"
-                onKeyDown={(e) => e.key === "Enter" && handleAssinarLote()}
               />
             </div>
+            {usuarioLogado && (
+              <TokenAssinaturaEmail
+                usuarioId={usuarioLogado.id}
+                purpose={purposeAssinatura("os", "lote", papel)}
+                documento={`Assinatura em lote de ${selectedIds.size} Ordem(ns) de Serviço`}
+                papel={papel === "fiscal" ? "Fiscal do Contrato" : "Solicitante"}
+                token={token}
+                onTokenChange={setToken}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -430,14 +439,16 @@ export default function AssinarLoteOs() {
               onClick={() => {
                 setOpenConfirm(false);
                 setSenha("");
+                setToken("");
               }}
             >
               Cancelar
             </Button>
             <Button
               onClick={handleAssinarLote}
-              disabled={signing || !senha || selectedIds.size === 0}
+              disabled={signing || !senha || token.length !== 6 || selectedIds.size === 0}
             >
+
               {signing ? "Assinando..." : "Confirmar e Assinar"}
             </Button>
           </DialogFooter>
