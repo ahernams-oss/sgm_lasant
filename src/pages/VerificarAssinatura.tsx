@@ -263,6 +263,27 @@ export default function VerificarAssinatura() {
         </Card>
       );
     }
+    if (tipo === "boletim") {
+      const totalContrato = Number(documento.valor_total_contrato) || 0;
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo do Boletim de Medição</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Boletim:</span> {String(documento.numero || "").padStart(2, "0")}/{documento.ano || "-"}</p>
+            <p><span className="font-semibold">Cliente:</span> {documento.cliente_nome || "-"}</p>
+            <p><span className="font-semibold">Obra:</span> {documento.obra || "-"}</p>
+            <p><span className="font-semibold">Contrato:</span> {documento.contrato_numero || "-"} | <span className="font-semibold">Processo:</span> {documento.processo_numero || "-"}</p>
+            <p><span className="font-semibold">Valor total do contrato:</span> {totalContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+            <p><span className="font-semibold">Responsável Técnico:</span> {documento.responsavel_tecnico || "-"}</p>
+            <p><span className="font-semibold">Status:</span>{" "}
+              <Badge variant="outline" className={documento.status === "Cancelado" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
+                {documento.status || "-"}
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
     // OS
     return (
       <Card>
