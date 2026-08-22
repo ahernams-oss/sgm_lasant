@@ -272,7 +272,7 @@ export async function gerarPdfBoletimMedicao(
     doc.setFontSize(7);
     doc.setTextColor(110, 110, 110);
     doc.text(
-      `Verifique a autenticidade em ${window.location.origin}/n/<código verificador>`,
+      `Verifique a autenticidade em ${window.location.origin}/verificar-assinatura/<código verificador>`,
       ml, y,
     );
     y += 6;
