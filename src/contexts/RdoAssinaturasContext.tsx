@@ -10,6 +10,7 @@ export interface RdoAssinatura {
   signatario_email: string; signatario_cargo: string; signatario_matricula: string;
   hash_documento: string; codigo_verificador: string;
   ip_origem: string; user_agent: string; base_legal: string;
+  metodo_autenticacao?: string; nivel_assinatura?: string;
   signed_at: string; created_at: string;
 }
 
