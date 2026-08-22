@@ -10,6 +10,9 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import TokenAssinaturaEmail from "@/components/TokenAssinaturaEmail";
+import { purposeAssinatura, verificarTokenAssinatura } from "@/lib/otpAssinatura";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
