@@ -157,14 +157,29 @@ export function AssinaturaEletronicaOs({
       toast.error("A OS precisa estar Validada para ser assinada.");
       return;
     }
-    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
-    if (!senhaOk) {
-      toast.error("Senha incorreta. A autenticação falhou.");
+    if (token.length !== 6) {
+      toast.error("Informe o token de 6 dígitos enviado por e-mail.");
       return;
     }
 
     setLoading(true);
     try {
+      const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+      if (!senhaOk) {
+        toast.error("Senha incorreta. A autenticação falhou.");
+        return;
+      }
+
+      const otp = await verificarTokenAssinatura({
+        usuarioId: usuarioLogado.id,
+        purpose: purposeAssinatura("os", os.id, papel),
+        code: token,
+      });
+      if (!otp.success) {
+        toast.error(otp.error || "Token inválido.");
+        return;
+      }
+
       const hash = await gerarHashOs(os);
       const ip = await obterIpOrigem();
       const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
@@ -181,6 +196,8 @@ export function AssinaturaEletronicaOs({
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
+        metodo_autenticacao: "senha+otp_email",
+        nivel_assinatura: "avancada",
       });
 
       if (result) {
@@ -189,8 +206,10 @@ export function AssinaturaEletronicaOs({
         );
         setOpen(false);
         setSenha("");
+        setToken("");
         onAssinado?.();
       }
+
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "verifique se já existe assinatura deste papel.";
       toast.error(
