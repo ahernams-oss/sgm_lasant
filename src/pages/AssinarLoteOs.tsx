@@ -142,10 +142,24 @@ export default function AssinarLoteOs() {
       toast.error("Senha incorreta.");
       return;
     }
+    if (token.length !== 6) {
+      toast.error("Informe o token de 6 dígitos enviado por e-mail.");
+      return;
+    }
+    const otp = await verificarTokenAssinatura({
+      usuarioId: usuarioLogado.id,
+      purpose: purposeAssinatura("os", "lote", papel),
+      code: token,
+    });
+    if (!otp.success) {
+      toast.error(otp.error || "Token inválido ou expirado.");
+      return;
+    }
     if (papel === "fiscal" && !podeFiscal) {
       toast.error("Sem permissão para assinar como Fiscal do Contrato.");
       return;
     }
+
     setSigning(true);
     const ip = await obterIpOrigem();
     const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
