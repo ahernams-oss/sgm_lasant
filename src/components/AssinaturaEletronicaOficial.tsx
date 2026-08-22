@@ -13,6 +13,8 @@ import { useCargos } from "@/contexts/CargosContext";
 import { useRdoAssinaturas, RdoAssinatura } from "@/contexts/RdoAssinaturasContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashRdo, obterIpOrigem } from "@/lib/assinaturaHash";
+import { purposeAssinatura, verificarTokenAssinatura } from "@/lib/otpAssinatura";
+import { TokenAssinaturaEmail } from "@/components/TokenAssinaturaEmail";
 import type { Rdo } from "@/contexts/RdosContext";
 
 interface Props {
@@ -32,6 +34,7 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
   const { registrar } = useRdoAssinaturas();
   const [open, setOpen] = useState(false);
   const [senha, setSenha] = useState("");
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
 
   const permKey = papel === "responsavel" ? "rdo.assinar_responsavel" : "rdo.assinar_fiscalizacao";
@@ -70,11 +73,20 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
   const handleAssinar = async () => {
     if (!usuarioLogado) { toast.error("Usuário não autenticado."); return; }
     if (!rdo.id) { toast.error("Salve o RDO antes de assiná-lo."); return; }
-    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
-    if (!senhaOk) { toast.error("Senha incorreta. A autenticação falhou."); return; }
+    if (token.length !== 6) { toast.error("Informe o token de 6 dígitos enviado por e-mail."); return; }
 
     setLoading(true);
     try {
+      const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+      if (!senhaOk) { toast.error("Senha incorreta. A autenticação falhou."); return; }
+
+      const otp = await verificarTokenAssinatura({
+        usuarioId: usuarioLogado.id,
+        purpose: purposeAssinatura("rdo", rdo.id, papel),
+        code: token,
+      });
+      if (!otp.success) { toast.error(otp.error || "Token inválido."); return; }
+
       const hash = await gerarHashRdo(rdo);
       const ip = await obterIpOrigem();
       const cargo = cargos.find(c => c.id === usuarioLogado.cargoId);
@@ -91,14 +103,18 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
+        metodo_autenticacao: "senha+otp_email",
+        nivel_assinatura: "avancada",
       });
 
       if (result) {
         toast.success(`Documento assinado eletronicamente como ${labelPapel(papel)}.`);
         setOpen(false);
         setSenha("");
+        setToken("");
         onAssinado?.();
       }
+
     } catch (e: any) {
       toast.error("Erro ao assinar: " + (e?.message || "desconhecido"));
     } finally {
@@ -139,7 +155,8 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
               <p><strong>Signatário:</strong> {usuarioLogado?.nome}</p>
               <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
               <p className="italic text-muted-foreground mt-2">
-                Esta assinatura tem valor jurídico conforme Lei nº 14.063, de 23 de Setembro de 2020. A operação será registrada com data, hora, IP e código verificador único.
+                Assinatura eletrônica avançada (senha + token enviado por e-mail), nos termos do Art. 4º, II da
+                Lei nº 14.063/2020. A operação será registrada com data, hora, IP, hash do documento e código verificador único.
               </p>
             </div>
             <div>
@@ -149,16 +166,26 @@ export function AssinaturaEletronicaOficial({ rdo, papel, assinaturaExistente, o
                 value={senha}
                 onChange={e => setSenha(e.target.value)}
                 placeholder="Digite sua senha"
-                onKeyDown={e => e.key === "Enter" && handleAssinar()}
               />
             </div>
+            {usuarioLogado && rdo.id && (
+              <TokenAssinaturaEmail
+                usuarioId={usuarioLogado.id}
+                purpose={purposeAssinatura("rdo", rdo.id, papel)}
+                documento={`RDO nº ${rdo.numero || ""}`}
+                papel={labelPapel(papel)}
+                token={token}
+                onTokenChange={setToken}
+              />
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setOpen(false); setSenha(""); }}>Cancelar</Button>
-            <Button onClick={handleAssinar} disabled={loading || !senha}>
+            <Button variant="outline" onClick={() => { setOpen(false); setSenha(""); setToken(""); }}>Cancelar</Button>
+            <Button onClick={handleAssinar} disabled={loading || !senha || token.length !== 6}>
               {loading ? "Assinando..." : "Confirmar e Assinar"}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </>
