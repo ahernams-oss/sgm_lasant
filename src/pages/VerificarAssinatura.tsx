@@ -10,8 +10,9 @@ import { gerarHashRdo } from "@/lib/assinaturaHash";
 import { gerarHashOs } from "@/lib/assinaturaHashOs";
 import { gerarHashPc } from "@/lib/assinaturaHashPc";
 import { gerarHashLaudo } from "@/lib/assinaturaHashLaudo";
+import { gerarHashBoletim } from "@/lib/assinaturaHashBoletim";
 
-type Tipo = "rdo" | "os" | "pc" | "laudo";
+type Tipo = "rdo" | "os" | "pc" | "laudo" | "boletim";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("pt-BR", {
@@ -23,6 +24,8 @@ const labelPapel = (tipo: Tipo, p: string) => {
   if (tipo === "rdo") return p === "responsavel" ? "Responsável Técnico" : "Fiscalização";
   if (tipo === "pc") return "Aprovador";
   if (tipo === "laudo") return "Responsável Técnico";
+  if (tipo === "boletim")
+    return p === "responsavel" ? "Responsável Técnico" : p === "fiscalizacao" ? "Fiscalização" : "Gestor do Contrato";
   return p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 };
 
@@ -166,6 +169,28 @@ export default function VerificarAssinatura() {
         return;
       }
 
+      // 5. Tenta Boletim de Medição
+      const { data: assBol } = await (supabase as any)
+        .from("boletim_assinaturas")
+        .select("*")
+        .eq("codigo_verificador", codTrim)
+        .maybeSingle();
+
+      if (assBol) {
+        setTipo("boletim");
+        setAssinatura(assBol);
+        const { data: b } = await (supabase as any)
+          .from("boletins_medicao").select("*").eq("id", assBol.boletim_id).maybeSingle();
+        setDocumento(b);
+        const { data: outras } = await (supabase as any)
+          .from("boletim_assinaturas").select("*").eq("boletim_id", assBol.boletim_id).order("signed_at");
+        setTodasAssinaturas(outras || []);
+        if (b) {
+          try { setHashAtual(await gerarHashBoletim(b as any)); } catch { /* ignore */ }
+        }
+        return;
+      }
+
       setNaoEncontrado(true);
     } finally {
       setLoading(false);
@@ -232,6 +257,27 @@ export default function VerificarAssinatura() {
             <p><span className="font-semibold">Parecer:</span>{" "}
               <Badge variant="outline" className={documento.parecer === "APROVADO PARA CONDENAÇÃO" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
                 {documento.parecer || "-"}
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+    if (tipo === "boletim") {
+      const totalContrato = Number(documento.valor_total_contrato) || 0;
+      return (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Conteúdo do Boletim de Medição</CardTitle></CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p><span className="font-semibold">Boletim:</span> {String(documento.numero || "").padStart(2, "0")}/{documento.ano || "-"}</p>
+            <p><span className="font-semibold">Cliente:</span> {documento.cliente_nome || "-"}</p>
+            <p><span className="font-semibold">Obra:</span> {documento.obra || "-"}</p>
+            <p><span className="font-semibold">Contrato:</span> {documento.contrato_numero || "-"} | <span className="font-semibold">Processo:</span> {documento.processo_numero || "-"}</p>
+            <p><span className="font-semibold">Valor total do contrato:</span> {totalContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+            <p><span className="font-semibold">Responsável Técnico:</span> {documento.responsavel_tecnico || "-"}</p>
+            <p><span className="font-semibold">Status:</span>{" "}
+              <Badge variant="outline" className={documento.status === "Cancelado" ? "bg-red-100 text-red-800 border-red-300" : "bg-muted"}>
+                {documento.status || "-"}
               </Badge>
             </p>
           </CardContent>

@@ -128,7 +128,26 @@ function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw:
   return (doc as any).lastAutoTable.finalY + 6;
 }
 
-export async function gerarPdfBoletimMedicao(boletim: BoletimMedicao, empresa?: Empresa) {
+export interface AssinaturaBoletimPdf {
+  papel: string;
+  signatario_nome: string;
+  signatario_cargo?: string;
+  signatario_matricula?: string;
+  signed_at: string;
+  codigo_verificador: string;
+  hash_documento: string;
+  metodo_autenticacao?: string;
+  base_legal?: string;
+}
+
+const labelPapelPdf = (p: string) =>
+  p === "responsavel" ? "Responsável Técnico" : p === "fiscalizacao" ? "Fiscalização" : "Gestor do Contrato";
+
+export async function gerarPdfBoletimMedicao(
+  boletim: BoletimMedicao,
+  empresa?: Empresa,
+  assinaturas: AssinaturaBoletimPdf[] = [],
+) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
@@ -208,6 +227,55 @@ export async function gerarPdfBoletimMedicao(boletim: BoletimMedicao, empresa?: 
     const obs = doc.splitTextToSize(boletim.observacoes, cw);
     doc.text(obs, ml, y + 4);
     y += obs.length * 4 + 8;
+  }
+
+  // ===== ASSINATURAS ELETRÔNICAS =====
+  if (assinaturas.length) {
+    if (y + 30 > ph - 25) { doc.addPage(); y = 14; }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(20, 20, 20);
+    doc.text("ASSINATURAS ELETRÔNICAS", ml, y);
+    y += 5;
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "normal");
+    assinaturas.forEach((a) => {
+      if (y + 22 > ph - 20) { doc.addPage(); y = 14; }
+      doc.setFont("helvetica", "bold");
+      doc.text(`${labelPapelPdf(a.papel)}: ${a.signatario_nome}`, ml, y);
+      y += 4;
+      doc.setFont("helvetica", "normal");
+      const detalhes = [
+        a.signatario_cargo ? `Cargo: ${a.signatario_cargo}` : "",
+        a.signatario_matricula ? `Matrícula: ${a.signatario_matricula}` : "",
+        `Data/Hora: ${new Date(a.signed_at).toLocaleString("pt-BR")}`,
+      ].filter(Boolean).join("   |   ");
+      doc.text(detalhes, ml, y);
+      y += 4;
+      doc.text(
+        `Autenticação: ${a.metodo_autenticacao === "senha+otp_email" ? "senha + token por e-mail (assinatura avançada)" : "senha"}`,
+        ml, y,
+      );
+      y += 4;
+      doc.text(`Código verificador: ${a.codigo_verificador}`, ml, y);
+      y += 4;
+      doc.text(`Hash SHA-256: ${a.hash_documento}`, ml, y, { maxWidth: cw });
+      y += 4;
+      doc.setTextColor(110, 110, 110);
+      doc.text(
+        a.base_legal || "Art. 4º, II da Lei nº 14.063/2020 (assinatura eletrônica avançada)",
+        ml, y,
+      );
+      doc.setTextColor(20, 20, 20);
+      y += 6;
+    });
+    doc.setFontSize(7);
+    doc.setTextColor(110, 110, 110);
+    doc.text(
+      `Verifique a autenticidade em ${window.location.origin}/verificar-assinatura/<código verificador>`,
+      ml, y,
+    );
+    y += 6;
   }
 
   // ===== RODAPÉ =====

@@ -161,6 +161,7 @@ import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import { ObrasProvider } from "@/contexts/ObrasContext";
 import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
+import { BoletimAssinaturasProvider } from "@/contexts/BoletimAssinaturasContext";
 import { PcAssinaturasProvider } from "@/contexts/PcAssinaturasContext";
 import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
 import ConfirmarLoteOsPage from "./pages/ConfirmarLoteOs.tsx";
@@ -565,6 +566,7 @@ const App = () => (
     <BimProvider>
     <OrcamentosScoProvider>
     <OsAssinaturasProvider>
+    <BoletimAssinaturasProvider>
     <PcAssinaturasProvider>
     <FinanceiroProvider>
     <NfsesProvider>
@@ -645,6 +647,7 @@ const App = () => (
     </NfsesProvider>
     </FinanceiroProvider>
     </PcAssinaturasProvider>
+    </BoletimAssinaturasProvider>
     </OsAssinaturasProvider>
     </OrcamentosScoProvider>
     </BimProvider>

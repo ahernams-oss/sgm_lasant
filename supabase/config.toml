@@ -34,3 +34,6 @@ verify_jwt = false
 
 [functions.check-oc-entrega-atrasada]
 verify_jwt = false
+
+[functions.assinatura-otp]
+verify_jwt = false

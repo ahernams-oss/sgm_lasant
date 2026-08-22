@@ -23,6 +23,8 @@ import {
 } from "@/contexts/OsAssinaturasContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
+import { purposeAssinatura, verificarTokenAssinatura } from "@/lib/otpAssinatura";
+import { TokenAssinaturaEmail } from "@/components/TokenAssinaturaEmail";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 
 interface Props {
@@ -63,6 +65,7 @@ export function AssinaturaEletronicaOs({
   const { registrar } = useOsAssinaturas();
   const [open, setOpen] = useState(false);
   const [senha, setSenha] = useState("");
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Regras de autorização para assinar
@@ -157,14 +160,29 @@ export function AssinaturaEletronicaOs({
       toast.error("A OS precisa estar Validada para ser assinada.");
       return;
     }
-    const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
-    if (!senhaOk) {
-      toast.error("Senha incorreta. A autenticação falhou.");
+    if (token.length !== 6) {
+      toast.error("Informe o token de 6 dígitos enviado por e-mail.");
       return;
     }
 
     setLoading(true);
     try {
+      const senhaOk = await verificarSenhaUsuario(usuarioLogado.email, senha);
+      if (!senhaOk) {
+        toast.error("Senha incorreta. A autenticação falhou.");
+        return;
+      }
+
+      const otp = await verificarTokenAssinatura({
+        usuarioId: usuarioLogado.id,
+        purpose: purposeAssinatura("os", os.id, papel),
+        code: token,
+      });
+      if (!otp.success) {
+        toast.error(otp.error || "Token inválido.");
+        return;
+      }
+
       const hash = await gerarHashOs(os);
       const ip = await obterIpOrigem();
       const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
@@ -181,6 +199,8 @@ export function AssinaturaEletronicaOs({
         hash_documento: hash,
         ip_origem: ip,
         user_agent: navigator.userAgent,
+        metodo_autenticacao: "senha+otp_email",
+        nivel_assinatura: "avancada",
       });
 
       if (result) {
@@ -189,8 +209,10 @@ export function AssinaturaEletronicaOs({
         );
         setOpen(false);
         setSenha("");
+        setToken("");
         onAssinado?.();
       }
+
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "verifique se já existe assinatura deste papel.";
       toast.error(
@@ -250,8 +272,9 @@ export function AssinaturaEletronicaOs({
               <p><strong>Signatário:</strong> {usuarioLogado?.nome}</p>
               <p><strong>E-mail:</strong> {usuarioLogado?.email}</p>
               <p className="italic text-muted-foreground mt-2">
-                Esta assinatura tem valor jurídico conforme Lei nº 14.063, de 23 de Setembro de 2020. A operação será registrada com data,
-                hora, IP e código verificador único.
+                Assinatura eletrônica avançada (senha + token enviado por e-mail), nos termos do
+                Art. 4º, II da Lei nº 14.063/2020. A operação será registrada com data, hora, IP,
+                hash do documento e código verificador único.
               </p>
             </div>
             <div>
@@ -261,9 +284,18 @@ export function AssinaturaEletronicaOs({
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="Digite sua senha"
-                onKeyDown={(e) => e.key === "Enter" && handleAssinar()}
               />
             </div>
+            {usuarioLogado && os.id && (
+              <TokenAssinaturaEmail
+                usuarioId={usuarioLogado.id}
+                purpose={purposeAssinatura("os", os.id, papel)}
+                documento={`Ordem de Serviço nº ${os.numero || ""}`}
+                papel={labelPapel(papel)}
+                token={token}
+                onTokenChange={setToken}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -271,14 +303,16 @@ export function AssinaturaEletronicaOs({
               onClick={() => {
                 setOpen(false);
                 setSenha("");
+                setToken("");
               }}
             >
               Cancelar
             </Button>
-            <Button onClick={handleAssinar} disabled={loading || !senha}>
+            <Button onClick={handleAssinar} disabled={loading || !senha || token.length !== 6}>
               {loading ? "Assinando..." : "Confirmar e Assinar"}
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </>

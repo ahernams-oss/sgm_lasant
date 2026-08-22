@@ -284,6 +284,69 @@ export type Database = {
           },
         ]
       }
+      boletim_assinaturas: {
+        Row: {
+          base_legal: string
+          boletim_id: string
+          boletim_numero: number
+          codigo_verificador: string
+          created_at: string
+          hash_documento: string
+          id: string
+          ip_origem: string | null
+          metodo_autenticacao: string
+          nivel_assinatura: string
+          papel: string
+          signatario_cargo: string | null
+          signatario_email: string | null
+          signatario_matricula: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          base_legal?: string
+          boletim_id: string
+          boletim_numero: number
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento: string
+          id?: string
+          ip_origem?: string | null
+          metodo_autenticacao?: string
+          nivel_assinatura?: string
+          papel: string
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome: string
+          signatario_user_id: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          base_legal?: string
+          boletim_id?: string
+          boletim_numero?: number
+          codigo_verificador?: string
+          created_at?: string
+          hash_documento?: string
+          id?: string
+          ip_origem?: string | null
+          metodo_autenticacao?: string
+          nivel_assinatura?: string
+          papel?: string
+          signatario_cargo?: string | null
+          signatario_email?: string | null
+          signatario_matricula?: string | null
+          signatario_nome?: string
+          signatario_user_id?: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       boletins_medicao: {
         Row: {
           ano: number
@@ -4796,8 +4859,10 @@ export type Database = {
       mfa_otps: {
         Row: {
           attempts: number
+          canal: string
           code_hash: string
           created_at: string
+          email: string | null
           expires_at: string
           id: string
           purpose: string
@@ -4807,8 +4872,10 @@ export type Database = {
         }
         Insert: {
           attempts?: number
+          canal?: string
           code_hash: string
           created_at?: string
+          email?: string | null
           expires_at: string
           id?: string
           purpose: string
@@ -4818,8 +4885,10 @@ export type Database = {
         }
         Update: {
           attempts?: number
+          canal?: string
           code_hash?: string
           created_at?: string
+          email?: string | null
           expires_at?: string
           id?: string
           purpose?: string
@@ -5579,6 +5648,8 @@ export type Database = {
           hash_documento: string
           id: string
           ip_origem: string | null
+          metodo_autenticacao: string
+          nivel_assinatura: string
           os_id: string
           os_numero: number
           papel: string
@@ -5597,6 +5668,8 @@ export type Database = {
           hash_documento: string
           id?: string
           ip_origem?: string | null
+          metodo_autenticacao?: string
+          nivel_assinatura?: string
           os_id: string
           os_numero: number
           papel: string
@@ -5615,6 +5688,8 @@ export type Database = {
           hash_documento?: string
           id?: string
           ip_origem?: string | null
+          metodo_autenticacao?: string
+          nivel_assinatura?: string
           os_id?: string
           os_numero?: number
           papel?: string
@@ -8187,6 +8262,8 @@ export type Database = {
           hash_documento: string
           id: string
           ip_origem: string | null
+          metodo_autenticacao: string
+          nivel_assinatura: string
           papel: string
           rdo_id: string
           rdo_numero: number
@@ -8205,6 +8282,8 @@ export type Database = {
           hash_documento: string
           id?: string
           ip_origem?: string | null
+          metodo_autenticacao?: string
+          nivel_assinatura?: string
           papel: string
           rdo_id: string
           rdo_numero: number
@@ -8223,6 +8302,8 @@ export type Database = {
           hash_documento?: string
           id?: string
           ip_origem?: string | null
+          metodo_autenticacao?: string
+          nivel_assinatura?: string
           papel?: string
           rdo_id?: string
           rdo_numero?: number

@@ -16,6 +16,8 @@ import { useObras } from "@/contexts/ObrasContext";
 import { useCronogramas } from "@/contexts/CronogramasContext";
 import { gerarPdfBoletimMedicao } from "@/lib/gerarPdfBoletimMedicao";
 import { downloadExcelBoletimMedicao } from "@/lib/gerarExcelBoletimMedicao";
+import { AssinaturaEletronicaBoletim } from "@/components/AssinaturaEletronicaBoletim";
+import { useBoletimAssinaturas } from "@/contexts/BoletimAssinaturasContext";
 
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { toast } from "sonner";
@@ -48,6 +50,7 @@ export default function BoletimMedicaoPage() {
   const { empresa } = useEmpresa();
   const { obras } = useObras();
   const { cronogramas = [] } = useCronogramas() || {};
+  const { porBoletim } = useBoletimAssinaturas();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BoletimMedicao | null>(null);
@@ -198,7 +201,7 @@ export default function BoletimMedicaoPage() {
 
   const baixarPdf = async (b: BoletimMedicao) => {
     try {
-      await gerarPdfBoletimMedicao(b, empresa);
+      await gerarPdfBoletimMedicao(b, empresa, porBoletim(b.id) as any);
     } catch (e) {
       console.error(e);
       toast.error("Erro ao gerar o PDF do boletim");
@@ -525,6 +528,26 @@ export default function BoletimMedicaoPage() {
             <span>Total Faturado: <strong>{fmtMoney(totalMedido)}</strong></span>
             <span>Saldo a Faturar: <strong>{fmtMoney((Number(form.valor_total_contrato) || totalFrentes) - totalMedido)}</strong></span>
           </div>
+
+          {editing?.id && (
+            <div className="space-y-3">
+              <h3 className="font-semibold text-sm">Assinaturas Eletrônicas (Lei nº 14.063/2020)</h3>
+              <p className="text-xs text-muted-foreground">
+                Assinatura avançada: exige confirmação de senha e token de 6 dígitos enviado ao e-mail do signatário.
+              </p>
+              <div className="grid gap-3 md:grid-cols-3">
+                {(["responsavel", "fiscalizacao", "gestor"] as const).map((p) => (
+                  <AssinaturaEletronicaBoletim
+                    key={p}
+                    boletim={{ ...(form as BoletimMedicao), id: editing.id, numero: editing.numero, ano: editing.ano }}
+                    papel={p}
+                    assinaturaExistente={porBoletim(editing.id).find((a) => a.papel === p)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
