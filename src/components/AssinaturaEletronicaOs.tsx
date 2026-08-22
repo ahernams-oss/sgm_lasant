@@ -23,6 +23,8 @@ import {
 } from "@/contexts/OsAssinaturasContext";
 import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
+import { purposeAssinatura, verificarTokenAssinatura } from "@/lib/otpAssinatura";
+import { TokenAssinaturaEmail } from "@/components/TokenAssinaturaEmail";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 
 interface Props {
@@ -63,6 +65,7 @@ export function AssinaturaEletronicaOs({
   const { registrar } = useOsAssinaturas();
   const [open, setOpen] = useState(false);
   const [senha, setSenha] = useState("");
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Regras de autorização para assinar
