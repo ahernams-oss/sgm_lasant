@@ -62,6 +62,8 @@ export default function AssinarLoteOs() {
   const [papel, setPapel] = useState<PapelOsAssinatura>("fiscal");
   const [openConfirm, setOpenConfirm] = useState(false);
   const [senha, setSenha] = useState("");
+  const [token, setToken] = useState("");
+
   const [signing, setSigning] = useState(false);
 
   const podeFiscal = tem("os.assinar_fiscal");
