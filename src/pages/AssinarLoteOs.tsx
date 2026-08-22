@@ -10,6 +10,9 @@ import { usePermissao } from "@/hooks/usePermissao";
 import { gerarHashOs, obterIpOrigem } from "@/lib/assinaturaHashOs";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { formatNumeroAno } from "@/lib/formatNumero";
+import { TokenAssinaturaEmail } from "@/components/TokenAssinaturaEmail";
+import { purposeAssinatura, verificarTokenAssinatura } from "@/lib/otpAssinatura";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +62,8 @@ export default function AssinarLoteOs() {
   const [papel, setPapel] = useState<PapelOsAssinatura>("fiscal");
   const [openConfirm, setOpenConfirm] = useState(false);
   const [senha, setSenha] = useState("");
+  const [token, setToken] = useState("");
+
   const [signing, setSigning] = useState(false);
 
   const podeFiscal = tem("os.assinar_fiscal");
@@ -142,10 +147,24 @@ export default function AssinarLoteOs() {
       toast.error("Senha incorreta.");
       return;
     }
+    if (token.length !== 6) {
+      toast.error("Informe o token de 6 dígitos enviado por e-mail.");
+      return;
+    }
+    const otp = await verificarTokenAssinatura({
+      usuarioId: usuarioLogado.id,
+      purpose: purposeAssinatura("os", "lote", papel),
+      code: token,
+    });
+    if (!otp.success) {
+      toast.error(otp.error || "Token inválido ou expirado.");
+      return;
+    }
     if (papel === "fiscal" && !podeFiscal) {
       toast.error("Sem permissão para assinar como Fiscal do Contrato.");
       return;
     }
+
     setSigning(true);
     const ip = await obterIpOrigem();
     const cargo = cargos.find((c) => c.id === usuarioLogado.cargoId);
@@ -190,7 +209,7 @@ export default function AssinarLoteOs() {
     await refresh();
     setSigning(false);
     setOpenConfirm(false);
-    setSenha("");
+    setSenha(""); setToken("");
     setSelectedIds(new Set());
 
     if (ok > 0) {
@@ -420,9 +439,18 @@ export default function AssinarLoteOs() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="Digite sua senha"
-                onKeyDown={(e) => e.key === "Enter" && handleAssinarLote()}
               />
             </div>
+            {usuarioLogado && (
+              <TokenAssinaturaEmail
+                usuarioId={usuarioLogado.id}
+                purpose={purposeAssinatura("os", "lote", papel)}
+                documento={`Assinatura em lote de ${selectedIds.size} Ordem(ns) de Serviço`}
+                papel={papel === "fiscal" ? "Fiscal do Contrato" : "Solicitante"}
+                token={token}
+                onTokenChange={setToken}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -430,14 +458,16 @@ export default function AssinarLoteOs() {
               onClick={() => {
                 setOpenConfirm(false);
                 setSenha("");
+                setToken("");
               }}
             >
               Cancelar
             </Button>
             <Button
               onClick={handleAssinarLote}
-              disabled={signing || !senha || selectedIds.size === 0}
+              disabled={signing || !senha || token.length !== 6 || selectedIds.size === 0}
             >
+
               {signing ? "Assinando..." : "Confirmar e Assinar"}
             </Button>
           </DialogFooter>
