@@ -335,6 +335,26 @@ export default function FaturarLoteOs() {
                   </span>
                 </TableCell>
               </TableRow>
+              {vtmInfo && (
+                <TableRow className="bg-emerald-50/60 hover:bg-emerald-50/60 dark:bg-emerald-900/10">
+                  <TableCell colSpan={7} className="text-right py-3">
+                    <span className="text-sm text-muted-foreground mr-2">
+                      VTM Mensal ({vtmInfo.clienteNome}):
+                    </span>
+                    <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                      {vtmInfo.vtmMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                    <span className="text-sm text-muted-foreground mx-2">— Selecionado:</span>
+                    <span className="text-base font-bold text-foreground">
+                      {selectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                    <span className="text-sm text-muted-foreground mx-2">— Saldo:</span>
+                    <span className={`text-base font-bold ${vtmInfo.saldo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
+                      {vtmInfo.saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              )}
             </tfoot>
           )}
         </Table>
