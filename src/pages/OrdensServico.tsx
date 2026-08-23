@@ -3099,6 +3099,30 @@ export default function OrdensServicoPage() {
       </Dialog>
 
 
+      {/* Dialog: Faturar OS */}
+      <Dialog open={!!faturarOS} onOpenChange={o => { if (!o) { setFaturarOS(null); setFaturarData(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-primary" /> Faturar Ordem de Serviço
+            </DialogTitle>
+            <DialogDescription>
+              OS nº {faturarOS ? formatNumeroAno(faturarOS.numero, faturarOS.createdAt) : ""} — informe a Data de Faturamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Data de Faturamento *</Label>
+            <Input type="date" value={faturarData} onChange={e => setFaturarData(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setFaturarOS(null); setFaturarData(""); }}>Cancelar</Button>
+            <Button onClick={confirmarFaturamento} disabled={!faturarData || faturarLoading}>
+              {faturarLoading ? "Faturando..." : "Confirmar Faturamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>
         <DialogContent className="max-w-lg">
