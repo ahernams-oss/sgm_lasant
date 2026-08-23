@@ -15,6 +15,7 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { gerarPdfFinanceiro, gerarExcelFinanceiro, FinReport } from "@/lib/gerarRelatoriosFinanceiros";
+import { MESES_PT, montarFaturamentoPorClienteMes, formatBRLValor } from "@/lib/faturamentoClientes";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
 
