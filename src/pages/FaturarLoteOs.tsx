@@ -33,10 +33,12 @@ export default function FaturarLoteOs() {
   const { tem } = usePermissao();
   const podeFaturarLote = tem("ordem_servico.status.faturada");
 
-  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; }>("faturar_lote_os_filters_v1");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; validadoFrom: string; validadoTo: string; }>("faturar_lote_os_filters_v1");
   const [search, setSearch] = useState(_saved?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
-  usePersistFilters("faturar_lote_os_filters_v1", { search, filterCliente });
+  const [validadoFrom, setValidadoFrom] = useState(_saved?.validadoFrom ?? "");
+  const [validadoTo, setValidadoTo] = useState(_saved?.validadoTo ?? "");
+  usePersistFilters("faturar_lote_os_filters_v1", { search, filterCliente, validadoFrom, validadoTo });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -57,6 +59,16 @@ export default function FaturarLoteOs() {
   const filtered = useMemo(() => {
     let result = disponiveis;
     if (filterCliente !== "all") result = result.filter((s) => s.clienteId === filterCliente);
+    if (validadoFrom || validadoTo) {
+      result = result.filter((s) => {
+        const dataValidacao = (s.historico || []).find((h: any) => h.situacao === "Validada")?.data;
+        if (!dataValidacao) return false;
+        const d = new Date(dataValidacao);
+        if (validadoFrom && d < new Date(validadoFrom + "T00:00:00")) return false;
+        if (validadoTo && d > new Date(validadoTo + "T23:59:59.999")) return false;
+        return true;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -69,7 +81,7 @@ export default function FaturarLoteOs() {
       );
     }
     return result;
-  }, [disponiveis, search, filterCliente]);
+  }, [disponiveis, search, filterCliente, validadoFrom, validadoTo]);
 
   const { paginated } = paginate(filtered, page, pageSize);
   const allPageIds = paginated.map((s) => s.id);
@@ -185,6 +197,14 @@ export default function FaturarLoteOs() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="w-[180px]">
+          <Label className="text-xs">Data da Validação (início)</Label>
+          <Input type="date" value={validadoFrom} onChange={(e) => { setValidadoFrom(e.target.value); setPage(1); }} />
+        </div>
+        <div className="w-[180px]">
+          <Label className="text-xs">Data da Validação (fim)</Label>
+          <Input type="date" value={validadoTo} onChange={(e) => { setValidadoTo(e.target.value); setPage(1); }} />
         </div>
         <div className="w-[180px]">
           <Label className="text-xs">Data de Faturamento</Label>
