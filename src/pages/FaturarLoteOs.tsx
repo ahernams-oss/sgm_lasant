@@ -136,6 +136,27 @@ export default function FaturarLoteOs() {
     }, 0);
   }, [selectedIds, ordens]);
 
+  const vtmInfo = useMemo(() => {
+    if (filterCliente === "all") return null;
+    const cli = clientes.find((c) => c.id === filterCliente);
+    if (!cli) return null;
+    const hoje = new Date();
+    const contratoVigente = (cli.contratos || []).find((ct) => {
+      if (!ct.dataInicio) return false;
+      const di = new Date(ct.dataInicio + "T00:00:00");
+      const df = ct.dataFim ? new Date(ct.dataFim + "T23:59:59") : null;
+      return di <= hoje && (!df || df >= hoje);
+    }) || (cli.contratos || [])[0];
+    if (!contratoVigente) return null;
+    const vtmMensal = parseBRLNum(contratoVigente.valorBase);
+    if (vtmMensal <= 0) return null;
+    return {
+      clienteNome: cli.nome,
+      vtmMensal,
+      saldo: vtmMensal - selectedTotal,
+    };
+  }, [filterCliente, clientes, selectedTotal]);
+
   const handleFaturarLote = async () => {
     if (!podeFaturarLote) {
       toast.error("Você não possui permissão para faturar Ordens de Serviço.");
