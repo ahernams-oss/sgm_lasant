@@ -51,6 +51,14 @@ export default function FaturarLoteOs() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
 
+  const calcularValorTotalOS = (os: OrdemServico): number => {
+    const totalItens = (os.materiais || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0)
+      + (os.materiaisEstoque || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
+    const bdi = (() => { const n = Number(String(os.bdi || 0).replace(",", ".")); return isNaN(n) ? 0 : n; })();
+    const valorBDI = totalItens * (bdi / 100);
+    return totalItens + valorBDI;
+  };
+
   const disponiveis = useMemo(
     () => ordens.filter((os) => STATUS_PERMITIDOS.includes(os.situacao)),
     [ordens]
@@ -113,6 +121,13 @@ export default function FaturarLoteOs() {
         .sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
     [clientes]
   );
+
+  const selectedTotal = useMemo(() => {
+    return Array.from(selectedIds).reduce((sum, id) => {
+      const os = ordens.find((o) => o.id === id);
+      return os ? sum + calcularValorTotalOS(os) : sum;
+    }, 0);
+  }, [selectedIds, ordens]);
 
   const handleFaturarLote = async () => {
     if (!podeFaturarLote) {
@@ -280,6 +295,20 @@ export default function FaturarLoteOs() {
               ))
             )}
           </TableBody>
+          {selectedIds.size > 0 && (
+            <tfoot>
+              <TableRow className="bg-primary/5 hover:bg-primary/5">
+                <TableCell colSpan={7} className="text-right py-3">
+                  <span className="text-sm text-muted-foreground mr-2">
+                    {selectedIds.size} OS selecionada(s) — Total:
+                  </span>
+                  <span className="text-base font-bold text-primary">
+                    {selectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </span>
+                </TableCell>
+              </TableRow>
+            </tfoot>
+          )}
         </Table>
       </div>
 
