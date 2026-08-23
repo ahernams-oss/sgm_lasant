@@ -33,10 +33,12 @@ export default function FaturarLoteOs() {
   const { tem } = usePermissao();
   const podeFaturarLote = tem("ordem_servico.status.faturada");
 
-  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; }>("faturar_lote_os_filters_v1");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; validadoFrom: string; validadoTo: string; }>("faturar_lote_os_filters_v1");
   const [search, setSearch] = useState(_saved?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
-  usePersistFilters("faturar_lote_os_filters_v1", { search, filterCliente });
+  const [validadoFrom, setValidadoFrom] = useState(_saved?.validadoFrom ?? "");
+  const [validadoTo, setValidadoTo] = useState(_saved?.validadoTo ?? "");
+  usePersistFilters("faturar_lote_os_filters_v1", { search, filterCliente, validadoFrom, validadoTo });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
