@@ -655,6 +655,16 @@ export default function OrdensServicoPage() {
       setNaoAprovarJustificativa("");
       return;
     }
+    // Faturamento exige informar a Data de Faturamento
+    if (novaSituacao === "Faturada") {
+      if (os.situacao !== "Validada") {
+        toast.error("Somente OS com status \"Validada\" podem ser faturadas.");
+        return;
+      }
+      setFaturarOS(os);
+      setFaturarData(new Date().toISOString().slice(0, 10));
+      return;
+    }
     const financeiro = recalcFinanceiro(os);
     await updateOrdem(os.id, {
       situacao: novaSituacao,
