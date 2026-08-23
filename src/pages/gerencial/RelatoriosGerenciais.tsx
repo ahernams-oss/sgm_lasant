@@ -195,6 +195,30 @@ export default function RelatoriosGerenciais() {
         totais: [{ label: "Total Ativos", valor: String(lista.length) }],
       };
     }
+    if (tipo === "faturamento_cliente_mes") {
+      const ano = Number(intervalo.fim.slice(0, 4));
+      const linhas = montarFaturamentoPorClienteMes(ordens as any, clientes as any, ano, clienteSel);
+      const totalGeral = linhas.reduce((s, l) => s + l.total, 0);
+      const totalContratual = linhas.reduce((s, l) => s + l.valorContratual, 0);
+      return {
+        titulo: `Faturamento por Cliente - ${ano}`,
+        subtitulo: "OS com situação Faturada (por Data de Faturamento)",
+        filtros: filtroLabel,
+        colunas: ["Cliente", ...MESES_PT.map((m) => m.slice(0, 3)), "Total", "Valor Contratual", "Saldo"],
+        linhas: linhas.map((l) => [
+          l.clienteNome,
+          ...l.meses.map((v) => (v ? formatBRLValor(v) : "-")),
+          formatBRLValor(l.total),
+          formatBRLValor(l.valorContratual),
+          formatBRLValor(l.saldo),
+        ]) as any,
+        totais: [
+          { label: "Total Faturado", valor: formatBRLValor(totalGeral) },
+          { label: "Total Contratual", valor: formatBRLValor(totalContratual) },
+          { label: "Saldo Contratual", valor: formatBRLValor(totalContratual - totalGeral) },
+        ],
+      };
+    }
     // fin_resumo
     const cr = fin.contasReceber.filter((c) => c.status === "recebida" && inRange(c.data_recebimento));
     const cp = fin.contasPagar.filter((c) => c.status === "paga" && inRange(c.data_pagamento));
