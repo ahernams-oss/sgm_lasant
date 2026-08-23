@@ -122,6 +122,13 @@ export default function FaturarLoteOs() {
     [clientes]
   );
 
+  const selectedTotal = useMemo(() => {
+    return Array.from(selectedIds).reduce((sum, id) => {
+      const os = ordens.find((o) => o.id === id);
+      return os ? sum + calcularValorTotalOS(os) : sum;
+    }, 0);
+  }, [selectedIds, ordens]);
+
   const handleFaturarLote = async () => {
     if (!podeFaturarLote) {
       toast.error("Você não possui permissão para faturar Ordens de Serviço.");
