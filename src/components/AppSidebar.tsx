@@ -8,6 +8,7 @@ import {
   Shield,
   LogOut,
   ClipboardCheck,
+  Receipt,
   Truck,
   LayoutDashboard,
   CalendarClock,
