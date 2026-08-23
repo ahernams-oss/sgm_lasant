@@ -361,7 +361,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Fechamento");
       XLSX.utils.book_append_sheet(wb, wsCat, "Por Categoria");
-      XLSX.writeFile(wb, `relatorio_fechamento_validadas.xlsx`);
+      XLSX.writeFile(wb, `${fileBaseFech}.xlsx`);
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
@@ -378,7 +378,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(30, 30, 30);
     doc.text(clienteNome.toUpperCase(), pw / 2, 50, { align: "center" });
     doc.setFontSize(13); doc.setTextColor(80, 80, 80);
-    doc.text("RELATÓRIO DE FECHAMENTO - VALIDADAS", pw / 2, 60, { align: "center" });
+    doc.text(`RELATÓRIO DE FECHAMENTO - ${statusLabel}`, pw / 2, 60, { align: "center" });
 
     autoTable(doc, {
       startY: 72,
@@ -435,7 +435,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     }
 
     addFooter(doc);
-    doc.save(`relatorio_fechamento_validadas.pdf`);
+    doc.save(`${fileBaseFech}.pdf`);
     toast.success("PDF gerado!");
     onOpenChange(false);
   };
@@ -922,6 +922,9 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
   };
 
   const exportarFechamentoLocal = async (formato: "pdf" | "excel") => {
+    const faturadasLoc = tipo === "fechamento_faturadas_local";
+    const statusLabelLoc = faturadasLoc ? "FATURADAS" : "VALIDADAS";
+    const fileBaseLoc = faturadasLoc ? "relatorio_fechamento_faturadas_por_local" : "relatorio_fechamento_por_local";
     const clienteNome = clienteSel !== "todos"
       ? (clientes.find(c => c.id === clienteSel)?.nome || "TODOS OS CLIENTES")
       : "TODOS OS CLIENTES";
@@ -975,7 +978,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const wsR = XLSX.utils.json_to_sheet(resumo);
       wsR["!cols"] = [{ wch: 30 }, { wch: 24 }, { wch: 8 }, { wch: 14 }];
       XLSX.utils.book_append_sheet(wb, wsR, "Tipos por Local");
-      XLSX.writeFile(wb, "relatorio_fechamento_por_local.xlsx");
+      XLSX.writeFile(wb, `${fileBaseLoc}.xlsx`);
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
@@ -991,7 +994,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(30, 30, 30);
     doc.text(clienteNome.toUpperCase(), pw / 2, 50, { align: "center" });
     doc.setFontSize(13); doc.setTextColor(80, 80, 80);
-    doc.text("RELATÓRIO DE FECHAMENTO - VALIDADAS POR LOCAL", pw / 2, 60, { align: "center" });
+    doc.text(`RELATÓRIO DE FECHAMENTO - ${statusLabelLoc} POR LOCAL`, pw / 2, 60, { align: "center" });
     autoTable(doc, {
       startY: 72,
       head: [["Data inicial", "Data final"]],
@@ -1079,7 +1082,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     }
 
     addFooter(doc);
-    doc.save("relatorio_fechamento_por_local.pdf");
+    doc.save(`${fileBaseLoc}.pdf`);
     toast.success("PDF gerado!");
     onOpenChange(false);
   };
@@ -1091,11 +1094,11 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       toast.error("Nenhuma OS encontrada no período/filtros selecionados.");
       return;
     }
-    if (tipo === "fechamento_local") {
+    if (tipo === "fechamento_local" || tipo === "fechamento_faturadas_local") {
       await exportarFechamentoLocal(formato);
       return;
     }
-    if (tipo === "fechamento_validadas") {
+    if (tipo === "fechamento_validadas" || tipo === "fechamento_faturadas") {
       await exportarFechamentoValidadas(formato);
       return;
     }
@@ -1201,12 +1204,12 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
             </div>
             <div>
               <Label className="text-sm">Situação</Label>
-              <Select value={(tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local") ? "Validada" : situacaoSel} onValueChange={setSituacaoSel} disabled={tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local"}>
+              <Select value={STATUS_FIXO[tipo] ?? situacaoSel} onValueChange={setSituacaoSel} disabled={!!STATUS_FIXO[tipo]}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas</SelectItem>
                   {situacoesUnicas.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  {(tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local") && !situacoesUnicas.includes("Validada") && <SelectItem value="Validada">Validada</SelectItem>}
+                  {!!STATUS_FIXO[tipo] && !situacoesUnicas.includes(STATUS_FIXO[tipo]!) && <SelectItem value={STATUS_FIXO[tipo]!}>{STATUS_FIXO[tipo]}</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
