@@ -3106,9 +3106,9 @@ export default function OrdensServicoPage() {
             <DialogTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" /> Faturar Ordem de Serviço
             </DialogTitle>
-            <DialogDescription>
+            <p className="text-sm text-muted-foreground">
               OS nº {faturarOS ? formatNumeroAno(faturarOS.numero, faturarOS.createdAt) : ""} — informe a Data de Faturamento.
-            </DialogDescription>
+            </p>
           </DialogHeader>
           <div className="space-y-2">
             <Label>Data de Faturamento *</Label>
