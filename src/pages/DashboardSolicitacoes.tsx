@@ -498,7 +498,7 @@ export default function DashboardSolicitacoes() {
         <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
           <Wrench className="h-4 w-4 text-primary" /> Ordens de Serviço (OS)
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
           <KpiCard icon={Wrench} label="Total OS" value={osTotal} gradientIdx={0} />
           <KpiCard icon={Clock} label="Abertas" value={osAbertas} gradientIdx={2} />
           <KpiCard icon={Activity} label="Executadas" value={osExecutadas} gradientIdx={5} />
