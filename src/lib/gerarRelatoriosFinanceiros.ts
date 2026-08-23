@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { addHeader } from "@/lib/gerarRelatorioEstoque";
 
 export interface FinReport {
   titulo: string;
@@ -11,37 +12,29 @@ export interface FinReport {
   totais?: { label: string; valor: string }[];
 }
 
-export function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" | "landscape") {
+export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" | "landscape") {
   const orient = orientacao || (r.colunas.length > 6 ? "landscape" : "portrait");
   const doc = new jsPDF({ orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
-  // Header
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, pw, 28, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(r.titulo, 14, 12);
+  // Cabeçalho padrão LASANT
+  await addHeader(doc, { title: r.titulo, subtitle: r.subtitulo, filters: r.filtros });
+
+  const startY = r.filtros ? 48 : 42;
+  doc.setTextColor(30, 30, 30);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  if (r.subtitulo) doc.text(r.subtitulo, 14, 20);
-  const dt = new Date();
-  doc.text(`Gerado em: ${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR")}`, pw - 14, 12, { align: "right" });
-  if (r.filtros) doc.text(r.filtros, pw - 14, 20, { align: "right" });
-
-  doc.setTextColor(30, 30, 30);
-  doc.setFontSize(10);
-  doc.text(`Total de registros: ${r.linhas.length}`, 14, 36);
+  doc.text(`Total de registros: ${r.linhas.length}`, 14, startY - 3);
 
   autoTable(doc, {
-    startY: 42,
+    startY,
     head: [r.colunas],
     body: r.linhas.map((row) => row.map((c) => (c == null ? "" : String(c)))),
     styles: { fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [245, 247, 250] },
   });
+
 
   if (r.totais && r.totais.length) {
     const finalY = (doc as any).lastAutoTable.finalY + 6;
