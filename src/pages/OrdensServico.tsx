@@ -407,10 +407,12 @@ export default function OrdensServicoPage() {
   const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
   const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
+  const [filtroFaturamentoIni, setFiltroFaturamentoIni] = useState((_osDatasStatus as any)?.fatIni ?? "");
+  const [filtroFaturamentoFim, setFiltroFaturamentoFim] = useState((_osDatasStatus as any)?.fatFim ?? "");
   usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem, filtroFotos, filtroImpresso });
-  usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
-  const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
-  const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
+  usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim, fatIni: filtroFaturamentoIni, fatFim: filtroFaturamentoFim });
+  const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" | "faturamento" }>("ordens_servico_tipo_data_v1");
+  const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada" | "faturamento">(_osTipoData?.tipo ?? "inicio");
   usePersistFilters("ordens_servico_tipo_data_v1", { tipo: tipoDataFiltro });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
