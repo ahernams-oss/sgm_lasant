@@ -40,6 +40,7 @@ const TIPOS: { value: TipoRel; label: string; desc: string; usaCliente: boolean;
   { value: "funcionarios_cliente", label: "Funcionários Ativos por Cliente", desc: "Quadro de funcionários ativos distribuídos por cliente/contrato.", usaCliente: true, usaSituacao: false },
   { value: "funcionarios_cargo", label: "Funcionários por Cargo", desc: "Distribuição de funcionários ativos por cargo (CBO).", usaCliente: false, usaSituacao: false },
   { value: "fin_resumo", label: "Resumo Financeiro do Período", desc: "Recebimentos, pagamentos e saldo do período.", usaCliente: false, usaSituacao: false },
+  { value: "faturamento_cliente_mes", label: "Faturamento por Cliente / Mês", desc: "Valor faturado (OS Faturadas) por cliente e mês, com valor contratual e saldo. Usa o ano do período selecionado.", usaCliente: true, usaSituacao: false },
 ];
 
 export default function RelatoriosGerenciais() {
