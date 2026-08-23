@@ -1074,10 +1074,13 @@ export default function OrdensServicoPage() {
       const dtVal = (filtroValidadaIni || filtroValidadaFim) ? dataStatus("Validada") : "ok";
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
+      const dtFat = (o.dataFaturamento || "").slice(0, 10);
+      const matchFatIni = !filtroFaturamentoIni || (!!dtFat && dtFat >= filtroFaturamentoIni);
+      const matchFatFim = !filtroFaturamentoFim || (!!dtFat && dtFat <= filtroFaturamentoFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem && matchFotos && matchImpresso;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchFatIni && matchFatFim && matchOrigem && matchFotos && matchImpresso;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, filtroImpresso, orcamentosAll]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroFaturamentoIni, filtroFaturamentoFim, filtroOrigem, filtroFotos, filtroImpresso, orcamentosAll]);
 
   const marcarOsImpressa = async (ids: string[]) => {
     const pendentes = ordens.filter(o => ids.includes(o.id) && !o.impresso);
