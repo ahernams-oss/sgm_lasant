@@ -147,13 +147,16 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const { ini, fim } = intervalo;
     const iniMs = ini.setHours(0, 0, 0, 0);
     const fimMs = fim.setHours(23, 59, 59, 999);
+    const statusFixo = STATUS_FIXO[tipo];
+    const porFaturamento = statusFixo === "Faturada";
     return ordens.filter(o => {
-      const ref = o.createdAt ? new Date(o.createdAt).getTime() : 0;
+      const base = porFaturamento ? (o.dataFaturamento || o.faturadoEm || o.createdAt) : o.createdAt;
+      const ref = base ? new Date(base).getTime() : 0;
       if (isNaN(ref) || ref < iniMs || ref > fimMs) return false;
       if (clienteSel !== "todos" && o.clienteId !== clienteSel) return false;
       if (localSel !== "todos" && (o.localDescricao || "SEM LOCAL") !== localSel) return false;
-      if (tipo === "fechamento_validadas" || tipo === "fechamento_categoria" || tipo === "fechamento_local") {
-        if (o.situacao !== "Validada") return false;
+      if (statusFixo) {
+        if (o.situacao !== statusFixo) return false;
       } else if (situacaoSel !== "todas" && o.situacao !== situacaoSel) return false;
       return true;
     });
