@@ -51,6 +51,13 @@ export default function FaturarLoteOs() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
 
+  const parseBRLNum = (s?: string) => {
+    if (!s) return 0;
+    const cleaned = String(s).replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+
   const calcularValorTotalOS = (os: OrdemServico): number => {
     const totalItens = (os.materiais || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0)
       + (os.materiaisEstoque || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
@@ -128,6 +135,27 @@ export default function FaturarLoteOs() {
       return os ? sum + calcularValorTotalOS(os) : sum;
     }, 0);
   }, [selectedIds, ordens]);
+
+  const vtmInfo = useMemo(() => {
+    if (filterCliente === "all") return null;
+    const cli = clientes.find((c) => c.id === filterCliente);
+    if (!cli) return null;
+    const hoje = new Date();
+    const contratoVigente = (cli.contratos || []).find((ct) => {
+      if (!ct.dataInicio) return false;
+      const di = new Date(ct.dataInicio + "T00:00:00");
+      const df = ct.dataFim ? new Date(ct.dataFim + "T23:59:59") : null;
+      return di <= hoje && (!df || df >= hoje);
+    }) || (cli.contratos || [])[0];
+    if (!contratoVigente) return null;
+    const vtmMensal = parseBRLNum(contratoVigente.valorBase);
+    if (vtmMensal <= 0) return null;
+    return {
+      clienteNome: cli.nome,
+      vtmMensal,
+      saldo: vtmMensal - selectedTotal,
+    };
+  }, [filterCliente, clientes, selectedTotal]);
 
   const handleFaturarLote = async () => {
     if (!podeFaturarLote) {
@@ -307,6 +335,26 @@ export default function FaturarLoteOs() {
                   </span>
                 </TableCell>
               </TableRow>
+              {vtmInfo && (
+                <TableRow className="bg-emerald-50/60 hover:bg-emerald-50/60 dark:bg-emerald-900/10">
+                  <TableCell colSpan={7} className="text-right py-3">
+                    <span className="text-sm text-muted-foreground mr-2">
+                      VTM Mensal ({vtmInfo.clienteNome}):
+                    </span>
+                    <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                      {vtmInfo.vtmMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                    <span className="text-sm text-muted-foreground mx-2">— Selecionado:</span>
+                    <span className="text-base font-bold text-foreground">
+                      {selectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                    <span className="text-sm text-muted-foreground mx-2">— Saldo:</span>
+                    <span className={`text-base font-bold ${vtmInfo.saldo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
+                      {vtmInfo.saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              )}
             </tfoot>
           )}
         </Table>
