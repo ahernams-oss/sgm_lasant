@@ -846,6 +846,8 @@ export default function OrdensServicoPage() {
         ]; break;
       case "Serviço Confirmado":
         acts = [{ label: "Validar OS", icon: BadgeCheck, target: "Validada", action: () => handleWorkflowAction(os, "Validada") }]; break;
+      case "Validada":
+        acts = [{ label: "Faturar OS", icon: Receipt, target: "Faturada", action: () => handleWorkflowAction(os, "Faturada") }]; break;
       case "Serviço Não Aprovado pela Fiscalização":
         acts = [{ label: "Serviço Re-executado", icon: RotateCcw, target: "Serviço Re-executado", action: () => handleWorkflowAction(os, "Serviço Re-executado") }]; break;
       case "Serviço Re-executado":
