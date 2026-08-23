@@ -105,10 +105,10 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
   y = sectionTitle(doc, "Indicadores — Ordens de Serviço (OS)", y);
   autoTable(doc, {
     startY: y,
-    head: [["Total", "Abertas", "Executadas", "Validadas", "Emergenciais", "Conv. SS→OS", "% Conclusão"]],
+    head: [["Total", "Abertas", "Executadas", "Validadas", "Faturadas", "Emergenciais", "Conv. SS→OS", "% Conclusão"]],
     body: [[
       data.kpisOS.total, data.kpisOS.abertas, data.kpisOS.executadas,
-      data.kpisOS.validadas, data.kpisOS.emergenciais, data.kpisOS.conversao, data.kpisOS.conclusao,
+      data.kpisOS.validadas, (data.kpisOS as any).faturadas ?? 0, data.kpisOS.emergenciais, data.kpisOS.conversao, data.kpisOS.conclusao,
     ].map(String)],
     theme: "grid",
     styles: { fontSize: 10, cellPadding: 4, halign: "center" },
@@ -267,8 +267,8 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
     [data.kpisSS.total, data.kpisSS.aguardando, data.kpisSS.aprovadas, data.kpisSS.concluidas, data.kpisSS.canceladas],
     [],
     ["Indicadores — Ordens de Serviço (OS)"],
-    ["Total", "Abertas", "Executadas", "Validadas", "Emergenciais", "Conv. SS→OS", "% Conclusão"],
-    [data.kpisOS.total, data.kpisOS.abertas, data.kpisOS.executadas, data.kpisOS.validadas, data.kpisOS.emergenciais, data.kpisOS.conversao, data.kpisOS.conclusao],
+    ["Total", "Abertas", "Executadas", "Validadas", "Faturadas", "Emergenciais", "Conv. SS→OS", "% Conclusão"],
+    [data.kpisOS.total, data.kpisOS.abertas, data.kpisOS.executadas, data.kpisOS.validadas, (data.kpisOS as any).faturadas ?? 0, data.kpisOS.emergenciais, data.kpisOS.conversao, data.kpisOS.conclusao],
   ];
   const wsResumo = XLSX.utils.aoa_to_sheet(resumo);
   wsResumo["!cols"] = [{ wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
