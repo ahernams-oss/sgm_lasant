@@ -146,6 +146,7 @@ export default function DashboardSSOS() {
   const osAbertas = osFiltradas.filter(o => o.situacao === "Aberta").length;
   const osExecutadas = osFiltradas.filter(o => o.situacao === "Executada" || o.situacao === "Serviço Confirmado").length;
   const osValidadas = osFiltradas.filter(o => o.situacao === "Validada").length;
+  const osFaturadas = osFiltradas.filter(o => o.situacao === "Faturada").length;
   const osEmergenciais = osFiltradas.filter(o => (o.prioridade || "").toUpperCase().includes("IMEDIATA")).length;
 
   // === Charts ===
@@ -436,7 +437,7 @@ export default function DashboardSSOS() {
   const osStatusOptions = useMemo(() => Array.from(new Set(ordens.map(o => o.situacao).filter(Boolean))), [ordens]);
 
   const taxaConversao = ssTotal > 0 ? ((osTotal / ssTotal) * 100) : 0;
-  const taxaConclusao = osTotal > 0 ? ((osValidadas / osTotal) * 100) : 0;
+  const taxaConclusao = osTotal > 0 ? (((osValidadas + osFaturadas) / osTotal) * 100) : 0;
 
   const buildReportData = () => {
     const periodo = dateFrom || dateTo
@@ -454,7 +455,7 @@ export default function DashboardSSOS() {
       periodoLabel: periodo,
       filtroLabel: filtros.length ? `Filtros: ${filtros.join(" · ")}` : "Filtros: nenhum",
       kpisSS: { total: ssTotal, aguardando: ssAguardando, aprovadas: ssAprovadas, concluidas: ssConcluidas, canceladas: ssCanceladas },
-      kpisOS: { total: osTotal, abertas: osAbertas, executadas: osExecutadas, validadas: osValidadas, emergenciais: osEmergenciais, conversao: `${taxaConversao.toFixed(1)}%`, conclusao: `${taxaConclusao.toFixed(1)}%` },
+      kpisOS: { total: osTotal, abertas: osAbertas, executadas: osExecutadas, validadas: osValidadas, faturadas: osFaturadas, emergenciais: osEmergenciais, conversao: `${taxaConversao.toFixed(1)}%`, conclusao: `${taxaConclusao.toFixed(1)}%` },
       ssStatus: ssStatusData,
       osStatus: osStatusData,
       tipoOS: tipoOSData,
@@ -489,6 +490,7 @@ export default function DashboardSSOS() {
                 { grupo: "Ordens de Serviço", label: "Abertas", value: osAbertas },
                 { grupo: "Ordens de Serviço", label: "Executadas", value: osExecutadas },
                 { grupo: "Ordens de Serviço", label: "Validadas", value: osValidadas },
+                { grupo: "Ordens de Serviço", label: "Faturadas", value: osFaturadas },
                 { grupo: "Ordens de Serviço", label: "Emergenciais", value: osEmergenciais },
                 { grupo: "Ordens de Serviço", label: "Conversão SS→OS", value: `${taxaConversao.toFixed(1)}%` },
                 { grupo: "Ordens de Serviço", label: "Taxa de conclusão", value: `${taxaConclusao.toFixed(1)}%` },
@@ -621,6 +623,7 @@ export default function DashboardSSOS() {
           <KpiCard icon={Clock} label="Abertas" value={osAbertas} gradientIdx={2} />
           <KpiCard icon={Activity} label="Executadas" value={osExecutadas} gradientIdx={5} />
           <KpiCard icon={CheckCircle2} label="Validadas" value={osValidadas} gradientIdx={1} />
+          <KpiCard icon={Receipt} label="Faturadas" value={osFaturadas} gradientIdx={5} />
           <KpiCard icon={AlertTriangle} label="Emergenciais" value={osEmergenciais} gradientIdx={3} />
           <KpiCard icon={TrendingUp} label="Conv. SS→OS" value={`${taxaConversao.toFixed(0)}%`} subtitle={`Conclusão: ${taxaConclusao.toFixed(0)}%`} gradientIdx={4} />
         </div>
