@@ -389,6 +389,16 @@ function ProtectedAppRoutes() {
           }
         />
         <Route
+          path="/engenharia/faturar-lote-os"
+          element={
+            <RotaProtegida perm="ordem_servico">
+              <OrdensServicoProvider>
+                <FaturarLoteOsPage />
+              </OrdensServicoProvider>
+            </RotaProtegida>
+          }
+        />
+        <Route
           path="/engenharia/imprimir-lote-os"
           element={
             <RotaProtegida perm="ordem_servico">
