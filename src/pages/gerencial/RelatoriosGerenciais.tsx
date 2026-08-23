@@ -21,7 +21,8 @@ import { toast } from "sonner";
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
 type TipoRel =
   | "os_status" | "os_cliente" | "ss_status" | "compras_pedidos"
-  | "requisicoes_status" | "funcionarios_cliente" | "funcionarios_cargo" | "fin_resumo";
+  | "requisicoes_status" | "funcionarios_cliente" | "funcionarios_cargo" | "fin_resumo"
+  | "faturamento_cliente_mes";
 
 const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
   { value: "semanal", label: "Semanal", desc: "Últimos 7 dias." },
