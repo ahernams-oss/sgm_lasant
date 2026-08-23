@@ -45,6 +45,8 @@ const TIPOS: { value: TipoRelatorio; label: string; desc: string }[] = [
   { value: "fechamento_validadas", label: "Fechamento (Validadas)", desc: "Apenas OSs Validadas — OS, Unidade, Categoria e Valor, com totais e gráfico por categoria." },
   { value: "fechamento_local", label: "Fechamento (Validadas) por Local", desc: "OSs Validadas segmentadas por Local, com resumo dos tipos de OS e gráfico ao final de cada local." },
   { value: "fechamento_categoria", label: "Fechamento por Categoria", desc: "Apenas OSs Validadas, agrupadas por categoria com Nº OS, Setor, Valor e Valor com BDI, totais e gráficos." },
+  { value: "fechamento_faturadas", label: "Fechamento (Faturadas)", desc: "Apenas OSs Faturadas — OS, Unidade, Categoria e Valor, com totais e gráfico por categoria (período pela Data de Faturamento)." },
+  { value: "fechamento_faturadas_local", label: "Fechamento (Faturadas) por Local", desc: "OSs Faturadas segmentadas por Local, com resumo dos tipos de OS e gráfico ao final de cada local (período pela Data de Faturamento)." },
   { value: "analitico", label: "Analítico (detalhado)", desc: "Lista completa de OSs com nº, cliente, situação, prioridade, datas e descrição." },
   { value: "sintetico", label: "Sintético (resumo)", desc: "Resumo por situação e por cliente, com totais." },
   { value: "financeiro", label: "Financeiro", desc: "Totais de materiais SCO, estoque, BDI e total geral por OS." },
