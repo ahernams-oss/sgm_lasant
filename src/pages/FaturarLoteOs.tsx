@@ -199,6 +199,14 @@ export default function FaturarLoteOs() {
           </Select>
         </div>
         <div className="w-[180px]">
+          <Label className="text-xs">Data da Validação (início)</Label>
+          <Input type="date" value={validadoFrom} onChange={(e) => { setValidadoFrom(e.target.value); setPage(1); }} />
+        </div>
+        <div className="w-[180px]">
+          <Label className="text-xs">Data da Validação (fim)</Label>
+          <Input type="date" value={validadoTo} onChange={(e) => { setValidadoTo(e.target.value); setPage(1); }} />
+        </div>
+        <div className="w-[180px]">
           <Label className="text-xs">Data de Faturamento</Label>
           <Input type="date" value={dataFaturamento} onChange={(e) => setDataFaturamento(e.target.value)} />
         </div>
