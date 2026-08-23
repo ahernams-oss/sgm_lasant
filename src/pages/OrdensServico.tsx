@@ -203,10 +203,12 @@ export default function OrdensServicoPage() {
   const podeStValidadaOS = tem("ordem_servico.status.validada");
   const podeStConfirmadaOS = tem("ordem_servico.status.confirmada");
   const podeStReprovadaOS = tem("ordem_servico.status.reprovada");
+  const podeStFaturadaOS = tem("ordem_servico.status.faturada");
   const podeStatusOS = (sit: string) => {
     if (sit === "Aberta") return podeStAbertaOS;
     if (sit === "Cancelada") return podeStCanceladaOS;
     if (sit === "Validada") return podeStValidadaOS;
+    if (sit === "Faturada") return podeStFaturadaOS;
     if (sit === "Serviço Confirmado") return podeStConfirmadaOS;
     if (sit === "Serviço Não Aprovado pela Fiscalização") return podeStReprovadaOS;
     if (sit === "Concluída") return podeStConcluidaOS;
