@@ -219,6 +219,32 @@ export default function OrdensServicoPage() {
     ...existing,
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
+  // ===== Faturamento de OS =====
+  const [faturarOS, setFaturarOS] = useState<OrdemServico | null>(null);
+  const [faturarData, setFaturarData] = useState("");
+  const [faturarLoading, setFaturarLoading] = useState(false);
+  const confirmarFaturamento = async () => {
+    if (!faturarOS) return;
+    if (!faturarData) {
+      toast.error("Informe a Data de Faturamento.");
+      return;
+    }
+    setFaturarLoading(true);
+    try {
+      await updateOrdem(faturarOS.id, {
+        situacao: "Faturada",
+        data_faturamento: faturarData,
+        faturado_por: usuarioLogado?.nome || "Sistema",
+        faturado_em: new Date().toISOString(),
+        historico: buildOSHistorico("Faturada", faturarOS.historico || [], `Data de faturamento: ${faturarData.split("-").reverse().join("/")}`),
+      });
+      toast.success("Ordem de Serviço faturada!");
+      setFaturarOS(null);
+      setFaturarData("");
+    } finally {
+      setFaturarLoading(false);
+    }
+  };
   const [cancelMotivo, setCancelMotivo] = useState("");
   const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
   const [cancelSenha, setCancelSenha] = useState("");
