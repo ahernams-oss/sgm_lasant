@@ -495,6 +495,16 @@ function ProtectedAppRoutes() {
           }
         />
         <Route
+          path="/gerencial/painel-faturamento"
+          element={
+            <RotaProtegida perm="gerencial_relatorios">
+              <OrdensServicoProvider>
+                <PainelFaturamentoClientes />
+              </OrdensServicoProvider>
+            </RotaProtegida>
+          }
+        />
+        <Route
           path="/gerencial/mapa-clientes"
           element={
             <RotaProtegida perm="gerencial_mapa_clientes">
@@ -502,6 +512,7 @@ function ProtectedAppRoutes() {
             </RotaProtegida>
           }
         />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
