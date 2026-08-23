@@ -15,13 +15,15 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { gerarPdfFinanceiro, gerarExcelFinanceiro, FinReport } from "@/lib/gerarRelatoriosFinanceiros";
+import { MESES_PT, montarFaturamentoPorClienteMes, formatBRLValor } from "@/lib/faturamentoClientes";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
 type TipoRel =
   | "os_status" | "os_cliente" | "ss_status" | "compras_pedidos"
-  | "requisicoes_status" | "funcionarios_cliente" | "funcionarios_cargo" | "fin_resumo";
+  | "requisicoes_status" | "funcionarios_cliente" | "funcionarios_cargo" | "fin_resumo"
+  | "faturamento_cliente_mes";
 
 const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
   { value: "semanal", label: "Semanal", desc: "Últimos 7 dias." },
@@ -39,6 +41,7 @@ const TIPOS: { value: TipoRel; label: string; desc: string; usaCliente: boolean;
   { value: "funcionarios_cliente", label: "Funcionários Ativos por Cliente", desc: "Quadro de funcionários ativos distribuídos por cliente/contrato.", usaCliente: true, usaSituacao: false },
   { value: "funcionarios_cargo", label: "Funcionários por Cargo", desc: "Distribuição de funcionários ativos por cargo (CBO).", usaCliente: false, usaSituacao: false },
   { value: "fin_resumo", label: "Resumo Financeiro do Período", desc: "Recebimentos, pagamentos e saldo do período.", usaCliente: false, usaSituacao: false },
+  { value: "faturamento_cliente_mes", label: "Faturamento por Cliente / Mês", desc: "Valor faturado (OS Faturadas) por cliente e mês, com valor contratual e saldo. Usa o ano do período selecionado.", usaCliente: true, usaSituacao: false },
 ];
 
 export default function RelatoriosGerenciais() {
@@ -191,6 +194,30 @@ export default function RelatoriosGerenciais() {
         colunas: ["Cargo", "Quantidade"],
         linhas: Object.entries(g).map(([k, v]) => [k, v.length]).sort((a: any, b: any) => b[1] - a[1]) as any,
         totais: [{ label: "Total Ativos", valor: String(lista.length) }],
+      };
+    }
+    if (tipo === "faturamento_cliente_mes") {
+      const ano = Number(intervalo.fim.slice(0, 4));
+      const linhas = montarFaturamentoPorClienteMes(ordens as any, clientes as any, ano, clienteSel);
+      const totalGeral = linhas.reduce((s, l) => s + l.total, 0);
+      const totalContratual = linhas.reduce((s, l) => s + l.valorContratual, 0);
+      return {
+        titulo: `Faturamento por Cliente - ${ano}`,
+        subtitulo: "OS com situação Faturada (por Data de Faturamento)",
+        filtros: filtroLabel,
+        colunas: ["Cliente", ...MESES_PT.map((m) => m.slice(0, 3)), "Total", "Valor Contratual", "Saldo"],
+        linhas: linhas.map((l) => [
+          l.clienteNome,
+          ...l.meses.map((v) => (v ? formatBRLValor(v) : "-")),
+          formatBRLValor(l.total),
+          formatBRLValor(l.valorContratual),
+          formatBRLValor(l.saldo),
+        ]) as any,
+        totais: [
+          { label: "Total Faturado", valor: formatBRLValor(totalGeral) },
+          { label: "Total Contratual", valor: formatBRLValor(totalContratual) },
+          { label: "Saldo Contratual", valor: formatBRLValor(totalContratual - totalGeral) },
+        ],
       };
     }
     // fin_resumo
