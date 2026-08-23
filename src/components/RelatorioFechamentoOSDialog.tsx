@@ -318,6 +318,9 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
   };
 
   const exportarFechamentoValidadas = async (formato: "pdf" | "excel") => {
+    const faturadas = tipo === "fechamento_faturadas";
+    const statusLabel = faturadas ? "FATURADAS" : "VALIDADAS";
+    const fileBaseFech = faturadas ? "relatorio_fechamento_faturadas" : "relatorio_fechamento_validadas";
     const clienteNome = clienteSel !== "todos"
       ? (clientes.find(c => c.id === clienteSel)?.nome || "TODOS OS CLIENTES")
       : "TODOS OS CLIENTES";
