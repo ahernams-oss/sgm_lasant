@@ -53,6 +53,9 @@ export interface OrdemServico {
   impresso: boolean;
   impressoEm: string;
   impressoPor: string;
+  dataFaturamento: string;
+  faturadoPor: string;
+  faturadoEm: string;
 }
 
 export interface RetornoPendenteOS {
