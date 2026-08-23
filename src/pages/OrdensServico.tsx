@@ -64,6 +64,7 @@ const OS_WORKFLOW_STEPS = [
   { label: "Executada" },
   { label: "Serviço Confirmado" },
   { label: "Validada" },
+  { label: "Faturada" },
 ];
 
 const SITUACOES_WORKFLOW = [
@@ -71,6 +72,7 @@ const SITUACOES_WORKFLOW = [
   "Executada",
   "Serviço Confirmado",
   "Validada",
+  "Faturada",
   "Serviço Não Aprovado pela Fiscalização",
   "Serviço Re-executado",
   "OS com Orçamento",
@@ -82,6 +84,7 @@ const SITUACAO_CORES: Record<string, string> = {
   "Executada": "#26379e",
   "Serviço Confirmado": "#7dd3fc",
   "Validada": "#2a8819",
+  "Faturada": "#673ab7",
   "Serviço Não Aprovado pela Fiscalização": "#8b4513",
   "Serviço Re-executado": "#6acfff",
   "OS com Orçamento": "#6b7280",
