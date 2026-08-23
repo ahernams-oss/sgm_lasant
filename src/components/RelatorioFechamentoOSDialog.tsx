@@ -16,7 +16,16 @@ import { fetchAll } from "@/lib/supabaseHelper";
 import { formatNumeroAno } from "@/lib/formatNumero";
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
-type TipoRelatorio = "fechamento_validadas" | "fechamento_local" | "fechamento_categoria" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao" | "ciclo_ss" | "ciclo_os";
+type TipoRelatorio = "fechamento_validadas" | "fechamento_local" | "fechamento_categoria" | "fechamento_faturadas" | "fechamento_faturadas_local" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao" | "ciclo_ss" | "ciclo_os";
+
+/** Tipos que travam a situação da OS (Validada/Faturada). */
+const STATUS_FIXO: Partial<Record<TipoRelatorio, string>> = {
+  fechamento_validadas: "Validada",
+  fechamento_local: "Validada",
+  fechamento_categoria: "Validada",
+  fechamento_faturadas: "Faturada",
+  fechamento_faturadas_local: "Faturada",
+};
 
 interface Props {
   open: boolean;
