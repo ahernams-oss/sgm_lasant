@@ -51,6 +51,13 @@ export default function FaturarLoteOs() {
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
 
+  const parseBRLNum = (s?: string) => {
+    if (!s) return 0;
+    const cleaned = String(s).replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+
   const calcularValorTotalOS = (os: OrdemServico): number => {
     const totalItens = (os.materiais || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0)
       + (os.materiaisEstoque || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
