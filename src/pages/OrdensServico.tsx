@@ -1405,6 +1405,7 @@ export default function OrdensServicoPage() {
                 setFiltroDataInicio(""); setFiltroDataFim("");
                 setFiltroConfirmadoIni(""); setFiltroConfirmadoFim("");
                 setFiltroValidadaIni(""); setFiltroValidadaFim("");
+                setFiltroFaturamentoIni(""); setFiltroFaturamentoFim("");
                 setPage(1);
               }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -1412,17 +1413,19 @@ export default function OrdensServicoPage() {
                   <SelectItem value="inicio">Data Início</SelectItem>
                   <SelectItem value="confirmado">Serv. Confirmado</SelectItem>
                   <SelectItem value="validada">Validação</SelectItem>
+                  <SelectItem value="faturamento">Faturamento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="w-[150px]">
               <Label>De</Label>
               <Input type="date"
-                value={tipoDataFiltro === "inicio" ? filtroDataInicio : tipoDataFiltro === "confirmado" ? filtroConfirmadoIni : filtroValidadaIni}
+                value={tipoDataFiltro === "inicio" ? filtroDataInicio : tipoDataFiltro === "confirmado" ? filtroConfirmadoIni : tipoDataFiltro === "faturamento" ? filtroFaturamentoIni : filtroValidadaIni}
                 onChange={e => {
                   const v = e.target.value;
                   if (tipoDataFiltro === "inicio") setFiltroDataInicio(v);
                   else if (tipoDataFiltro === "confirmado") setFiltroConfirmadoIni(v);
+                  else if (tipoDataFiltro === "faturamento") setFiltroFaturamentoIni(v);
                   else setFiltroValidadaIni(v);
                   setPage(1);
                 }} />
@@ -1430,11 +1433,12 @@ export default function OrdensServicoPage() {
             <div className="w-[150px]">
               <Label>Até</Label>
               <Input type="date"
-                value={tipoDataFiltro === "inicio" ? filtroDataFim : tipoDataFiltro === "confirmado" ? filtroConfirmadoFim : filtroValidadaFim}
+                value={tipoDataFiltro === "inicio" ? filtroDataFim : tipoDataFiltro === "confirmado" ? filtroConfirmadoFim : tipoDataFiltro === "faturamento" ? filtroFaturamentoFim : filtroValidadaFim}
                 onChange={e => {
                   const v = e.target.value;
                   if (tipoDataFiltro === "inicio") setFiltroDataFim(v);
                   else if (tipoDataFiltro === "confirmado") setFiltroConfirmadoFim(v);
+                  else if (tipoDataFiltro === "faturamento") setFiltroFaturamentoFim(v);
                   else setFiltroValidadaFim(v);
                   setPage(1);
                 }} />
