@@ -120,6 +120,7 @@ const menuItems = [
       { title: "Confirmar OS em Lote", url: "/engenharia/confirmar-lote-os", icon: ClipboardCheck, perm: "os.confirmar_lote" },
       { title: "Validar OS em Lote", url: "/engenharia/validar-lote-os", icon: ClipboardCheck, perm: "os.validar_lote" },
       { title: "Assinar OS em Lote", url: "/engenharia/assinar-lote-os", icon: ClipboardCheck, perm: "os.assinar_lote" },
+      { title: "Faturar OS em Lote", url: "/engenharia/faturar-lote-os", icon: Receipt, perm: "ordem_servico.status.faturada" },
       { title: "Imprimir OS em Lote", url: "/engenharia/imprimir-lote-os", icon: ClipboardCheck, perm: "os.imprimir_lote" },
     ],
   },
