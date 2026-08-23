@@ -231,6 +231,7 @@ const menuItems = [
     items: [
       { title: "Painel TV (Tempo Real)", url: "/monitor-tv", icon: Monitor, perm: "monitor_tv" },
       { title: "Dashboard Multisistêmico", url: "/gerencial/dashboard", icon: LayoutDashboard, perm: "gerencial_dashboard" },
+      { title: "Painel de Faturamento", url: "/gerencial/painel-faturamento", icon: Receipt, perm: "gerencial_relatorios" },
       { title: "Relatórios Gerenciais", url: "/gerencial/relatorios", icon: FileBarChart, perm: "gerencial_relatorios" },
       { title: "Relatórios Multidimensional", url: "/gerencial/multidimensional", icon: BarChart3, perm: "gerencial_multidim" },
       { title: "Mapa de Clientes - RJ", url: "/gerencial/mapa-clientes", icon: MapPin, perm: "gerencial_mapa_clientes" },
