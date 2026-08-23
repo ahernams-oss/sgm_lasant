@@ -26,7 +26,7 @@ import {
   ClipboardList, Wrench, Filter, X, CalendarIcon, TrendingUp, Trophy, Users,
   CheckCircle2, Clock, AlertTriangle, Sparkles, Building2, BarChart3, Activity,
   FileDown, FileSpreadsheet, DollarSign, Calculator, UserCheck, ArrowRight, GitBranch,
-  ArrowUpDown, ArrowUp, ArrowDown,
+  ArrowUpDown, ArrowUp, ArrowDown, Receipt,
 } from "lucide-react";
 import { useSolicitacoesServicos, SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
