@@ -59,6 +59,16 @@ export default function FaturarLoteOs() {
   const filtered = useMemo(() => {
     let result = disponiveis;
     if (filterCliente !== "all") result = result.filter((s) => s.clienteId === filterCliente);
+    if (validadoFrom || validadoTo) {
+      result = result.filter((s) => {
+        const dataValidacao = (s.historico || []).find((h: any) => h.situacao === "Validada")?.data;
+        if (!dataValidacao) return false;
+        const d = new Date(dataValidacao);
+        if (validadoFrom && d < new Date(validadoFrom + "T00:00:00")) return false;
+        if (validadoTo && d > new Date(validadoTo + "T23:59:59.999")) return false;
+        return true;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -71,7 +81,7 @@ export default function FaturarLoteOs() {
       );
     }
     return result;
-  }, [disponiveis, search, filterCliente]);
+  }, [disponiveis, search, filterCliente, validadoFrom, validadoTo]);
 
   const { paginated } = paginate(filtered, page, pageSize);
   const allPageIds = paginated.map((s) => s.id);
