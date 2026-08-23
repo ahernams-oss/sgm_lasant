@@ -211,6 +211,7 @@ import { NfsesProvider } from "@/contexts/NfsesContext";
 import RelatoriosGerenciais from "./pages/gerencial/RelatoriosGerenciais.tsx";
 import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensional.tsx";
 import DashboardMultisistemico from "./pages/gerencial/DashboardMultisistemico.tsx";
+import PainelFaturamentoClientes from "./pages/gerencial/PainelFaturamentoClientes.tsx";
 import MapaClientes from "./pages/gerencial/MapaClientes.tsx";
 import { RotaProtegida } from "@/components/RotaProtegida";
 const queryClient = new QueryClient({
