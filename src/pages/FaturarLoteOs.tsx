@@ -295,6 +295,20 @@ export default function FaturarLoteOs() {
               ))
             )}
           </TableBody>
+          {selectedIds.size > 0 && (
+            <tfoot>
+              <TableRow className="bg-primary/5 hover:bg-primary/5">
+                <TableCell colSpan={7} className="text-right py-3">
+                  <span className="text-sm text-muted-foreground mr-2">
+                    {selectedIds.size} OS selecionada(s) — Total:
+                  </span>
+                  <span className="text-base font-bold text-primary">
+                    {selectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </span>
+                </TableCell>
+              </TableRow>
+            </tfoot>
+          )}
         </Table>
       </div>
 
