@@ -53,6 +53,9 @@ export interface OrdemServico {
   impresso: boolean;
   impressoEm: string;
   impressoPor: string;
+  dataFaturamento: string;
+  faturadoPor: string;
+  faturadoEm: string;
 }
 
 export interface RetornoPendenteOS {
@@ -115,6 +118,9 @@ const rowToOrdem = (r: any): OrdemServico => ({
   impresso: !!r.impresso,
   impressoEm: r.impresso_em ?? "",
   impressoPor: r.impresso_por ?? "",
+  dataFaturamento: r.data_faturamento ?? "",
+  faturadoPor: r.faturado_por ?? "",
+  faturadoEm: r.faturado_em ?? "",
 });
 
 export function OrdensServicoProvider({ children }: { children: ReactNode }) {

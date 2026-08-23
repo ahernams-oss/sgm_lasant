@@ -43,7 +43,7 @@ import { toast } from "sonner";
 import {
   Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ChevronDown, ChevronUp,
   ClipboardList, Clock, CheckCircle2, XCircle, AlertTriangle, Wrench, Play, ShieldCheck, ShieldX, RotateCcw, BadgeCheck, Ban, History, Printer, FileSignature,
-  ArrowUpDown, ArrowUp, ArrowDown
+  ArrowUpDown, ArrowUp, ArrowDown, Receipt
 } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { gerarPdfOrdemServico, gerarPdfOrdemServicoLote } from "@/lib/gerarPdfOrdemServico";
@@ -64,6 +64,7 @@ const OS_WORKFLOW_STEPS = [
   { label: "Executada" },
   { label: "Serviço Confirmado" },
   { label: "Validada" },
+  { label: "Faturada" },
 ];
 
 const SITUACOES_WORKFLOW = [
@@ -71,6 +72,7 @@ const SITUACOES_WORKFLOW = [
   "Executada",
   "Serviço Confirmado",
   "Validada",
+  "Faturada",
   "Serviço Não Aprovado pela Fiscalização",
   "Serviço Re-executado",
   "OS com Orçamento",
@@ -82,6 +84,7 @@ const SITUACAO_CORES: Record<string, string> = {
   "Executada": "#26379e",
   "Serviço Confirmado": "#7dd3fc",
   "Validada": "#2a8819",
+  "Faturada": "#673ab7",
   "Serviço Não Aprovado pela Fiscalização": "#8b4513",
   "Serviço Re-executado": "#6acfff",
   "OS com Orçamento": "#6b7280",
@@ -200,10 +203,12 @@ export default function OrdensServicoPage() {
   const podeStValidadaOS = tem("ordem_servico.status.validada");
   const podeStConfirmadaOS = tem("ordem_servico.status.confirmada");
   const podeStReprovadaOS = tem("ordem_servico.status.reprovada");
+  const podeStFaturadaOS = tem("ordem_servico.status.faturada");
   const podeStatusOS = (sit: string) => {
     if (sit === "Aberta") return podeStAbertaOS;
     if (sit === "Cancelada") return podeStCanceladaOS;
     if (sit === "Validada") return podeStValidadaOS;
+    if (sit === "Faturada") return podeStFaturadaOS;
     if (sit === "Serviço Confirmado") return podeStConfirmadaOS;
     if (sit === "Serviço Não Aprovado pela Fiscalização") return podeStReprovadaOS;
     if (sit === "Concluída") return podeStConcluidaOS;
@@ -214,6 +219,32 @@ export default function OrdensServicoPage() {
     ...existing,
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema", ...(motivo ? { motivo } : {}) },
   ];
+  // ===== Faturamento de OS =====
+  const [faturarOS, setFaturarOS] = useState<OrdemServico | null>(null);
+  const [faturarData, setFaturarData] = useState("");
+  const [faturarLoading, setFaturarLoading] = useState(false);
+  const confirmarFaturamento = async () => {
+    if (!faturarOS) return;
+    if (!faturarData) {
+      toast.error("Informe a Data de Faturamento.");
+      return;
+    }
+    setFaturarLoading(true);
+    try {
+      await updateOrdem(faturarOS.id, {
+        situacao: "Faturada",
+        data_faturamento: faturarData,
+        faturado_por: usuarioLogado?.nome || "Sistema",
+        faturado_em: new Date().toISOString(),
+        historico: buildOSHistorico("Faturada", faturarOS.historico || [], `Data de faturamento: ${faturarData.split("-").reverse().join("/")}`),
+      });
+      toast.success("Ordem de Serviço faturada!");
+      setFaturarOS(null);
+      setFaturarData("");
+    } finally {
+      setFaturarLoading(false);
+    }
+  };
   const [cancelMotivo, setCancelMotivo] = useState("");
   const [cancelStep, setCancelStep] = useState<1 | 2 | 3>(1);
   const [cancelSenha, setCancelSenha] = useState("");
@@ -376,10 +407,12 @@ export default function OrdensServicoPage() {
   const [filtroConfirmadoFim, setFiltroConfirmadoFim] = useState(_osDatasStatus?.confFim ?? "");
   const [filtroValidadaIni, setFiltroValidadaIni] = useState(_osDatasStatus?.valIni ?? "");
   const [filtroValidadaFim, setFiltroValidadaFim] = useState(_osDatasStatus?.valFim ?? "");
+  const [filtroFaturamentoIni, setFiltroFaturamentoIni] = useState((_osDatasStatus as any)?.fatIni ?? "");
+  const [filtroFaturamentoFim, setFiltroFaturamentoFim] = useState((_osDatasStatus as any)?.fatFim ?? "");
   usePersistFilters("ordens_servico_filters_v1", { busca, filtroSituacao, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroOrigem, filtroFotos, filtroImpresso });
-  usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim });
-  const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" }>("ordens_servico_tipo_data_v1");
-  const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada">(_osTipoData?.tipo ?? "inicio");
+  usePersistFilters("ordens_servico_datas_status_v1", { confIni: filtroConfirmadoIni, confFim: filtroConfirmadoFim, valIni: filtroValidadaIni, valFim: filtroValidadaFim, fatIni: filtroFaturamentoIni, fatFim: filtroFaturamentoFim });
+  const _osTipoData = loadPersistedFilters<{ tipo: "inicio" | "confirmado" | "validada" | "faturamento" }>("ordens_servico_tipo_data_v1");
+  const [tipoDataFiltro, setTipoDataFiltro] = useState<"inicio" | "confirmado" | "validada" | "faturamento">(_osTipoData?.tipo ?? "inicio");
   usePersistFilters("ordens_servico_tipo_data_v1", { tipo: tipoDataFiltro });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -650,6 +683,16 @@ export default function OrdensServicoPage() {
       setNaoAprovarJustificativa("");
       return;
     }
+    // Faturamento exige informar a Data de Faturamento
+    if (novaSituacao === "Faturada") {
+      if (os.situacao !== "Validada") {
+        toast.error("Somente OS com status \"Validada\" podem ser faturadas.");
+        return;
+      }
+      setFaturarOS(os);
+      setFaturarData(new Date().toISOString().slice(0, 10));
+      return;
+    }
     const financeiro = recalcFinanceiro(os);
     await updateOrdem(os.id, {
       situacao: novaSituacao,
@@ -805,6 +848,8 @@ export default function OrdensServicoPage() {
         ]; break;
       case "Serviço Confirmado":
         acts = [{ label: "Validar OS", icon: BadgeCheck, target: "Validada", action: () => handleWorkflowAction(os, "Validada") }]; break;
+      case "Validada":
+        acts = [{ label: "Faturar OS", icon: Receipt, target: "Faturada", action: () => handleWorkflowAction(os, "Faturada") }]; break;
       case "Serviço Não Aprovado pela Fiscalização":
         acts = [{ label: "Serviço Re-executado", icon: RotateCcw, target: "Serviço Re-executado", action: () => handleWorkflowAction(os, "Serviço Re-executado") }]; break;
       case "Serviço Re-executado":
@@ -1031,10 +1076,13 @@ export default function OrdensServicoPage() {
       const dtVal = (filtroValidadaIni || filtroValidadaFim) ? dataStatus("Validada") : "ok";
       const matchValIni = !filtroValidadaIni || (dtVal && dtVal !== "ok" && dtVal >= filtroValidadaIni);
       const matchValFim = !filtroValidadaFim || (dtVal && dtVal !== "ok" && dtVal <= filtroValidadaFim);
+      const dtFat = (o.dataFaturamento || "").slice(0, 10);
+      const matchFatIni = !filtroFaturamentoIni || (!!dtFat && dtFat >= filtroFaturamentoIni);
+      const matchFatFim = !filtroFaturamentoFim || (!!dtFat && dtFat <= filtroFaturamentoFim);
       return matchBusca && matchSituacao && matchCliente && matchPrioridade && matchDataInicio && matchDataFim
-        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchOrigem && matchFotos && matchImpresso;
+        && matchConfIni && matchConfFim && matchValIni && matchValFim && matchFatIni && matchFatFim && matchOrigem && matchFotos && matchImpresso;
     });
-  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroOrigem, filtroFotos, filtroImpresso, orcamentosAll]);
+  }, [ordens, busca, filtroSituacao, filtroCliente, filtroPrioridade, filtroDataInicio, filtroDataFim, filtroConfirmadoIni, filtroConfirmadoFim, filtroValidadaIni, filtroValidadaFim, filtroFaturamentoIni, filtroFaturamentoFim, filtroOrigem, filtroFotos, filtroImpresso, orcamentosAll]);
 
   const marcarOsImpressa = async (ids: string[]) => {
     const pendentes = ordens.filter(o => ids.includes(o.id) && !o.impresso);
@@ -1124,11 +1172,12 @@ export default function OrdensServicoPage() {
     setBusca(""); setFiltroSituacao("Todas"); setFiltroCliente("Todos"); localStorage.setItem("os_filtroCliente", "Todos");
     setFiltroPrioridade("Todas"); setFiltroDataInicio(""); setFiltroDataFim("");
     setFiltroConfirmadoIni(""); setFiltroConfirmadoFim(""); setFiltroValidadaIni(""); setFiltroValidadaFim("");
+    setFiltroFaturamentoIni(""); setFiltroFaturamentoFim("");
     setFiltroOrigem("all"); setFiltroFotos("all");
     setPage(1);
   };
 
-  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim || filtroOrigem !== "all" || filtroFotos !== "all";
+  const temFiltrosAtivos = busca || filtroSituacao !== "Todas" || filtroCliente !== "Todos" || filtroPrioridade !== "Todas" || filtroDataInicio || filtroDataFim || filtroConfirmadoIni || filtroConfirmadoFim || filtroValidadaIni || filtroValidadaFim || filtroFaturamentoIni || filtroFaturamentoFim || filtroOrigem !== "all" || filtroFotos !== "all";
 
   const totalValorFiltrado = useMemo(() => {
     return ordensFiltradas.reduce((acc, os) => {
@@ -1357,6 +1406,7 @@ export default function OrdensServicoPage() {
                 setFiltroDataInicio(""); setFiltroDataFim("");
                 setFiltroConfirmadoIni(""); setFiltroConfirmadoFim("");
                 setFiltroValidadaIni(""); setFiltroValidadaFim("");
+                setFiltroFaturamentoIni(""); setFiltroFaturamentoFim("");
                 setPage(1);
               }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -1364,17 +1414,19 @@ export default function OrdensServicoPage() {
                   <SelectItem value="inicio">Data Início</SelectItem>
                   <SelectItem value="confirmado">Serv. Confirmado</SelectItem>
                   <SelectItem value="validada">Validação</SelectItem>
+                  <SelectItem value="faturamento">Faturamento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="w-[150px]">
               <Label>De</Label>
               <Input type="date"
-                value={tipoDataFiltro === "inicio" ? filtroDataInicio : tipoDataFiltro === "confirmado" ? filtroConfirmadoIni : filtroValidadaIni}
+                value={tipoDataFiltro === "inicio" ? filtroDataInicio : tipoDataFiltro === "confirmado" ? filtroConfirmadoIni : tipoDataFiltro === "faturamento" ? filtroFaturamentoIni : filtroValidadaIni}
                 onChange={e => {
                   const v = e.target.value;
                   if (tipoDataFiltro === "inicio") setFiltroDataInicio(v);
                   else if (tipoDataFiltro === "confirmado") setFiltroConfirmadoIni(v);
+                  else if (tipoDataFiltro === "faturamento") setFiltroFaturamentoIni(v);
                   else setFiltroValidadaIni(v);
                   setPage(1);
                 }} />
@@ -1382,11 +1434,12 @@ export default function OrdensServicoPage() {
             <div className="w-[150px]">
               <Label>Até</Label>
               <Input type="date"
-                value={tipoDataFiltro === "inicio" ? filtroDataFim : tipoDataFiltro === "confirmado" ? filtroConfirmadoFim : filtroValidadaFim}
+                value={tipoDataFiltro === "inicio" ? filtroDataFim : tipoDataFiltro === "confirmado" ? filtroConfirmadoFim : tipoDataFiltro === "faturamento" ? filtroFaturamentoFim : filtroValidadaFim}
                 onChange={e => {
                   const v = e.target.value;
                   if (tipoDataFiltro === "inicio") setFiltroDataFim(v);
                   else if (tipoDataFiltro === "confirmado") setFiltroConfirmadoFim(v);
+                  else if (tipoDataFiltro === "faturamento") setFiltroFaturamentoFim(v);
                   else setFiltroValidadaFim(v);
                   setPage(1);
                 }} />
@@ -1574,7 +1627,7 @@ export default function OrdensServicoPage() {
                     })}
                     <TableCell>
                     <div className="flex items-center justify-end gap-1">
-                    {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
+                    {podeEditarOS && !["Validada", "Faturada", "Cancelada"].includes(os.situacao) && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -1653,7 +1706,7 @@ export default function OrdensServicoPage() {
 
 
 
-                        {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
+                        {podeEditarOS && !["Validada", "Faturada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
                             <Pencil className="mr-2 h-4 w-4" /> Preencher OS
                           </DropdownMenuItem>
@@ -2781,7 +2834,7 @@ export default function OrdensServicoPage() {
                   steps={viewOS.situacao === "Cancelada"
                     ? [...OS_WORKFLOW_STEPS, { label: "Cancelada" }]
                     : (viewOS.situacao === "Serviço Não Aprovado pela Fiscalização" || viewOS.situacao === "Serviço Re-executado")
-                      ? [{ label: "Aberta" }, { label: "Executada" }, { label: "Serviço Não Aprovado pela Fiscalização" }, { label: "Serviço Re-executado" }, { label: "Serviço Confirmado" }, { label: "Validada" }]
+                      ? [{ label: "Aberta" }, { label: "Executada" }, { label: "Serviço Não Aprovado pela Fiscalização" }, { label: "Serviço Re-executado" }, { label: "Serviço Confirmado" }, { label: "Validada" }, { label: "Faturada" }]
                       : OS_WORKFLOW_STEPS
                   }
                   currentStep={viewOS.situacao}
@@ -3045,6 +3098,30 @@ export default function OrdensServicoPage() {
         </DialogContent>
       </Dialog>
 
+
+      {/* Dialog: Faturar OS */}
+      <Dialog open={!!faturarOS} onOpenChange={o => { if (!o) { setFaturarOS(null); setFaturarData(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-primary" /> Faturar Ordem de Serviço
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              OS nº {faturarOS ? formatNumeroAno(faturarOS.numero, faturarOS.createdAt) : ""} — informe a Data de Faturamento.
+            </p>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Data de Faturamento *</Label>
+            <Input type="date" value={faturarData} onChange={e => setFaturarData(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setFaturarOS(null); setFaturarData(""); }}>Cancelar</Button>
+            <Button onClick={confirmarFaturamento} disabled={!faturarData || faturarLoading}>
+              {faturarLoading ? "Faturando..." : "Confirmar Faturamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog: Justificativa para Não Aprovar */}
       <Dialog open={!!naoAprovarOS} onOpenChange={o => { if (!o) { setNaoAprovarOS(null); setNaoAprovarJustificativa(""); } }}>

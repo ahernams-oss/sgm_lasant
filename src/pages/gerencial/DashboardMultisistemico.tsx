@@ -26,6 +26,7 @@ const COLORS = ["#673ab7", "#9575cd", "#5e35b1", "#b39ddb", "#7e57c2", "#4527a0"
 
 const SITUACAO_COLORS: Record<string, string> = {
   "Validada": "#2e7d32",
+  "Faturada": "#673ab7",
   "Aberta": "#1976d2",
   "Serviço Confirmado": "#673ab7",
   "Executada": "#0288d1",

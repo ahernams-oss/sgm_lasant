@@ -411,6 +411,7 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "ordem_servico.status.confirmada", label: "Pode Confirmar OS (Serviço Confirmado)" },
           { key: "ordem_servico.status.reprovada", label: "Pode Reprovar OS (Serviço Não Aprovado)" },
           { key: "ordem_servico.status.validada", label: "Pode Validar OS" },
+          { key: "ordem_servico.status.faturada", label: "Pode Faturar OS" },
           { key: "ordem_servico.status.concluida", label: "Pode Concluir OS" },
           { key: "ordem_servico.status.cancelada", label: "Pode Cancelar OS" },
         ],
