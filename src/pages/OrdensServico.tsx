@@ -1627,7 +1627,7 @@ export default function OrdensServicoPage() {
                     })}
                     <TableCell>
                     <div className="flex items-center justify-end gap-1">
-                    {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
+                    {podeEditarOS && !["Validada", "Faturada", "Cancelada"].includes(os.situacao) && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -1706,7 +1706,7 @@ export default function OrdensServicoPage() {
 
 
 
-                        {podeEditarOS && !["Validada", "Cancelada"].includes(os.situacao) && (
+                        {podeEditarOS && !["Validada", "Faturada", "Cancelada"].includes(os.situacao) && (
                           <DropdownMenuItem onClick={() => handleEdit(os)}>
                             <Pencil className="mr-2 h-4 w-4" /> Preencher OS
                           </DropdownMenuItem>
