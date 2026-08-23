@@ -2834,7 +2834,7 @@ export default function OrdensServicoPage() {
                   steps={viewOS.situacao === "Cancelada"
                     ? [...OS_WORKFLOW_STEPS, { label: "Cancelada" }]
                     : (viewOS.situacao === "Serviço Não Aprovado pela Fiscalização" || viewOS.situacao === "Serviço Re-executado")
-                      ? [{ label: "Aberta" }, { label: "Executada" }, { label: "Serviço Não Aprovado pela Fiscalização" }, { label: "Serviço Re-executado" }, { label: "Serviço Confirmado" }, { label: "Validada" }]
+                      ? [{ label: "Aberta" }, { label: "Executada" }, { label: "Serviço Não Aprovado pela Fiscalização" }, { label: "Serviço Re-executado" }, { label: "Serviço Confirmado" }, { label: "Validada" }, { label: "Faturada" }]
                       : OS_WORKFLOW_STEPS
                   }
                   currentStep={viewOS.situacao}
