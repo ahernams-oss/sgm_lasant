@@ -5494,10 +5494,13 @@ export type Database = {
           cliente_nome: string | null
           complexidade: string
           created_at: string | null
+          data_faturamento: string | null
           data_inicio: string | null
           data_termino: string | null
           descricao_conclusao: string | null
           descricao_servicos: string | null
+          faturado_em: string | null
+          faturado_por: string | null
           fotos: Json | null
           historico: Json | null
           hora_inicio: string | null
@@ -5546,10 +5549,13 @@ export type Database = {
           cliente_nome?: string | null
           complexidade?: string
           created_at?: string | null
+          data_faturamento?: string | null
           data_inicio?: string | null
           data_termino?: string | null
           descricao_conclusao?: string | null
           descricao_servicos?: string | null
+          faturado_em?: string | null
+          faturado_por?: string | null
           fotos?: Json | null
           historico?: Json | null
           hora_inicio?: string | null
@@ -5598,10 +5604,13 @@ export type Database = {
           cliente_nome?: string | null
           complexidade?: string
           created_at?: string | null
+          data_faturamento?: string | null
           data_inicio?: string | null
           data_termino?: string | null
           descricao_conclusao?: string | null
           descricao_servicos?: string | null
+          faturado_em?: string | null
+          faturado_por?: string | null
           fotos?: Json | null
           historico?: Json | null
           hora_inicio?: string | null
