@@ -21,6 +21,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </div>
       <AvisosPopup />
+      <InatividadeMonitor />
     </SidebarProvider>
   );
 };
