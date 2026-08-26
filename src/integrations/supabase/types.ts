@@ -2009,6 +2009,7 @@ export type Database = {
           certificado_calibracao_url: string | null
           cliente_id: string | null
           cliente_nome: string | null
+          cod_lasant: string | null
           contrato: string | null
           corrente: string | null
           created_at: string | null
@@ -2064,6 +2065,7 @@ export type Database = {
           certificado_calibracao_url?: string | null
           cliente_id?: string | null
           cliente_nome?: string | null
+          cod_lasant?: string | null
           contrato?: string | null
           corrente?: string | null
           created_at?: string | null
@@ -2119,6 +2121,7 @@ export type Database = {
           certificado_calibracao_url?: string | null
           cliente_id?: string | null
           cliente_nome?: string | null
+          cod_lasant?: string | null
           contrato?: string | null
           corrente?: string | null
           created_at?: string | null
