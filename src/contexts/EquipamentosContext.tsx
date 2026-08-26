@@ -40,7 +40,9 @@ const QK = ["equipamentos"] as const;
 
 const rowToEquipamento = (r: any): Equipamento => ({
   id: r.id,
+  codLasant: r.cod_lasant ?? "",
   clienteId: r.cliente_id ?? "", clienteNome: r.cliente_nome ?? "",
+
   localId: r.local_id ?? "", localDescricao: r.local_descricao ?? "",
   pavimentoId: r.pavimento_id ?? "", pavimentoDescricao: r.pavimento_descricao ?? "",
   setorId: r.setor_id ?? "", setorDescricao: r.setor_descricao ?? "",
