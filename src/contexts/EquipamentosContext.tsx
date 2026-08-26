@@ -4,7 +4,10 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 
 export interface Equipamento {
   id: string;
+  /** Código sequencial gerado automaticamente pelo sistema (LST-00001). */
+  codLasant: string;
   clienteId: string; clienteNome: string;
+
   localId: string; localDescricao: string;
   pavimentoId: string; pavimentoDescricao: string;
   setorId: string; setorDescricao: string;
