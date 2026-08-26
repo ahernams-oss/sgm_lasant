@@ -272,10 +272,12 @@ export default function Equipamentos() {
 
   const handleEdit = (eq: Equipamento) => {
     setEditingId(eq.id);
-    const { id, ...rest } = eq;
+    const { id, codLasant, ...rest } = eq;
     setForm(rest);
+    setCodLasantAtual(codLasant || "");
     setFormOpen(true);
   };
+
 
   const handleDelete = (id: string) => {
     if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
