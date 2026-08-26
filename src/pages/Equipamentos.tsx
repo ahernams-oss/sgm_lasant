@@ -262,7 +262,7 @@ export default function Equipamentos() {
       updateEquipamento(editingId, data);
       toast.success("Equipamento atualizado!");
     } else {
-      addEquipamento(data as Omit<Equipamento, "id">);
+      addEquipamento(data);
       toast.success("Equipamento cadastrado!");
     }
     resetForm();

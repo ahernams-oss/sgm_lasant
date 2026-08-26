@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
-import { useEquipamentos, type Equipamento } from "@/contexts/EquipamentosContext";
+import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 
 /** Colunas da planilha modelo (mesma ordem na exportação e na importação). */
@@ -129,7 +129,7 @@ export default function ImportExportEquipamentos() {
       return;
     }
     const linhas = equipamentos.map((e) => [
-      (e as Equipamento & { codLasant?: string }).codLasant || "",
+      e.codLasant || "",
       e.situacao,
       e.clienteNome,
       e.localDescricao,
@@ -237,7 +237,7 @@ export default function ImportExportEquipamentos() {
           responsavelCalibracao: "",
           telefoneResponsavelCalibracao: "",
           emailResponsavelCalibracao: "",
-        } as Omit<Equipamento, "id">);
+        });
         ok++;
       }
 
