@@ -3,8 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, FileSpreadsheet, Boxes, GripVertical } from "lucide-react";
+import { FileText, FileSpreadsheet, Boxes, GripVertical, Filter, Copy, Save, Trash2, Percent } from "lucide-react";
 import { useFinanceiro, formatBRL, formatDate } from "@/contexts/FinanceiroContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
@@ -13,6 +18,9 @@ import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
+import { useEstoque } from "@/contexts/EstoqueContext";
+import { useOrcamentos } from "@/contexts/OrcamentosContext";
+import { useMedicoes } from "@/contexts/MedicoesContext";
 import { gerarPdfFinanceiro, gerarExcelFinanceiro } from "@/lib/gerarRelatoriosFinanceiros";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
@@ -35,7 +43,16 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 
-type Metric = "count" | "sum";
+type Agg = "count" | "sum" | "avg" | "min" | "max" | "distinct";
+
+const AGG_LABEL: Record<Agg, string> = {
+  count: "Contagem (Qtd. de Registros)",
+  sum: "Soma de Valor",
+  avg: "Média de Valor",
+  min: "Mínimo",
+  max: "Máximo",
+  distinct: "Contagem Distinta",
+};
 
 interface Dimension {
   key: string;
@@ -59,6 +76,13 @@ interface Dataset {
 
 const monthOf = (d?: string | null) => (d ? String(d).slice(0, 7) : "—");
 const yearOf = (d?: string | null) => (d ? String(d).slice(0, 4) : "—");
+const parseNum = (v: any) =>
+  Number(
+    String(v ?? "0")
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\.(?=\d{3}(\D|$))/g, "")
+      .replace(",", "."),
+  ) || 0;
 
 type ZoneId = "available" | "rows" | "cols";
 const ZONES: { id: ZoneId; title: string; hint: string }[] = [
@@ -66,6 +90,22 @@ const ZONES: { id: ZoneId; title: string; hint: string }[] = [
   { id: "rows", title: "Linhas", hint: "Dimensões empilhadas verticalmente" },
   { id: "cols", title: "Colunas", hint: "Dimensões empilhadas horizontalmente" },
 ];
+
+const SEP = " ▸ ";
+const VIEWS_KEY = "cubo-multidim-views";
+
+interface SavedView {
+  nome: string;
+  dsKey: string;
+  rowsDims: string[];
+  colsDims: string[];
+  agg: Agg;
+  valueKey: string;
+  distinctDim: string;
+  dataIni: string;
+  dataFim: string;
+  filtros: Record<string, string[]>;
+}
 
 function Chip({ id, label }: { id: string; label: string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -128,6 +168,70 @@ function Zone({
   );
 }
 
+/** Multi-select de valores de uma dimensão */
+function DimFilter({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const [busca, setBusca] = useState("");
+  const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const filtrados = useMemo(
+    () => (busca ? options.filter((o) => norm(o).includes(norm(busca))) : options),
+    [options, busca],
+  );
+  const toggle = (v: string) =>
+    onChange(selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v]);
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs justify-start">
+          <Filter className="h-3 w-3" />
+          {label}
+          {selected.length > 0 && (
+            <Badge variant="secondary" className="ml-1 text-[10px] px-1.5">{selected.length}</Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-2" align="start">
+        <Input
+          placeholder="Buscar valor..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          className="h-8 mb-2 text-xs"
+        />
+        <div className="flex justify-between mb-1">
+          <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => onChange(filtrados)}>
+            Marcar todos
+          </Button>
+          <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => onChange([])}>
+            Limpar
+          </Button>
+        </div>
+        <ScrollArea className="h-56 pr-2">
+          <div className="space-y-1">
+            {filtrados.map((o) => (
+              <label key={o} className="flex items-center gap-2 text-xs cursor-pointer py-0.5">
+                <Checkbox checked={selected.includes(o)} onCheckedChange={() => toggle(o)} />
+                <span className="truncate" title={o}>{o}</span>
+              </label>
+            ))}
+            {filtrados.length === 0 && (
+              <span className="text-xs text-muted-foreground italic">Nenhum valor</span>
+            )}
+          </div>
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function RelatoriosMultidimensional() {
   const { tem } = usePermissao();
   const podePdf = tem("gerencial_multidim.exportar_pdf");
@@ -141,6 +245,9 @@ export default function RelatoriosMultidimensional() {
   const { requisicoes } = useRequisicaoCompras();
   const { ordens } = useOrdensServico();
   const { solicitacoes } = useSolicitacoesServicos();
+  const { movimentacoes } = useEstoque();
+  const { orcamentos } = useOrcamentos();
+  const { medicoes } = useMedicoes();
 
   const cargoNome = (id: string) => cargos.find((c) => c.id === id)?.nome || "—";
   const clienteNome = (id?: string | null) => clientes.find((c) => c.id === id)?.nome || "—";
@@ -160,6 +267,8 @@ export default function RelatoriosMultidimensional() {
           { key: "categoria", label: "Categoria", get: (r) => r.categoria || "—" },
           { key: "tipoOs", label: "Tipo OS", get: (r) => r.tipoOs || "—" },
           { key: "operador", label: "Operador", get: (r) => r.operadorNome || "—" },
+          { key: "local", label: "Local/Setor", get: (r) => r.local || r.setor || "—" },
+          { key: "numero", label: "Nº OS", get: (r) => String(r.numero ?? "—") },
           { key: "mes", label: "Mês", get: (r) => monthOf(r.createdAt) },
           { key: "ano", label: "Ano", get: (r) => yearOf(r.createdAt) },
         ],
@@ -175,10 +284,60 @@ export default function RelatoriosMultidimensional() {
             },
             format: formatBRL,
           },
+          {
+            key: "valor_itens",
+            label: "Valor dos Itens (sem BDI)",
+            get: (r) => (r.materiais || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0)
+              + (r.materiaisEstoque || []).reduce((s: number, m: any) => s + (Number(m.valorTotal) || 0), 0),
+            format: formatBRL,
+          },
           { key: "bdi_pct", label: "BDI (%)", get: (r) => Number(r.bdi || 0) },
+          { key: "qtd_itens", label: "Qtd. de Itens", get: (r) => (r.materiais?.length || 0) + (r.materiaisEstoque?.length || 0) },
           { key: "qtd", label: "Quantidade (contagem)", get: () => 1 },
         ],
       },
+      (() => {
+        const rows: any[] = [];
+        ordens.forEach((o: any) => {
+          [...(o.materiais || []), ...(o.materiaisEstoque || [])].forEach((m: any) => {
+            rows.push({
+              osNumero: o.numero,
+              clienteNome: o.clienteNome || "—",
+              situacao: o.situacao || "—",
+              createdAt: o.createdAt,
+              codigo: m.codigo || m.codSco || "—",
+              descricao: m.descricao || "—",
+              unidade: m.unidade || "—",
+              quantidade: Number(m.quantidade) || 0,
+              valorUnitario: Number(m.valorUnitario) || 0,
+              valorTotal: Number(m.valorTotal) || 0,
+              origem: m.codSco ? "SCO" : "Estoque/Compra",
+            });
+          });
+        });
+        return {
+          key: "os_itens",
+          label: "Ordens de Serviço — Itens (analítico)",
+          rows,
+          dateField: (r: any) => r.createdAt,
+          dimensions: [
+            { key: "cliente", label: "Cliente", get: (r: any) => r.clienteNome },
+            { key: "situacao", label: "Situação da OS", get: (r: any) => r.situacao },
+            { key: "os", label: "Nº OS", get: (r: any) => String(r.osNumero ?? "—") },
+            { key: "codigo", label: "Código", get: (r: any) => r.codigo },
+            { key: "descricao", label: "Descrição", get: (r: any) => r.descricao },
+            { key: "unidade", label: "Unidade", get: (r: any) => r.unidade },
+            { key: "origem", label: "Origem", get: (r: any) => r.origem },
+            { key: "mes", label: "Mês", get: (r: any) => monthOf(r.createdAt) },
+            { key: "ano", label: "Ano", get: (r: any) => yearOf(r.createdAt) },
+          ],
+          values: [
+            { key: "valorTotal", label: "Valor Total", get: (r: any) => r.valorTotal, format: formatBRL },
+            { key: "valorUnitario", label: "Valor Unitário", get: (r: any) => r.valorUnitario, format: formatBRL },
+            { key: "quantidade", label: "Quantidade", get: (r: any) => r.quantidade },
+          ],
+        } as Dataset;
+      })(),
       {
         key: "ss",
         label: "Solicitações de Serviço",
@@ -189,6 +348,7 @@ export default function RelatoriosMultidimensional() {
           { key: "tipo", label: "Tipo", get: (r) => r.tipo || "—" },
           { key: "situacao", label: "Situação", get: (r) => r.situacao || "—" },
           { key: "prioridade", label: "Prioridade", get: (r) => r.prioridade || "—" },
+          { key: "solicitante", label: "Solicitante", get: (r) => r.solicitante || "—" },
           { key: "mes", label: "Mês", get: (r) => monthOf(r.createdAt) },
           { key: "ano", label: "Ano", get: (r) => yearOf(r.createdAt) },
         ],
@@ -227,6 +387,76 @@ export default function RelatoriosMultidimensional() {
         values: [],
       },
       {
+        key: "estoque",
+        label: "Movimentações de Estoque",
+        rows: movimentacoes,
+        dateField: (r) => r.dataMovimentacao,
+        dimensions: [
+          { key: "tipo", label: "Tipo", get: (r) => r.tipo || "—" },
+          { key: "material", label: "Material", get: (r) => r.materialDescricao || "—" },
+          { key: "codigo", label: "Código", get: (r) => r.materialCodigo || "—" },
+          { key: "local", label: "Local", get: (r) => r.local || "—" },
+          { key: "fornecedor", label: "Fornecedor", get: (r) => r.fornecedorNome || "—" },
+          { key: "sco", label: "Cód. SCO", get: (r) => r.codSco || "—" },
+          { key: "usuario", label: "Usuário", get: (r) => r.usuario || "—" },
+          { key: "mes", label: "Mês", get: (r) => monthOf(r.dataMovimentacao) },
+          { key: "ano", label: "Ano", get: (r) => yearOf(r.dataMovimentacao) },
+        ],
+        values: [
+          { key: "qtd", label: "Quantidade", get: (r) => Number(r.quantidade || 0) },
+          { key: "vlr_unit", label: "Valor Unitário", get: (r) => Number(r.valorUnitario || 0), format: formatBRL },
+          {
+            key: "vlr_total",
+            label: "Valor Total",
+            get: (r) => Number(r.quantidade || 0) * Number(r.valorUnitario || 0),
+            format: formatBRL,
+          },
+        ],
+      },
+      {
+        key: "orc",
+        label: "Orçamentos",
+        rows: orcamentos,
+        dateField: (r) => r.dataCriacao || r.createdAt,
+        dimensions: [
+          { key: "cliente", label: "Cliente", get: (r) => r.clienteNome || "—" },
+          { key: "categoria", label: "Categoria", get: (r) => r.categoria || "—" },
+          { key: "status", label: "Status", get: (r) => r.status || "—" },
+          { key: "criadoPor", label: "Criado por", get: (r) => r.criadoPor || "—" },
+          { key: "mes", label: "Mês", get: (r) => monthOf(r.dataCriacao || r.createdAt) },
+          { key: "ano", label: "Ano", get: (r) => yearOf(r.dataCriacao || r.createdAt) },
+        ],
+        values: [
+          { key: "valor", label: "Valor Total", get: (r) => Number(r.valorTotal || 0), format: formatBRL },
+          { key: "qtd_sco", label: "Qtd. Itens SCO", get: (r) => (r.itensSco || []).length },
+          { key: "qtd_mat", label: "Qtd. Itens Materiais", get: (r) => (r.itensMateriais || []).length },
+        ],
+      },
+      {
+        key: "med",
+        label: "Medições de Serviços",
+        rows: medicoes,
+        dateField: (r) => r.created_at,
+        dimensions: [
+          { key: "cliente", label: "Cliente", get: (r) => r.cliente_nome || "—" },
+          { key: "contrato", label: "Contrato", get: (r) => r.contrato || "—" },
+          { key: "status", label: "Status", get: (r) => r.status || "—" },
+          { key: "mes", label: "Mês", get: (r) => monthOf(r.created_at) },
+          { key: "ano", label: "Ano", get: (r) => yearOf(r.created_at) },
+        ],
+        values: [
+          { key: "contratado", label: "Valor Contratado", get: (r) => Number(r.valor_total_contratado || 0), format: formatBRL },
+          { key: "medido", label: "Valor Medido", get: (r) => Number(r.valor_total_medido || 0), format: formatBRL },
+          {
+            key: "saldo",
+            label: "Saldo a Medir",
+            get: (r) => Number(r.valor_total_contratado || 0) - Number(r.valor_total_medido || 0),
+            format: formatBRL,
+          },
+          { key: "pct", label: "% Medido", get: (r) => Number(r.percentual_medido || 0) },
+        ],
+      },
+      {
         key: "func",
         label: "Funcionários",
         rows: funcionarios,
@@ -238,16 +468,12 @@ export default function RelatoriosMultidimensional() {
           { key: "tipoContrato", label: "Tipo Contrato", get: (r) => r.tipoContrato || "—" },
           { key: "sexo", label: "Sexo", get: (r) => r.sexo || "—" },
           { key: "uf", label: "UF", get: (r) => r.uf || "—" },
+          { key: "cidade", label: "Cidade", get: (r) => r.cidade || "—" },
           { key: "ano_admissao", label: "Ano Admissão", get: (r) => yearOf(r.dataAdmissao) },
+          { key: "mes_admissao", label: "Mês Admissão", get: (r) => monthOf(r.dataAdmissao) },
         ],
         values: [
-          {
-            key: "salario",
-            label: "Salário",
-            get: (r) =>
-              Number(String(r.salario || "0").replace(/[^\d,]/g, "").replace(",", ".")) || 0,
-            format: formatBRL,
-          },
+          { key: "salario", label: "Salário", get: (r) => parseNum(r.salario), format: formatBRL },
         ],
       },
       {
@@ -266,6 +492,12 @@ export default function RelatoriosMultidimensional() {
         values: [
           { key: "total", label: "Valor Total", get: (r) => Number(r.valor_total || 0), format: formatBRL },
           { key: "pago", label: "Valor Pago", get: (r) => Number(r.valor_pago || 0), format: formatBRL },
+          {
+            key: "aberto",
+            label: "Saldo em Aberto",
+            get: (r) => Number(r.valor_total || 0) - Number(r.valor_pago || 0),
+            format: formatBRL,
+          },
         ],
       },
       {
@@ -284,16 +516,39 @@ export default function RelatoriosMultidimensional() {
         values: [
           { key: "total", label: "Valor Total", get: (r) => Number(r.valor_total || 0), format: formatBRL },
           { key: "recebido", label: "Valor Recebido", get: (r) => Number(r.valor_recebido || 0), format: formatBRL },
+          {
+            key: "aberto",
+            label: "Saldo em Aberto",
+            get: (r) => Number(r.valor_total || 0) - Number(r.valor_recebido || 0),
+            format: formatBRL,
+          },
+        ],
+      },
+      {
+        key: "lanc",
+        label: "Lançamentos Financeiros (Caixa/Banco)",
+        rows: fin.lancamentos,
+        dateField: (r) => r.data,
+        dimensions: [
+          { key: "tipo", label: "Tipo", get: (r) => r.tipo || "—" },
+          { key: "conta", label: "Conta Bancária", get: (r) => fin.contasBancarias.find((c: any) => c.id === r.conta_bancaria_id)?.nome || "—" },
+          { key: "centro_custo", label: "Centro de Custo", get: (r) => fin.centrosCusto.find((c) => c.id === r.centro_custo_id)?.nome || "—" },
+          { key: "plano", label: "Plano de Contas", get: (r) => fin.planoContas.find((c) => c.id === r.plano_conta_id)?.nome || "—" },
+          { key: "conciliado", label: "Conciliado", get: (r) => (r.conciliado ? "Sim" : "Não") },
+          { key: "mes", label: "Mês", get: (r) => monthOf(r.data) },
+          { key: "ano", label: "Ano", get: (r) => yearOf(r.data) },
+        ],
+        values: [
+          { key: "valor", label: "Valor", get: (r) => Number(r.valor || 0), format: formatBRL },
+          {
+            key: "valor_sinal",
+            label: "Valor (com sinal)",
+            get: (r) => (r.tipo === "saida" ? -Number(r.valor || 0) : Number(r.valor || 0)),
+            format: formatBRL,
+          },
         ],
       },
       (() => {
-        const parseNum = (v: any) =>
-          Number(
-            String(v ?? "0")
-              .replace(/[^\d,.-]/g, "")
-              .replace(/\.(?=\d{3}(\D|$))/g, "")
-              .replace(",", "."),
-          ) || 0;
         type FRow = {
           clienteNome: string;
           contratoNumero: string;
@@ -361,7 +616,7 @@ export default function RelatoriosMultidimensional() {
       })(),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ordens, solicitacoes, pedidos, requisicoes, funcionarios, fin, clientes, cargos],
+    [ordens, solicitacoes, pedidos, requisicoes, funcionarios, fin, clientes, cargos, movimentacoes, orcamentos, medicoes],
   );
 
   const [dsKey, setDsKey] = useState<string>("os");
@@ -372,19 +627,42 @@ export default function RelatoriosMultidimensional() {
   const available = ds.dimensions.map((d) => d.key).filter((k) => !rowsDims.includes(k) && !colsDims.includes(k));
   const labelOf = (k: string) => ds.dimensions.find((d) => d.key === k)?.label || k;
 
-  const [metric, setMetric] = useState<Metric>("count");
+  const [agg, setAgg] = useState<Agg>("count");
   const [valueKey, setValueKey] = useState<string>(ds.values[0]?.key || "");
+  const [distinctDim, setDistinctDim] = useState<string>(ds.dimensions[0]?.key || "");
   const hoje = new Date().toISOString().slice(0, 10);
   const inicioAno = `${new Date().getFullYear()}-01-01`;
   const [dataIni, setDataIni] = useState(inicioAno);
   const [dataFim, setDataFim] = useState(hoje);
+  const [semData, setSemData] = useState(false);
+
+  // Filtros por dimensão
+  const [filtros, setFiltros] = useState<Record<string, string[]>>({});
+
+  // Visualização
+  const [ordenacao, setOrdenacao] = useState<"label" | "total_desc" | "total_asc">("label");
+  const [topN, setTopN] = useState<string>("0");
+  const [ocultarZerados, setOcultarZerados] = useState(false);
+  const [mostrarPct, setMostrarPct] = useState(false);
+  const [buscaLinha, setBuscaLinha] = useState("");
+
+  // Drill-down
+  const [drill, setDrill] = useState<{ titulo: string; rows: any[] } | null>(null);
+
+  // Views salvas
+  const [views, setViews] = useState<SavedView[]>(() => {
+    try { return JSON.parse(localStorage.getItem(VIEWS_KEY) || "[]"); } catch { return []; }
+  });
 
   // Reset when dataset changes
   useEffect(() => {
     setRowsDims(ds.dimensions[0]?.key ? [ds.dimensions[0].key] : []);
     setColsDims([]);
     setValueKey(ds.values[0]?.key || "");
-    if (!ds.values.length) setMetric("count");
+    setDistinctDim(ds.dimensions[0]?.key || "");
+    setFiltros({});
+    setBuscaLinha("");
+    if (!ds.values.length) setAgg("count");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dsKey]);
 
@@ -399,7 +677,6 @@ export default function RelatoriosMultidimensional() {
   const setList = (z: ZoneId, v: string[]) => {
     if (z === "rows") setRowsDims(v);
     else if (z === "cols") setColsDims(v);
-    // available is derived
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
@@ -418,7 +695,6 @@ export default function RelatoriosMultidimensional() {
       targetKey = o.key;
     }
     if (a.zone === targetZone) {
-      // reorder within same zone (rows/cols only)
       if (targetZone === "available") return;
       const list = [...getList(targetZone)];
       const oldIdx = list.indexOf(a.key);
@@ -427,11 +703,8 @@ export default function RelatoriosMultidimensional() {
       setList(targetZone, arrayMove(list, oldIdx, newIdx));
       return;
     }
-    // move between zones
-    // remove from source (only rows/cols are stateful)
     if (a.zone === "rows") setRowsDims((r) => r.filter((k) => k !== a.key));
     if (a.zone === "cols") setColsDims((r) => r.filter((k) => k !== a.key));
-    // add to target
     if (targetZone === "rows") {
       setRowsDims((r) => {
         const next = r.filter((k) => k !== a.key);
@@ -447,83 +720,178 @@ export default function RelatoriosMultidimensional() {
         return next;
       });
     }
-    // dropping into "available" simply removes from rows/cols (handled above)
   };
 
-  // Build nested keys
-  const cube = useMemo(() => {
-    const rowDefs = rowsDims.map((k) => ds.dimensions.find((d) => d.key === k)!).filter(Boolean);
-    const colDefs = colsDims.map((k) => ds.dimensions.find((d) => d.key === k)!).filter(Boolean);
-    const valDef = ds.values.find((v) => v.key === valueKey);
-    if (!rowDefs.length) return null;
+  // Linhas após período + filtros de dimensão
+  const rowsFiltradas = useMemo(() => {
+    return ds.rows.filter((r) => {
+      if (!semData && ds.dateField) {
+        const d = ds.dateField(r);
+        if (d) {
+          const s = String(d).slice(0, 10);
+          if (s < dataIni || s > dataFim) return false;
+        }
+      }
+      for (const [dimKey, vals] of Object.entries(filtros)) {
+        if (!vals?.length) continue;
+        const dim = ds.dimensions.find((x) => x.key === dimKey);
+        if (!dim) continue;
+        if (!vals.includes(dim.get(r) || "—")) return false;
+      }
+      return true;
+    });
+  }, [ds, dataIni, dataFim, semData, filtros]);
 
-    const rowsFiltered = ds.rows.filter((r) => {
-      if (!ds.dateField) return true;
+  // Valores possíveis por dimensão (respeitando período)
+  const opcoesDim = useMemo(() => {
+    const base = ds.rows.filter((r) => {
+      if (semData || !ds.dateField) return true;
       const d = ds.dateField(r);
       if (!d) return true;
       const s = String(d).slice(0, 10);
       return s >= dataIni && s <= dataFim;
     });
+    const map: Record<string, string[]> = {};
+    ds.dimensions.forEach((dim) => {
+      const set = new Set<string>();
+      base.forEach((r) => set.add(dim.get(r) || "—"));
+      map[dim.key] = Array.from(set).sort();
+    });
+    return map;
+  }, [ds, dataIni, dataFim, semData]);
 
-    const SEP = " ▸ ";
-    const map: Record<string, Record<string, number>> = {};
+  interface Acc { sum: number; count: number; min: number; max: number; distinct: Set<string>; rows: any[] }
+  const novoAcc = (): Acc => ({ sum: 0, count: 0, min: Infinity, max: -Infinity, distinct: new Set(), rows: [] });
+
+  const cube = useMemo(() => {
+    const rowDefs = rowsDims.map((k) => ds.dimensions.find((d) => d.key === k)!).filter(Boolean);
+    const colDefs = colsDims.map((k) => ds.dimensions.find((d) => d.key === k)!).filter(Boolean);
+    const valDef = ds.values.find((v) => v.key === valueKey);
+    const distDef = ds.dimensions.find((d) => d.key === distinctDim);
+    if (!rowDefs.length) return null;
+
+    const map: Record<string, Record<string, Acc>> = {};
     const rowKeysSet = new Set<string>();
     const colKeysSet = new Set<string>();
 
-    rowsFiltered.forEach((r) => {
+    rowsFiltradas.forEach((r) => {
       const rk = rowDefs.map((d) => d.get(r) || "—").join(SEP);
       const ck = colDefs.length ? colDefs.map((d) => d.get(r) || "—").join(SEP) : "Total";
       rowKeysSet.add(rk);
       colKeysSet.add(ck);
       map[rk] ||= {};
-      const v = metric === "count" ? 1 : valDef ? valDef.get(r) : 0;
-      map[rk][ck] = (map[rk][ck] || 0) + v;
+      map[rk][ck] ||= novoAcc();
+      const acc = map[rk][ck];
+      const v = valDef ? valDef.get(r) : 0;
+      acc.sum += v;
+      acc.count += 1;
+      acc.min = Math.min(acc.min, v);
+      acc.max = Math.max(acc.max, v);
+      if (distDef) acc.distinct.add(distDef.get(r) || "—");
+      if (acc.rows.length < 500) acc.rows.push(r);
     });
+
+    const mergeAcc = (list: Acc[]): Acc => {
+      const out = novoAcc();
+      list.forEach((a) => {
+        out.sum += a.sum;
+        out.count += a.count;
+        out.min = Math.min(out.min, a.min);
+        out.max = Math.max(out.max, a.max);
+        a.distinct.forEach((d) => out.distinct.add(d));
+        out.rows.push(...a.rows.slice(0, 200));
+      });
+      return out;
+    };
+
+    const valOf = (a?: Acc): number => {
+      if (!a || a.count === 0) return 0;
+      switch (agg) {
+        case "count": return a.count;
+        case "sum": return a.sum;
+        case "avg": return a.sum / a.count;
+        case "min": return a.min === Infinity ? 0 : a.min;
+        case "max": return a.max === -Infinity ? 0 : a.max;
+        case "distinct": return a.distinct.size;
+      }
+    };
 
     const cols = Array.from(colKeysSet).sort();
-    const rowKeys = Array.from(rowKeysSet).sort();
-    const fmt = metric === "sum" && valDef?.format ? valDef.format : (n: number) => String(n);
+    let rowKeys = Array.from(rowKeysSet).sort();
 
-    const matrix = rowKeys.map((rk) => {
-      const cells = cols.map((ck) => map[rk]?.[ck] || 0);
-      const tot = cells.reduce((s, n) => s + n, 0);
-      return { rk, parts: rk.split(SEP), cells, tot };
+    const numFmt = (n: number) =>
+      Number.isInteger(n) ? String(n) : n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const usaMoeda = (agg === "sum" || agg === "avg" || agg === "min" || agg === "max") && !!valDef?.format;
+    const fmt = usaMoeda ? valDef!.format! : numFmt;
+
+    let matrix = rowKeys.map((rk) => {
+      const accs = cols.map((ck) => map[rk]?.[ck]);
+      const cells = accs.map((a) => valOf(a));
+      const totAcc = mergeAcc(accs.filter(Boolean) as Acc[]);
+      return { rk, parts: rk.split(SEP), cells, accs, tot: valOf(totAcc) };
     });
-    const colTotals = cols.map((_, i) => matrix.reduce((s, row) => s + row.cells[i], 0));
-    const grandTotal = matrix.reduce((s, row) => s + row.tot, 0);
 
-    return { rowDefs, colDefs, valDef, cols, matrix, colTotals, grandTotal, fmt };
-  }, [ds, rowsDims, colsDims, metric, valueKey, dataIni, dataFim]);
-
-  const exportar = (fmtType: "pdf" | "xlsx") => {
-    if (!cube) return;
-    if (!cube.matrix.length) {
-      toast.warning("Nenhum dado para exportar.");
-      return;
+    // busca textual nas linhas
+    if (buscaLinha.trim()) {
+      const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      matrix = matrix.filter((m) => norm(m.rk).includes(norm(buscaLinha)));
     }
+    if (ocultarZerados) matrix = matrix.filter((m) => m.tot !== 0);
+    if (ordenacao === "total_desc") matrix = [...matrix].sort((a, b) => b.tot - a.tot);
+    else if (ordenacao === "total_asc") matrix = [...matrix].sort((a, b) => a.tot - b.tot);
+
+    const limite = Number(topN) || 0;
+    const totalLinhas = matrix.length;
+    if (limite > 0) matrix = matrix.slice(0, limite);
+
+    const colTotals = cols.map((_, i) => {
+      const accs = matrix.map((row) => row.accs[i]).filter(Boolean) as Acc[];
+      return valOf(mergeAcc(accs));
+    });
+    const grandTotal = valOf(mergeAcc(matrix.flatMap((r) => r.accs.filter(Boolean) as Acc[])));
+
+    return { rowDefs, colDefs, valDef, cols, matrix, colTotals, grandTotal, fmt, totalLinhas, registros: rowsFiltradas.length };
+  }, [ds, rowsDims, colsDims, agg, valueKey, distinctDim, rowsFiltradas, ordenacao, topN, ocultarZerados, buscaLinha]);
+
+  const pct = (n: number) => (cube && cube.grandTotal ? `${((n / cube.grandTotal) * 100).toFixed(1)}%` : "—");
+  const cellText = (n: number) => (mostrarPct ? pct(n) : cube!.fmt(n));
+
+  const buildReport = () => {
+    if (!cube) return null;
     const rowHeaders = cube.rowDefs.map((d) => d.label);
     const colHeader = cube.colDefs.length ? cube.colDefs.map((d) => d.label).join(" × ") : "Total";
     const colunas = [...rowHeaders, ...cube.cols, `${colHeader} (Total)`];
-    const linhas = cube.matrix.map((r) => [
-      ...r.parts,
-      ...r.cells.map((n) => cube.fmt(n)),
-      cube.fmt(r.tot),
-    ]);
+    const linhas = cube.matrix.map((r) => [...r.parts, ...r.cells.map(cellText), cellText(r.tot)]);
     linhas.push([
       "TOTAL GERAL",
-      ...Array(rowHeaders.length - 1).fill(""),
-      ...cube.colTotals.map((n) => cube.fmt(n)),
-      cube.fmt(cube.grandTotal),
+      ...Array(Math.max(rowHeaders.length - 1, 0)).fill(""),
+      ...cube.colTotals.map(cellText),
+      cellText(cube.grandTotal),
     ]);
-    const valLabel = metric === "count" ? "Contagem" : cube.valDef?.label || "Valor";
-    const report = {
+    const valLabel =
+      agg === "count" ? "Contagem"
+        : agg === "distinct" ? `Contagem Distinta de ${labelOf(distinctDim)}`
+          : `${AGG_LABEL[agg]} — ${cube.valDef?.label || "Valor"}`;
+    const filtrosAtivos = Object.entries(filtros)
+      .filter(([, v]) => v?.length)
+      .map(([k, v]) => `${labelOf(k)}: ${v.join(", ")}`)
+      .join(" | ");
+    return {
       titulo: `Cubo Multidimensional - ${ds.label}`,
       subtitulo: `Linhas: ${rowHeaders.join(" × ") || "—"} | Colunas: ${colHeader} | Métrica: ${valLabel}`,
-      filtros: `Período: ${formatDate(dataIni)} a ${formatDate(dataFim)}`,
+      filtros: `${semData ? "Período: todos" : `Período: ${formatDate(dataIni)} a ${formatDate(dataFim)}`}${filtrosAtivos ? ` | ${filtrosAtivos}` : ""}`,
       colunas,
       linhas,
-      totais: [{ label: "Total Geral", valor: cube.fmt(cube.grandTotal) }],
+      totais: [{ label: "Total Geral", valor: cellText(cube.grandTotal) }],
     };
+  };
+
+  const exportar = (fmtType: "pdf" | "xlsx") => {
+    const report = buildReport();
+    if (!report || !cube?.matrix.length) {
+      toast.warning("Nenhum dado para exportar.");
+      return;
+    }
     try {
       if (fmtType === "pdf") gerarPdfFinanceiro(report);
       else gerarExcelFinanceiro(report);
@@ -534,10 +902,58 @@ export default function RelatoriosMultidimensional() {
     }
   };
 
+  const copiarCsv = async () => {
+    const report = buildReport();
+    if (!report) return;
+    const csv = [report.colunas, ...report.linhas]
+      .map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(csv);
+      toast.success("Tabela copiada (CSV).");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
+
+  const salvarView = () => {
+    const nome = window.prompt("Nome da visão:");
+    if (!nome) return;
+    const nova: SavedView = { nome, dsKey, rowsDims, colsDims, agg, valueKey, distinctDim, dataIni, dataFim, filtros };
+    const next = [...views.filter((v) => v.nome !== nome), nova];
+    setViews(next);
+    localStorage.setItem(VIEWS_KEY, JSON.stringify(next));
+    toast.success("Visão salva.");
+  };
+
+  const aplicarView = (nome: string) => {
+    const v = views.find((x) => x.nome === nome);
+    if (!v) return;
+    setDsKey(v.dsKey);
+    setTimeout(() => {
+      setRowsDims(v.rowsDims);
+      setColsDims(v.colsDims);
+      setAgg(v.agg);
+      setValueKey(v.valueKey);
+      setDistinctDim(v.distinctDim);
+      setDataIni(v.dataIni);
+      setDataFim(v.dataFim);
+      setFiltros(v.filtros || {});
+    }, 0);
+  };
+
+  const excluirView = (nome: string) => {
+    const next = views.filter((v) => v.nome !== nome);
+    setViews(next);
+    localStorage.setItem(VIEWS_KEY, JSON.stringify(next));
+  };
+
   const swapRowsCols = () => {
     setRowsDims(colsDims);
     setColsDims(rowsDims);
   };
+
+  const filtrosAtivosCount = Object.values(filtros).filter((v) => v?.length).length;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -546,7 +962,7 @@ export default function RelatoriosMultidimensional() {
         <div>
           <h1 className="text-2xl font-serif font-semibold">Relatórios Multidimensional (Cubo)</h1>
           <p className="text-sm text-muted-foreground">
-            Arraste dimensões entre as áreas para montar visões multidimensionais.
+            Arraste dimensões, combine agregações, filtre valores e explore os dados até o registro de origem.
           </p>
         </div>
       </div>
@@ -567,16 +983,20 @@ export default function RelatoriosMultidimensional() {
               </Select>
             </div>
             <div>
-              <Label>Métrica</Label>
-              <Select value={metric} onValueChange={(v) => setMetric(v as Metric)}>
+              <Label>Agregação</Label>
+              <Select value={agg} onValueChange={(v) => setAgg(v as Agg)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="count">Contagem (Qtd. de Registros)</SelectItem>
-                  {ds.values.length > 0 && <SelectItem value="sum">Soma de Valor</SelectItem>}
+                  <SelectItem value="count">{AGG_LABEL.count}</SelectItem>
+                  <SelectItem value="distinct">{AGG_LABEL.distinct}</SelectItem>
+                  {ds.values.length > 0 && <SelectItem value="sum">{AGG_LABEL.sum}</SelectItem>}
+                  {ds.values.length > 0 && <SelectItem value="avg">{AGG_LABEL.avg}</SelectItem>}
+                  {ds.values.length > 0 && <SelectItem value="min">{AGG_LABEL.min}</SelectItem>}
+                  {ds.values.length > 0 && <SelectItem value="max">{AGG_LABEL.max}</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
-            {metric === "sum" && ds.values.length > 0 && (
+            {agg !== "count" && agg !== "distinct" && ds.values.length > 0 && (
               <div>
                 <Label>Campo de Valor</Label>
                 <Select value={valueKey} onValueChange={setValueKey}>
@@ -587,15 +1007,31 @@ export default function RelatoriosMultidimensional() {
                 </Select>
               </div>
             )}
+            {agg === "distinct" && (
+              <div>
+                <Label>Contar distintos de</Label>
+                <Select value={distinctDim} onValueChange={setDistinctDim}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ds.dimensions.map((d) => <SelectItem key={d.key} value={d.key}>{d.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Período Início</Label>
-              <Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} />
+              <Input type="date" value={dataIni} disabled={semData} onChange={(e) => setDataIni(e.target.value)} />
             </div>
             <div>
               <Label>Período Fim</Label>
-              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+              <Input type="date" value={dataFim} disabled={semData} onChange={(e) => setDataFim(e.target.value)} />
             </div>
           </div>
+
+          <label className="flex items-center gap-2 text-xs cursor-pointer">
+            <Checkbox checked={semData} onCheckedChange={(v) => setSemData(!!v)} />
+            Ignorar período (considerar toda a base)
+          </label>
 
           <DndContext
             sensors={sensors}
@@ -626,6 +1062,74 @@ export default function RelatoriosMultidimensional() {
             </DragOverlay>
           </DndContext>
 
+          {/* Filtros por dimensão */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Label className="text-sm">Filtros por dimensão</Label>
+              {filtrosAtivosCount > 0 && (
+                <>
+                  <Badge variant="secondary" className="text-[10px]">{filtrosAtivosCount} ativo(s)</Badge>
+                  <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => setFiltros({})}>
+                    Limpar filtros
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ds.dimensions.map((d) => (
+                <DimFilter
+                  key={d.key}
+                  label={d.label}
+                  options={opcoesDim[d.key] || []}
+                  selected={filtros[d.key] || []}
+                  onChange={(v) => setFiltros((f) => ({ ...f, [d.key]: v }))}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Opções de visualização */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <Label className="text-xs">Ordenar linhas</Label>
+              <Select value={ordenacao} onValueChange={(v) => setOrdenacao(v as any)}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="label">Alfabética</SelectItem>
+                  <SelectItem value="total_desc">Maior total primeiro</SelectItem>
+                  <SelectItem value="total_asc">Menor total primeiro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Top N linhas</Label>
+              <Select value={topN} onValueChange={setTopN}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Todas</SelectItem>
+                  <SelectItem value="10">Top 10</SelectItem>
+                  <SelectItem value="20">Top 20</SelectItem>
+                  <SelectItem value="50">Top 50</SelectItem>
+                  <SelectItem value="100">Top 100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Buscar na linha</Label>
+              <Input className="h-9 text-xs" placeholder="Filtrar rótulos..." value={buscaLinha} onChange={(e) => setBuscaLinha(e.target.value)} />
+            </div>
+            <div className="flex flex-col justify-end gap-1.5 pb-1">
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <Checkbox checked={ocultarZerados} onCheckedChange={(v) => setOcultarZerados(!!v)} />
+                Ocultar linhas zeradas
+              </label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <Checkbox checked={mostrarPct} onCheckedChange={(v) => setMostrarPct(!!v)} />
+                <span className="inline-flex items-center gap-1"><Percent className="h-3 w-3" /> Exibir % do total geral</span>
+              </label>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" onClick={swapRowsCols}>
               ⇄ Inverter Linhas e Colunas
@@ -637,22 +1141,60 @@ export default function RelatoriosMultidimensional() {
               onClick={() => {
                 setRowsDims(ds.dimensions[0]?.key ? [ds.dimensions[0].key] : []);
                 setColsDims([]);
+                setFiltros({});
+                setBuscaLinha("");
+                setTopN("0");
               }}
             >
               Limpar Pivot
             </Button>
+            <Button type="button" variant="outline" size="sm" onClick={salvarView} className="gap-1.5">
+              <Save className="h-3.5 w-3.5" /> Salvar visão
+            </Button>
+            {views.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" size="sm">Visões salvas ({views.length})</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-2" align="start">
+                  <div className="space-y-1">
+                    {views.map((v) => (
+                      <div key={v.nome} className="flex items-center justify-between gap-2">
+                        <Button variant="ghost" size="sm" className="h-7 flex-1 justify-start text-xs" onClick={() => aplicarView(v.nome)}>
+                          {v.nome}
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => excluirView(v.nome)}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">
-            Resultado: {ds.label} — Linhas:{" "}
-            {cube?.rowDefs.map((d) => d.label).join(" × ") || "—"}
-            {cube?.colDefs.length ? ` | Colunas: ${cube.colDefs.map((d) => d.label).join(" × ")}` : ""}
-          </CardTitle>
+          <div>
+            <CardTitle className="text-base">
+              Resultado: {ds.label} — Linhas:{" "}
+              {cube?.rowDefs.map((d) => d.label).join(" × ") || "—"}
+              {cube?.colDefs.length ? ` | Colunas: ${cube.colDefs.map((d) => d.label).join(" × ")}` : ""}
+            </CardTitle>
+            {cube && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {cube.registros} registro(s) no filtro · {cube.totalLinhas} linha(s) · {cube.cols.length} coluna(s)
+                {Number(topN) > 0 && cube.totalLinhas > Number(topN) ? ` · exibindo Top ${topN}` : ""}
+              </p>
+            )}
+          </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={copiarCsv} className="gap-2">
+              <Copy className="h-4 w-4" /> CSV
+            </Button>
             <Button variant="outline" size="sm" disabled={!podePdf} onClick={() => exportar("pdf")} className="gap-2">
               <FileText className="h-4 w-4" /> PDF
             </Button>
@@ -669,17 +1211,17 @@ export default function RelatoriosMultidimensional() {
                 : "Nenhum dado para exibir."}
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-auto max-h-[70vh]">
               <table className="w-full border-collapse text-sm">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   <tr className="bg-muted">
                     {cube.rowDefs.map((d) => (
-                      <th key={d.key} className="border px-3 py-2 text-left font-semibold whitespace-nowrap">
+                      <th key={d.key} className="border px-3 py-2 text-left font-semibold whitespace-nowrap bg-muted">
                         {d.label}
                       </th>
                     ))}
                     {cube.cols.map((c) => (
-                      <th key={c} className="border px-3 py-2 text-right font-semibold whitespace-nowrap">
+                      <th key={c} className="border px-3 py-2 text-right font-semibold whitespace-nowrap bg-muted">
                         {c}
                       </th>
                     ))}
@@ -693,22 +1235,32 @@ export default function RelatoriosMultidimensional() {
                         <td key={i} className="border px-3 py-1.5 whitespace-nowrap">{p}</td>
                       ))}
                       {row.cells.map((n, i) => (
-                        <td key={i} className="border px-3 py-1.5 text-right tabular-nums">
-                          {cube.fmt(n)}
+                        <td
+                          key={i}
+                          className="border px-3 py-1.5 text-right tabular-nums cursor-pointer hover:bg-primary/10"
+                          onClick={() =>
+                            setDrill({
+                              titulo: `${row.rk} — ${cube.cols[i]}`,
+                              rows: row.accs[i]?.rows || [],
+                            })
+                          }
+                          title="Clique para ver os registros"
+                        >
+                          {cellText(n)}
                         </td>
                       ))}
                       <td className="border px-3 py-1.5 text-right tabular-nums font-semibold bg-primary/5">
-                        {cube.fmt(row.tot)}
+                        {cellText(row.tot)}
                       </td>
                     </tr>
                   ))}
                   <tr className="bg-muted font-semibold">
                     <td className="border px-3 py-2" colSpan={cube.rowDefs.length}>TOTAL GERAL</td>
                     {cube.colTotals.map((n, i) => (
-                      <td key={i} className="border px-3 py-2 text-right tabular-nums">{cube.fmt(n)}</td>
+                      <td key={i} className="border px-3 py-2 text-right tabular-nums">{cellText(n)}</td>
                     ))}
                     <td className="border px-3 py-2 text-right tabular-nums bg-primary/10">
-                      {cube.fmt(cube.grandTotal)}
+                      {cellText(cube.grandTotal)}
                     </td>
                   </tr>
                 </tbody>
@@ -717,6 +1269,46 @@ export default function RelatoriosMultidimensional() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!drill} onOpenChange={(o) => !o && setDrill(null)}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Detalhamento</DialogTitle>
+            <DialogDescription>{drill?.titulo}</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh]">
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr className="bg-muted">
+                  {ds.dimensions.map((d) => (
+                    <th key={d.key} className="border px-2 py-1.5 text-left whitespace-nowrap">{d.label}</th>
+                  ))}
+                  {ds.values.map((v) => (
+                    <th key={v.key} className="border px-2 py-1.5 text-right whitespace-nowrap">{v.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(drill?.rows || []).map((r, i) => (
+                  <tr key={i} className="hover:bg-muted/40">
+                    {ds.dimensions.map((d) => (
+                      <td key={d.key} className="border px-2 py-1 whitespace-nowrap">{d.get(r)}</td>
+                    ))}
+                    {ds.values.map((v) => (
+                      <td key={v.key} className="border px-2 py-1 text-right tabular-nums">
+                        {v.format ? v.format(v.get(r)) : v.get(r)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {!drill?.rows.length && (
+                  <tr><td className="p-4 text-center text-muted-foreground" colSpan={99}>Sem registros.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

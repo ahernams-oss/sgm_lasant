@@ -488,7 +488,9 @@ function ProtectedAppRoutes() {
             <RotaProtegida perm="gerencial_multidim">
               <SolicitacoesServicosProvider>
                 <OrdensServicoProvider>
-                  <RelatoriosMultidimensional />
+                  <OrcamentosProvider>
+                    <RelatoriosMultidimensional />
+                  </OrcamentosProvider>
                 </OrdensServicoProvider>
               </SolicitacoesServicosProvider>
             </RotaProtegida>
