@@ -21,6 +21,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { usePmoc } from "@/contexts/PmocContext";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissao } from "@/hooks/usePermissao";
+import ImportExportEquipamentos from "@/components/ImportExportEquipamentos";
 
 const SITUACOES = ["Ativo", "Inativo", "Em Manutenção", "Desativado", "Condenado"];
 const NIVEIS_RISCO = ["Baixo", "Médio", "Alto", "Crítico"];
@@ -56,6 +57,7 @@ export default function Equipamentos() {
   const planosDoCliente = useMemo(() => (pmocPlanos || []).filter((p: any) => p.clienteId === form.clienteId), [pmocPlanos, form.clienteId]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [codLasantAtual, setCodLasantAtual] = useState("");
   const [search, setSearch] = useState("");
   const [filterCliente, setFilterCliente] = useState("");
   const [page, setPage] = useState(1);
@@ -262,20 +264,22 @@ export default function Equipamentos() {
       updateEquipamento(editingId, data);
       toast.success("Equipamento atualizado!");
     } else {
-      addEquipamento(data as Omit<Equipamento, "id">);
+      addEquipamento(data);
       toast.success("Equipamento cadastrado!");
     }
     resetForm();
   };
 
-  const resetForm = () => { setEditingId(null); setForm(emptyForm); };
+  const resetForm = () => { setEditingId(null); setForm(emptyForm); setCodLasantAtual(""); };
 
   const handleEdit = (eq: Equipamento) => {
     setEditingId(eq.id);
-    const { id, ...rest } = eq;
+    const { id, codLasant, ...rest } = eq;
     setForm(rest);
+    setCodLasantAtual(codLasant || "");
     setFormOpen(true);
   };
+
 
   const handleDelete = (id: string) => {
     if (!podeExcluir) { toast.error("Você não possui permissão para esta ação."); return; }
@@ -294,7 +298,8 @@ export default function Equipamentos() {
         e.tag.toLowerCase().includes(s) ||
         e.serie.toLowerCase().includes(s) ||
         e.setorDescricao.toLowerCase().includes(s) ||
-        e.clienteNome.toLowerCase().includes(s)
+        e.clienteNome.toLowerCase().includes(s) ||
+        (e.codLasant || "").toLowerCase().includes(s)
       );
     }
     return list;
@@ -374,6 +379,10 @@ export default function Equipamentos() {
 
             {/* Dados do equipamento */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Cod. Lasant</Label>
+                <Input value={codLasantAtual} readOnly disabled placeholder="Gerado automaticamente (LST-00000)" className="font-mono" />
+              </div>
               <div><Label>TAG / Patrimônio</Label><Input value={form.tag} onChange={e => setField("tag", e.target.value)} /></div>
               <div><Label>Equipamento *</Label><Input value={form.equipamento} onChange={e => setField("equipamento", e.target.value)} /></div>
               <div><Label>Série</Label><Input value={form.serie} onChange={e => setField("serie", e.target.value)} /></div>
@@ -536,7 +545,7 @@ export default function Equipamentos() {
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar equipamento, TAG, série, setor..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
+              <Input placeholder="Buscar por Cod. Lasant, equipamento, TAG, série, setor..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" />
             </div>
             <Select value={filterCliente} onValueChange={v => { setFilterCliente(v === "all" ? "" : v); setPage(1); }}>
               <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filtrar por cliente" /></SelectTrigger>
@@ -548,6 +557,7 @@ export default function Equipamentos() {
             <Button variant="outline" disabled={selectedIds.size === 0} onClick={printBulkQrs}>
               <Printer className="h-4 w-4 mr-1" />Imprimir QRs ({selectedIds.size})
             </Button>
+            <ImportExportEquipamentos />
           </div>
         </CardHeader>
         <CardContent>
@@ -566,6 +576,7 @@ export default function Equipamentos() {
                       })}
                     />
                   </TableHead>
+                  <TableHead>Cod. Lasant</TableHead>
                   <TableHead>TAG</TableHead>
                   <TableHead>Equipamento</TableHead>
                   <TableHead>Cliente</TableHead>
@@ -578,7 +589,7 @@ export default function Equipamentos() {
               </TableHeader>
               <TableBody>
                 {paginatedItems.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum equipamento encontrado.</TableCell></TableRow>
                 ) : paginatedItems.map(eq => {
                   let calibBadge: React.ReactNode = <span className="text-xs text-muted-foreground">-</span>;
                   if (eq.requerCalibracao) {
@@ -595,6 +606,7 @@ export default function Equipamentos() {
                     <TableCell onClick={e => e.stopPropagation()}>
                       <Checkbox checked={selectedIds.has(eq.id)} onCheckedChange={() => toggleSelected(eq.id)} />
                     </TableCell>
+                    <TableCell className="font-mono text-xs">{eq.codLasant || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{eq.tag || "-"}</TableCell>
                     <TableCell className="font-medium">{eq.equipamento}</TableCell>
                     <TableCell className="text-sm">{eq.clienteNome}</TableCell>
@@ -628,6 +640,7 @@ export default function Equipamentos() {
           <DialogHeader><DialogTitle>Detalhes do Equipamento</DialogTitle></DialogHeader>
           {viewEquip && (
             <div className="grid grid-cols-2 gap-3 text-sm">
+              <div><span className="font-semibold">Cod. Lasant:</span> <span className="font-mono">{viewEquip.codLasant || "-"}</span></div>
               <div><span className="font-semibold">Situação:</span> {viewEquip.situacao}</div>
               <div><span className="font-semibold">Cliente:</span> {viewEquip.clienteNome}</div>
               <div><span className="font-semibold">Local:</span> {viewEquip.localDescricao || "-"}</div>
