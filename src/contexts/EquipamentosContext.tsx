@@ -28,10 +28,12 @@ export interface Equipamento {
   emailResponsavelCalibracao: string;
 }
 
+export type EquipamentoInput = Omit<Equipamento, "id" | "codLasant">;
+
 interface EquipamentosContextType {
   equipamentos: Equipamento[];
-  addEquipamento: (e: Omit<Equipamento, "id">) => void;
-  updateEquipamento: (id: string, e: Partial<Omit<Equipamento, "id">>) => void;
+  addEquipamento: (e: EquipamentoInput) => void;
+  updateEquipamento: (id: string, e: Partial<EquipamentoInput>) => void;
   deleteEquipamento: (id: string) => void;
 }
 
@@ -71,7 +73,7 @@ const rowToEquipamento = (r: any): Equipamento => ({
   emailResponsavelCalibracao: r.email_responsavel_calibracao ?? "",
 });
 
-const equipamentoToRow = (e: Partial<Omit<Equipamento, "id">>) => ({
+const equipamentoToRow = (e: Partial<EquipamentoInput>) => ({
   cliente_id: e.clienteId, cliente_nome: e.clienteNome,
   local_id: e.localId, local_descricao: e.localDescricao,
   pavimento_id: e.pavimentoId, pavimento_descricao: e.pavimentoDescricao,
@@ -107,12 +109,12 @@ export function EquipamentosProvider({ children }: { children: ReactNode }) {
   });
   const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  const addEquipamento = async (e: Omit<Equipamento, "id">) => {
+  const addEquipamento = async (e: EquipamentoInput) => {
     await insertRow("equipamentos", equipamentoToRow(e));
     invalidate();
   };
 
-  const updateEquipamento = async (id: string, e: Partial<Omit<Equipamento, "id">>) => {
+  const updateEquipamento = async (id: string, e: Partial<EquipamentoInput>) => {
     await updateRow("equipamentos", id, equipamentoToRow(e));
     invalidate();
   };
