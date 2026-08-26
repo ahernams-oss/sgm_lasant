@@ -568,6 +568,7 @@ const App = () => (
     <EmpresaProvider>
     <LicitacoesProvider>
     <MedicoesProvider>
+    <OrcamentosProvider>
     <FerramentasProvider>
     <EvidenciasProvider>
     <ChecklistsProvider>
@@ -696,6 +697,7 @@ const App = () => (
     </ChecklistsProvider>
     </EvidenciasProvider>
     </FerramentasProvider>
+    </OrcamentosProvider>
     </MedicoesProvider>
     </LicitacoesProvider>
     </EmpresaProvider>
