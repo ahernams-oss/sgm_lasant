@@ -15,6 +15,8 @@ export interface ProcessoTrabalhista {
   advogado_autor: string;
   advogado_autor_oab: string;
   advogado_empresa: string;
+  advogados_empresa: string[];
+  preposto: string;
   data_distribuicao: string | null;
   objeto_acao: string;
   valor_causa: number;
