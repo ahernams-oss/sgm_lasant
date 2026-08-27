@@ -80,6 +80,10 @@ export function ProcessosTrabalhalistasProvider({ children }: { children: ReactN
         advogado_autor: r.advogado_autor ?? "",
         advogado_autor_oab: r.advogado_autor_oab ?? "",
         advogado_empresa: r.advogado_empresa ?? "",
+        advogados_empresa: Array.isArray(r.advogados_empresa)
+          ? r.advogados_empresa.filter(Boolean)
+          : (r.advogado_empresa ? [r.advogado_empresa] : []),
+        preposto: r.preposto ?? "",
         data_distribuicao: r.data_distribuicao ?? null,
         objeto_acao: r.objeto_acao ?? "",
         valor_causa: Number(r.valor_causa) || 0,
