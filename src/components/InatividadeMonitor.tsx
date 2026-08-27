@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const TIMEOUT_MS = 3 * 60 * 1000; // 3 minutos de inatividade
+const TIMEOUT_MS = 10 * 60 * 1000; // 10 minutos de inatividade
 const AVISO_MS = 30 * 1000; // aviso nos últimos 30 segundos
 
 const EVENTOS = [
