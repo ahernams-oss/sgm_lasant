@@ -2107,7 +2107,8 @@ export default function JuridicoPage() {
                   <div><span className="text-muted-foreground">Estado:</span> {viewProcesso.estado || "-"}</div>
                   <div><span className="text-muted-foreground">Distribuição:</span> {viewProcesso.data_distribuicao || "-"}</div>
                   <div><span className="text-muted-foreground">Adv. Autor:</span> {viewProcesso.advogado_autor || "-"}</div>
-                  <div><span className="text-muted-foreground">Adv. Empresa:</span> {viewProcesso.advogado_empresa || "-"}</div>
+                  <div><span className="text-muted-foreground">Adv. Empresa:</span> {(viewProcesso.advogados_empresa?.length ? viewProcesso.advogados_empresa.join(", ") : viewProcesso.advogado_empresa) || "-"}</div>
+                  <div><span className="text-muted-foreground">Preposto:</span> {viewProcesso.preposto || "-"}</div>
                   <div><span className="text-muted-foreground">Fase:</span> {viewProcesso.fase_processual}</div>
                   <div><span className="text-muted-foreground">Centro de Custo:</span> {viewProcesso.cliente_nome || "-"}</div>
                 </div>
