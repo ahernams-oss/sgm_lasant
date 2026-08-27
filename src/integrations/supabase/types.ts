@@ -8074,6 +8074,7 @@ export type Database = {
           advogado_autor: string | null
           advogado_autor_oab: string | null
           advogado_empresa: string | null
+          advogados_empresa: Json
           anexos: Json | null
           autor_cpf: string | null
           autor_nome: string
@@ -8089,6 +8090,7 @@ export type Database = {
           numero_processo: string
           objeto_acao: string | null
           observacoes: string | null
+          preposto: string | null
           provisao_contabil: number | null
           risco: string | null
           status: string | null
@@ -8101,6 +8103,7 @@ export type Database = {
           advogado_autor?: string | null
           advogado_autor_oab?: string | null
           advogado_empresa?: string | null
+          advogados_empresa?: Json
           anexos?: Json | null
           autor_cpf?: string | null
           autor_nome?: string
@@ -8116,6 +8119,7 @@ export type Database = {
           numero_processo?: string
           objeto_acao?: string | null
           observacoes?: string | null
+          preposto?: string | null
           provisao_contabil?: number | null
           risco?: string | null
           status?: string | null
@@ -8128,6 +8132,7 @@ export type Database = {
           advogado_autor?: string | null
           advogado_autor_oab?: string | null
           advogado_empresa?: string | null
+          advogados_empresa?: Json
           anexos?: Json | null
           autor_cpf?: string | null
           autor_nome?: string
@@ -8143,6 +8148,7 @@ export type Database = {
           numero_processo?: string
           objeto_acao?: string | null
           observacoes?: string | null
+          preposto?: string | null
           provisao_contabil?: number | null
           risco?: string | null
           status?: string | null
