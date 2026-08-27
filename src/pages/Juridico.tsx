@@ -1860,13 +1860,50 @@ export default function JuridicoPage() {
               {form.advogado_autor?.trim() && (
                 <div><Label>OAB do Advogado do Autor</Label><Input value={(form as any).advogado_autor_oab || ""} onChange={e => setForm({ ...form, advogado_autor_oab: e.target.value } as any)} placeholder="Ex: RJ-123456" /></div>
               )}
+              <div className="md:col-span-2">
+                <Label>Advogados da Empresa</Label>
+                <Select
+                  value=""
+                  onValueChange={v => {
+                    const atuais = form.advogados_empresa || [];
+                    if (atuais.includes(v)) { toast.info("Advogado já adicionado."); return; }
+                    setForm({ ...form, advogados_empresa: [...atuais, v], advogado_empresa: form.advogado_empresa || v });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione para adicionar" /></SelectTrigger>
+                  <SelectContent>
+                    {contatos.filter(c => c.tipo === "Advogado" && c.ativo && !(form.advogados_empresa || []).includes(c.nome)).map(c => (
+                      <SelectItem key={c.id} value={c.nome}>{c.nome}{c.oab ? ` (OAB ${c.oab})` : ""}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(form.advogados_empresa || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {(form.advogados_empresa || []).map(nome => (
+                      <Badge key={nome} variant="secondary" className="gap-1">
+                        {nome}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const rest = (form.advogados_empresa || []).filter(n => n !== nome);
+                            setForm({ ...form, advogados_empresa: rest, advogado_empresa: rest[0] || "" });
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div>
-                <Label>Advogado da Empresa</Label>
-                <Select value={form.advogado_empresa || ""} onValueChange={v => setForm({ ...form, advogado_empresa: v })}>
+                <Label>Preposto da Empresa</Label>
+                <Select value={form.preposto || ""} onValueChange={v => setForm({ ...form, preposto: v === "__none__" ? "" : v })}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    {contatos.filter(c => c.tipo === "Advogado" && c.ativo).map(c => (
-                      <SelectItem key={c.id} value={c.nome}>{c.nome}{c.oab ? ` (OAB ${c.oab})` : ""}</SelectItem>
+                    <SelectItem value="__none__">Nenhum</SelectItem>
+                    {contatos.filter(c => c.tipo === "Preposto" && c.ativo).map(c => (
+                      <SelectItem key={c.id} value={c.nome}>{c.nome}{c.cpf ? ` (${c.cpf})` : ""}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
