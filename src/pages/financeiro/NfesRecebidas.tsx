@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, RefreshCw, Loader2, Stethoscope, Upload, Eye, Ban, Link2, FileSpreadsheet, ArrowUpDown } from "lucide-react";
+import { Download, RefreshCw, Loader2, Stethoscope, Upload, Eye, Ban, Link2, FileSpreadsheet, ArrowUpDown, Webhook, Copy } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -170,6 +170,8 @@ export default function NfesRecebidas() {
   const [contaPickerOpen, setContaPickerOpen] = useState(false);
   const [vencimento, setVencimento] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [webhookOpen, setWebhookOpen] = useState(false);
+  const [webhookToken, setWebhookToken] = useState("");
 
 
   // Filtros compartilhados
@@ -505,6 +507,9 @@ export default function NfesRecebidas() {
           <Button variant="outline" onClick={diagnosticarBrasilNfe}>
             <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
           </Button>
+          <Button variant="outline" onClick={() => setWebhookOpen(true)}>
+            <Webhook className="h-4 w-4 mr-2" /> Webhook
+          </Button>
           {tab === "nfe" ? (
             <Button onClick={importar} disabled={importando || !empresa.id}>
               {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
@@ -825,6 +830,57 @@ export default function NfesRecebidas() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={webhookOpen} onOpenChange={setWebhookOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Webhook className="h-5 w-5" /> Webhook de NF-es Recebidas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p className="text-muted-foreground">
+              Configure esta URL no painel do <b>Brasil NFe</b> para que novas notas fiscais emitidas contra o CNPJ da empresa
+              sejam importadas automaticamente, sem precisar clicar em "Importar".
+            </p>
+            <div className="space-y-1">
+              <Label>1. Informe o token da sua conta Brasil NFe (o mesmo usado na importação):</Label>
+              <Input
+                value={webhookToken}
+                onChange={e => setWebhookToken(e.target.value.trim())}
+                placeholder="Token Brasil NFe"
+                type="password"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>2. Copie a URL completa e cadastre-a como webhook no provedor:</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={webhookToken
+                    ? `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/nfe-webhook?token=${webhookToken}`
+                    : "Informe o token acima para gerar a URL"}
+                  className="font-mono text-xs"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={!webhookToken}
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/nfe-webhook?token=${webhookToken}`);
+                    toast.success("URL do webhook copiada");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              A cada evento recebido, o sistema importa as notas dos últimos 3 dias (NF-e e NFS-e), ignorando duplicidades
+              pela chave de acesso. O token nunca é exibido nem gravado nesta tela.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
     </div>
   );
