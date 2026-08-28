@@ -83,12 +83,23 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.2" },
         },
+        "blink-row": {
+          "0%, 100%": { backgroundColor: "transparent" },
+          "50%": { backgroundColor: "hsl(var(--destructive) / 0.14)" },
+        },
+        "blink-row-warn": {
+          "0%, 100%": { backgroundColor: "transparent" },
+          "50%": { backgroundColor: "hsl(38 92% 50% / 0.16)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "blink-urgent": "blink-urgent 0.8s ease-in-out infinite",
+        "blink-row": "blink-row 1.4s ease-in-out infinite",
+        "blink-row-warn": "blink-row-warn 1.8s ease-in-out infinite",
       },
+
     },
   },
   plugins: [require("tailwindcss-animate")],
