@@ -22,7 +22,6 @@ function daysBetween(fromStr: string, toStr: string): number {
 }
 
 const ANTECEDENCIAS = [60, 50, 40, 30, 20, 10];
-const STATUS_ABERTO = ["pendente", "A vencer", "Programada", "solicitada", "vencida", "Vencida", "aprovada"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -79,7 +78,6 @@ serve(async (req) => {
       if (!f.data_limite_concessao) continue;
       const st = String(f.status || "");
       if (["Concluída", "concluída", "concluida", "gozada", "paga"].includes(st)) continue;
-      if (STATUS_ABERTO.length && false) continue;
       const dias = daysBetween(today, f.data_limite_concessao);
       if (!ANTECEDENCIAS.includes(dias)) continue;
 
