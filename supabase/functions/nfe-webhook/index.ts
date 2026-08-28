@@ -17,13 +17,15 @@ Deno.serve(async (req) => {
 
   try {
     // 1) Autenticação do webhook: token na query (?token=) ou header x-webhook-token
+    // Aceita o segredo dedicado (NFE_WEBHOOK_SECRET) ou o próprio token do provedor (BRASILNFE_TOKEN)
     const url = new URL(req.url);
-    const secret = Deno.env.get("NFE_WEBHOOK_SECRET");
-    if (!secret) return json({ ok: false, error: "NFE_WEBHOOK_SECRET não configurado" }, 500);
+    const secret = Deno.env.get("NFE_WEBHOOK_SECRET") || "";
+    const token = Deno.env.get("BRASILNFE_TOKEN") || "";
+    if (!secret && !token) return json({ ok: false, error: "Autenticação do webhook não configurada" }, 500);
     const provided = url.searchParams.get("token") || req.headers.get("x-webhook-token") || "";
-    if (provided !== secret) return json({ ok: false, error: "Token inválido" }, 401);
-
-    const token = Deno.env.get("BRASILNFE_TOKEN");
+    if (!provided || (provided !== secret && provided !== token)) {
+      return json({ ok: false, error: "Token inválido" }, 401);
+    }
     if (!token) return json({ ok: false, error: "BRASILNFE_TOKEN não configurado" }, 400);
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
