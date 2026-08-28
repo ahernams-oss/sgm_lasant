@@ -16,6 +16,7 @@ import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { gerarPdfFerias, gerarPdfEscalaFerias, gerarExcelFerias } from "@/lib/gerarRelatoriosFerias";
 
 const ANTECEDENCIAS_ALERTA = [60, 50, 40, 30, 20, 10];
 
@@ -230,8 +231,14 @@ const MapaFerias = () => {
           <Button variant="outline" onClick={() => setEscalaOpen(true)}>
             <CalendarClock className="h-4 w-4 mr-2" /> Escala Sugerida
           </Button>
+          <Button variant="outline" onClick={() => { gerarPdfFerias(filtered as any); toast.success("PDF gerado."); }}>
+            <FileText className="h-4 w-4 mr-2" /> PDF
+          </Button>
+          <Button variant="outline" onClick={() => { gerarExcelFerias(filtered as any, escala as any); toast.success("Excel gerado."); }}>
+            <FileDown className="h-4 w-4 mr-2" /> Excel
+          </Button>
           <Button variant="outline" onClick={exportCSV}>
-            <FileDown className="h-4 w-4 mr-2" /> Exportar CSV
+            <FileDown className="h-4 w-4 mr-2" /> CSV
           </Button>
         </div>
       </div>
@@ -403,6 +410,16 @@ const MapaFerias = () => {
               <CalendarClock className="h-5 w-5 text-primary" /> Escala Sugerida de Férias
             </DialogTitle>
           </DialogHeader>
+          {escala.length > 0 && (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => gerarPdfEscalaFerias(escala as any)}>
+                <FileText className="h-4 w-4 mr-2" /> Exportar PDF
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => gerarExcelFerias(filtered as any, escala as any)}>
+                <FileDown className="h-4 w-4 mr-2" /> Exportar Excel
+              </Button>
+            </div>
+          )}
           {escala.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
               Nenhum período em fase crítica (≤ 60 dias) para escalonar.
