@@ -505,6 +505,9 @@ export default function NfesRecebidas() {
           <Button variant="outline" onClick={diagnosticarBrasilNfe}>
             <Stethoscope className="h-4 w-4 mr-2" /> Diagnóstico Brasil NFe
           </Button>
+          <Button variant="outline" onClick={() => setWebhookOpen(true)}>
+            <Webhook className="h-4 w-4 mr-2" /> Webhook
+          </Button>
           {tab === "nfe" ? (
             <Button onClick={importar} disabled={importando || !empresa.id}>
               {importando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
