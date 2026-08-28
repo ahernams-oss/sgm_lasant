@@ -1,11 +1,11 @@
 /**
  * Alçada de tolerância para reajustes de preço pós-aprovação.
  *
- * - Reajustes de até 10% recebem aprovação expressa do Coordenador de Compras/Manutenção.
+ * - Reajustes de até 20% recebem aprovação expressa do Coordenador de Compras/Manutenção.
  * - Divergências superiores exigem notificação e aceite do aditivo de verba pela Diretoria.
  */
 
-export const LIMITE_ALCADA_PERCENTUAL = 10;
+export const LIMITE_ALCADA_PERCENTUAL = 20;
 
 export type Alcada = "Sem Reajuste" | "Expressa" | "Diretoria";
 
