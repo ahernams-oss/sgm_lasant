@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Calendar, Search, FileDown, Filter, AlertTriangle, FileText } from "lucide-react";
+import { Calendar, Search, FileDown, Filter, AlertTriangle, FileText, UserPlus, Users, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,10 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useCargos } from "@/contexts/CargosContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+
+const ANTECEDENCIAS_ALERTA = [60, 50, 40, 30, 20, 10];
 
 interface FeriasRow {
   id: string;
@@ -46,6 +49,7 @@ const MapaFerias = () => {
   const [filtroVencimento, setFiltroVencimento] = useState("todos");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [escalaOpen, setEscalaOpen] = useState(false);
 
   const fetchFerias = async () => {
     setLoading(true);
@@ -60,6 +64,21 @@ const MapaFerias = () => {
 
   useEffect(() => { fetchFerias(); }, []);
 
+  // Funcionários indisponíveis para cobertura (de férias, em gozo ou já em período crítico)
+  const indisponiveis = useMemo(() => {
+    const hoje = new Date();
+    const set = new Set<string>();
+    ferias.forEach((f) => {
+      const st = (f.status || "").toLowerCase();
+      if (["em gozo", "aprovada", "gozada"].includes(st)) set.add(f.funcionario_id);
+      if (f.data_limite_concessao) {
+        const d = Math.ceil((new Date(f.data_limite_concessao + 'T00:00:00').getTime() - hoje.getTime()) / 86400000);
+        if (d <= 60 && !["concluída", "concluida", "gozada", "paga"].includes(st)) set.add(f.funcionario_id);
+      }
+    });
+    return set;
+  }, [ferias]);
+
   const enriched = useMemo(() => {
     return ferias.map((f) => {
       const func = funcionarios.find((x) => x.id === f.funcionario_id);
@@ -68,15 +87,36 @@ const MapaFerias = () => {
       const hoje = new Date();
       const lim = new Date(f.data_limite_concessao + 'T00:00:00');
       const diff = Math.ceil((lim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+      const substitutos = func
+        ? funcionarios
+            .filter((x) =>
+              x.id !== func.id &&
+              x.cargoId && x.cargoId === func.cargoId &&
+              (x.status || "Ativo") === "Ativo" &&
+              !indisponiveis.has(x.id))
+            .sort((a, b) => Number(b.clienteId === func.clienteId) - Number(a.clienteId === func.clienteId))
+            .slice(0, 3)
+            .map((x) => ({
+              id: x.id,
+              nome: x.nome,
+              mesmoPosto: x.clienteId === func.clienteId,
+              clienteNome: clientes.find((c) => c.id === x.clienteId)?.nome || "—",
+            }))
+        : [];
+      const critico = f.status !== 'Concluída' && diff <= 60;
       return {
         ...f,
         clienteId: func?.clienteId || "",
         clienteNome: cliente?.nome || "—",
         cargoNome: cargo?.nome || "—",
+        cargoId: func?.cargoId || "",
         diasParaVencer: diff,
+        substitutos,
+        precisaTemporario: critico && substitutos.length === 0,
+        critico,
       };
     });
-  }, [ferias, funcionarios, clientes, cargos]);
+  }, [ferias, funcionarios, clientes, cargos, indisponiveis]);
 
   const filtered = useMemo(() => {
     let r = enriched;
@@ -85,6 +125,8 @@ const MapaFerias = () => {
     if (filtroVencimento === "vencidas") r = r.filter((f) => f.diasParaVencer < 0 && f.status !== 'Concluída');
     else if (filtroVencimento === "30d") r = r.filter((f) => f.diasParaVencer >= 0 && f.diasParaVencer <= 30 && f.status !== 'Concluída');
     else if (filtroVencimento === "60d") r = r.filter((f) => f.diasParaVencer >= 0 && f.diasParaVencer <= 60 && f.status !== 'Concluída');
+    else if (filtroVencimento === "criticas") r = r.filter((f) => f.critico);
+    else if (filtroVencimento === "semcobertura") r = r.filter((f) => f.precisaTemporario);
     if (search.trim()) {
       const s = search.toLowerCase();
       r = r.filter((f) =>
@@ -108,7 +150,32 @@ const MapaFerias = () => {
     const proximas = enriched.filter((f) => f.diasParaVencer >= 0 && f.diasParaVencer <= 30 && f.status !== 'Concluída').length;
     const emGozo = enriched.filter((f) => f.status === 'Em gozo').length;
     const programadas = enriched.filter((f) => f.status === 'Programada').length;
-    return { vencidas, proximas, emGozo, programadas };
+    const semCobertura = enriched.filter((f) => f.precisaTemporario).length;
+    return { vencidas, proximas, emGozo, programadas, semCobertura };
+  }, [enriched]);
+
+  // Escala sugerida: prioriza limite mais próximo e evita alocar o mesmo substituto duas vezes
+  const escala = useMemo(() => {
+    const usados = new Set<string>();
+    return enriched
+      .filter((f) => f.critico)
+      .sort((a, b) => a.diasParaVencer - b.diasParaVencer)
+      .map((f) => {
+        const livre = f.substitutos.find((s) => !usados.has(s.id));
+        if (livre) usados.add(livre.id);
+        const base = new Date(f.data_limite_concessao + 'T00:00:00');
+        const dias = f.dias_direito || 30;
+        const fim = new Date(base.getTime() - 5 * 86400000);
+        const inicio = new Date(fim.getTime() - (dias - 1) * 86400000);
+        const fmt = (d: Date) => d.toLocaleDateString('pt-BR');
+        return {
+          ...f,
+          precisaTemporario: !livre,
+          substitutoEscolhido: livre ? `${livre.nome}${livre.mesmoPosto ? ' (mesmo posto)' : ` (remanejar de ${livre.clienteNome})`}` : '',
+          inicioSugerido: fmt(inicio),
+          fimSugerido: fmt(fim),
+        };
+      });
   }, [enriched]);
 
   const getBadge = (dias: number, status: string) => {
@@ -121,7 +188,7 @@ const MapaFerias = () => {
   };
 
   const exportCSV = () => {
-    const headers = ['Funcionário', 'Cliente', 'Cargo', 'Período Aquisitivo', 'Limite Concessão', 'Status', 'Dias Direito', 'Início Gozo', 'Fim Gozo', 'Dias Gozados', 'Dias Abonados'];
+    const headers = ['Funcionário', 'Cliente', 'Cargo', 'Período Aquisitivo', 'Limite Concessão', 'Status', 'Dias Direito', 'Início Gozo', 'Fim Gozo', 'Dias Gozados', 'Dias Abonados', 'Dias p/ Limite', 'Cobertura Sugerida'];
     const rows = filtered.map((f) => [
       f.funcionario_nome,
       f.clienteNome,
@@ -134,6 +201,8 @@ const MapaFerias = () => {
       f.data_fim_gozo ? f.data_fim_gozo.split('-').reverse().join('/') : '',
       String(f.dias_gozados || 0),
       String(f.dias_abonados || 0),
+      String(f.diasParaVencer),
+      f.precisaTemporario ? 'Contratar temporário' : f.substitutos.map((s) => s.nome).join(' | '),
     ]);
     const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
@@ -157,12 +226,17 @@ const MapaFerias = () => {
             <p className="text-sm text-muted-foreground">Acompanhe os períodos aquisitivos e a concessão de férias dos funcionários.</p>
           </div>
         </div>
-        <Button variant="outline" onClick={exportCSV}>
-          <FileDown className="h-4 w-4 mr-2" /> Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setEscalaOpen(true)}>
+            <CalendarClock className="h-4 w-4 mr-2" /> Escala Sugerida
+          </Button>
+          <Button variant="outline" onClick={exportCSV}>
+            <FileDown className="h-4 w-4 mr-2" /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="rounded-lg border border-border p-4 bg-card">
           <p className="text-xs text-muted-foreground">Vencidas</p>
           <p className="text-2xl font-bold text-red-600">{stats.vencidas}</p>
@@ -178,6 +252,10 @@ const MapaFerias = () => {
         <div className="rounded-lg border border-border p-4 bg-card">
           <p className="text-xs text-muted-foreground">Programadas</p>
           <p className="text-2xl font-bold text-primary">{stats.programadas}</p>
+        </div>
+        <div className={`rounded-lg border p-4 bg-card ${stats.semCobertura > 0 ? "border-red-500/60 animate-blink-row" : "border-border"}`}>
+          <p className="text-xs text-muted-foreground">Sem cobertura</p>
+          <p className="text-2xl font-bold text-red-600">{stats.semCobertura}</p>
         </div>
       </div>
 
@@ -216,6 +294,8 @@ const MapaFerias = () => {
             <SelectItem value="vencidas">Apenas Vencidas</SelectItem>
             <SelectItem value="30d">Vencem em 30 dias</SelectItem>
             <SelectItem value="60d">Vencem em 60 dias</SelectItem>
+            <SelectItem value="criticas">Período crítico (≤ 60 dias)</SelectItem>
+            <SelectItem value="semcobertura">Sem cobertura (contratar temporário)</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -241,6 +321,7 @@ const MapaFerias = () => {
                 <TableHead>Gozo</TableHead>
                 <TableHead className="text-center">Dias</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Cobertura do posto</TableHead>
                 <TableHead className="text-center">Anexo</TableHead>
               </TableRow>
             </TableHeader>
@@ -251,7 +332,16 @@ const MapaFerias = () => {
                   ? `${f.data_inicio_gozo.split('-').reverse().join('/')}${f.data_fim_gozo ? ' a ' + f.data_fim_gozo.split('-').reverse().join('/') : ''}`
                   : '—';
                 return (
-                  <TableRow key={f.id}>
+                  <TableRow
+                    key={f.id}
+                    className={
+                      f.critico
+                        ? f.diasParaVencer <= 30
+                          ? "animate-blink-row"
+                          : "animate-blink-row-warn"
+                        : undefined
+                    }
+                  >
                     <TableCell className="font-medium">{f.funcionario_nome}</TableCell>
                     <TableCell>{f.clienteNome}</TableCell>
                     <TableCell>{f.cargoNome}</TableCell>
@@ -267,6 +357,22 @@ const MapaFerias = () => {
                       {f.dias_gozados || 0}/{f.dias_direito}
                     </TableCell>
                     <TableCell><Badge variant="secondary" className="text-xs">{f.status}</Badge></TableCell>
+                    <TableCell className="text-xs">
+                      {!f.critico ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : f.precisaTemporario ? (
+                        <span className="inline-flex items-center gap-1 text-red-600 font-medium">
+                          <UserPlus className="h-3.5 w-3.5" /> Contratar temporário
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-start gap-1 text-emerald-700 dark:text-emerald-400">
+                          <Users className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                          <span>
+                            {f.substitutos.map((s) => `${s.nome}${s.mesmoPosto ? "" : ` (${s.clienteNome})`}`).join(", ")}
+                          </span>
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-center">
                       {f.anexo_url ? (
                         <a href={f.anexo_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex">
@@ -289,6 +395,51 @@ const MapaFerias = () => {
         pageSize={pageSize}
         onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
       />
+
+      <Dialog open={escalaOpen} onOpenChange={setEscalaOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock className="h-5 w-5 text-primary" /> Escala Sugerida de Férias
+            </DialogTitle>
+          </DialogHeader>
+          {escala.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Nenhum período em fase crítica (≤ 60 dias) para escalonar.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Sugestão gerada priorizando o limite de concessão mais próximo e garantindo que nenhum posto fique descoberto.
+                Quando não há colaborador do mesmo cargo disponível, o sistema indica contratação temporária.
+              </p>
+              {escala.map((e) => (
+                <div key={e.id} className="rounded-lg border border-border p-3 space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-medium">{e.funcionario_nome}</span>
+                    <Badge className={e.precisaTemporario ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}>
+                      {e.precisaTemporario ? "Contratação temporária" : "Cobertura interna"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {e.cargoNome} · {e.clienteNome} · Limite {e.data_limite_concessao.split('-').reverse().join('/')} ({e.diasParaVencer} dias)
+                  </p>
+                  <p className="text-xs">
+                    <span className="text-muted-foreground">Janela sugerida de gozo: </span>
+                    <span className="font-medium">{e.inicioSugerido} a {e.fimSugerido}</span> ({e.dias_direito} dias)
+                  </p>
+                  <p className="text-xs">
+                    <span className="text-muted-foreground">Substituto: </span>
+                    {e.precisaTemporario
+                      ? <span className="text-red-600 font-medium">Sem colaborador de mesmo cargo disponível — abrir RP temporária</span>
+                      : <span className="font-medium">{e.substitutoEscolhido}</span>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1">
         <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> CLT - Art. 134</p>
