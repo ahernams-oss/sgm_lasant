@@ -78,6 +78,8 @@ export interface Cliente {
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
   contratos: Contrato[];
+  linhasFornecimento: LinhaFornecimento[];
+
 }
 
 interface ClientesContextType {
@@ -108,6 +110,8 @@ const rowToCliente = (r: any): Cliente => ({
   modeloOsId: r.modelo_os_id ?? "",
   informacoesFinanceiras: r.informacoes_financeiras ?? [],
   locais: r.locais ?? [], locaisEntrega: r.locais_entrega ?? [], contratos: r.contratos ?? [],
+  linhasFornecimento: r.linhas_fornecimento ?? [],
+
 });
 
 const clienteToRow = (c: Omit<Cliente, "id">) => ({
@@ -128,6 +132,8 @@ const clienteToRow = (c: Omit<Cliente, "id">) => ({
   modelo_os_id: c.modeloOsId || null,
   informacoes_financeiras: c.informacoesFinanceiras as any,
   locais: c.locais as any, locais_entrega: c.locaisEntrega as any, contratos: c.contratos as any,
+  linhas_fornecimento: (c.linhasFornecimento ?? []) as any,
+
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
