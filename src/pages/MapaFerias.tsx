@@ -251,7 +251,21 @@ const MapaFerias = () => {
           <Button variant="outline" onClick={() => setEscalaOpen(true)}>
             <CalendarClock className="h-4 w-4 mr-2" /> Escala Sugerida
           </Button>
-          <Button variant="outline" onClick={() => { gerarPdfFerias(filtered as any); toast.success("PDF gerado."); }}>
+          <Button variant="outline" onClick={() => {
+            const vencLabels: Record<string, string> = {
+              vencidas: "Vencidas", "30d": "Críticas (≤ 30 dias)", "60d": "Atenção (≤ 60 dias)",
+              criticas: "Período crítico", semcobertura: "Sem cobertura interna",
+            };
+            gerarPdfFerias(filtered as any, {
+              filtros: {
+                cliente: filtroCliente !== "todos" ? filtroCliente : undefined,
+                status: filtroStatus !== "todos" ? filtroStatus : undefined,
+                vencimento: filtroVencimento !== "todos" ? (vencLabels[filtroVencimento] || filtroVencimento) : undefined,
+                busca: search.trim() || undefined,
+              },
+            });
+            toast.success("PDF gerado.");
+          }}>
             <FileText className="h-4 w-4 mr-2" /> PDF
           </Button>
           <Button variant="outline" onClick={() => { gerarExcelFerias(filtered as any, escala as any); toast.success("Excel gerado."); }}>
