@@ -43,7 +43,14 @@ const cobertura = (r: FeriasReportRow) => {
   return r.substitutos.map((s) => `${s.nome}${s.mesmoPosto ? "" : ` (${s.clienteNome})`}`).join(" | ");
 };
 
-export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob" }) {
+export interface FiltrosPdfFerias {
+  cliente?: string;
+  status?: string;
+  vencimento?: string;
+  busca?: string;
+}
+
+export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob"; filtros?: FiltrosPdfFerias }) {
   const doc = new jsPDF({ orientation: "landscape" });
   await addHeader(doc, {
     title: "Relatório de Mapa de Férias",
@@ -64,8 +71,35 @@ export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: 
     42, 42,
   );
 
+  // Bloco de filtros aplicados
+  const f = opts?.filtros;
+  const filtrosItens: string[] = [];
+  if (f?.cliente) filtrosItens.push(`Cliente: ${f.cliente}`);
+  if (f?.status) filtrosItens.push(`Status: ${f.status}`);
+  if (f?.vencimento) filtrosItens.push(`Situação: ${f.vencimento}`);
+  if (f?.busca) filtrosItens.push(`Busca: "${f.busca}"`);
+
+  let y = 48;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.text("Filtros aplicados:", 14, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(filtrosItens.length ? filtrosItens.join("   |   ") : "Nenhum — todos os registros considerados.", 42, y);
+
+  // Intervalo de datas considerado
+  y += 5;
+  const datasAquisitivo = rows.flatMap((r) => [r.periodo_aquisitivo_inicio, r.periodo_aquisitivo_fim]).filter(Boolean).sort();
+  const datasLimite = rows.map((r) => r.data_limite_concessao).filter(Boolean).sort();
+  doc.setFont("helvetica", "bold");
+  doc.text("Intervalo considerado:", 14, y);
+  doc.setFont("helvetica", "normal");
+  const intervaloTxt = rows.length
+    ? `Períodos aquisitivos de ${fmt(datasAquisitivo[0])} a ${fmt(datasAquisitivo[datasAquisitivo.length - 1])}   |   Limites de concessão de ${fmt(datasLimite[0])} a ${fmt(datasLimite[datasLimite.length - 1])}   |   Data-base: ${new Date().toLocaleDateString("pt-BR")}`
+    : "Sem registros no recorte.";
+  doc.text(intervaloTxt, 46, y);
+
   autoTable(doc, {
-    startY: 48,
+    startY: y + 5,
     head: [["Funcionário", "Cliente", "Cargo", "Período Aquisitivo", "Limite", "Situação", "Gozo", "Dias", "Status", "Cobertura do posto"]],
     body: rows.map((r) => [
       r.funcionario_nome,
