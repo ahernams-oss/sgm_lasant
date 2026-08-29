@@ -56,7 +56,12 @@ export interface Contrato {
   meta1?: string; meta2?: string; meta3?: string;
   faturamentos: Faturamento[];
 }
+export interface LinhaFornecimento {
+  id: string; materialId: string; codigo: string; descricao: string;
+  tipo: "Material" | "Serviço"; unidadeMedida: string; observacao?: string;
+}
 export interface Cliente {
+
   id: string; codigo?: number; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
   cnpj: string; inscricaoEstadual: string; inscricaoMunicipal: string; esfera: string; descricao: string; cap: string;
   email: string; emailEngenharia: string; emailOsCc: string; emailOsBcc: string;
