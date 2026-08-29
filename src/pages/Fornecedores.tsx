@@ -270,6 +270,7 @@ const Fornecedores = () => {
                   <TabsList>
                     <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
                     <TabsTrigger value="dados-bancarios">Dados Bancários</TabsTrigger>
+                    <TabsTrigger value="linhas-fornecimento">Linhas de Fornecimento</TabsTrigger>
                   </TabsList>
                   <TabsContent value="cadastro" className="mt-4">
                     <ClienteForm
@@ -288,7 +289,14 @@ const Fornecedores = () => {
                       onChange={handleDadosBancariosChange}
                     />
                   </TabsContent>
+                  <TabsContent value="linhas-fornecimento" className="mt-4">
+                    <LinhasFornecimentoTab
+                      linhas={editingFornecedor?.linhasFornecimento || []}
+                      onChange={handleLinhasFornecimentoChange}
+                    />
+                  </TabsContent>
                 </Tabs>
+
               ) : (
                 <ClienteForm
                   key="new"
