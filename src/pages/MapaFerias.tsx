@@ -17,6 +17,8 @@ import { useCargos } from "@/contexts/CargosContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { gerarPdfFerias, gerarPdfEscalaFerias, gerarExcelFerias } from "@/lib/gerarRelatoriosFerias";
+import { enviarRelatorioFeriasAgora } from "@/lib/enviarRelatorioFerias";
+import { Mail } from "lucide-react";
 
 const ANTECEDENCIAS_ALERTA = [60, 50, 40, 30, 20, 10];
 
