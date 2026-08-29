@@ -153,23 +153,47 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
     invalidate();
   };
 
+  const syncClienteCache = (cliente: Cliente) => {
+    qc.setQueryData<Cliente[]>(QK, (old = []) => {
+      const exists = old.some((c) => c.id === cliente.id);
+      return exists ? old.map((c) => (c.id === cliente.id ? cliente : c)) : [...old, cliente];
+    });
+  };
+
+  const refreshClienteCache = async (id: string): Promise<Cliente | null> => {
+    const { data: row, error } = await (supabase as any)
+      .from("clientes")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !row) return null;
+    const cliente = rowToCliente(row);
+    syncClienteCache(cliente);
+    return cliente;
+  };
+
   const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>): Promise<boolean> => {
     const latestClientes = qc.getQueryData<Cliente[]>(QK) ?? clientes;
     let current = latestClientes.find(c => c.id === id);
     if (!current) {
       // Cache pode estar vazio/desatualizado — busca o registro direto do banco.
-      const { data: row } = await (supabase as any).from("clientes").select("*").eq("id", id).maybeSingle();
-      if (!row) return false;
-      current = rowToCliente(row);
+      current = await refreshClienteCache(id);
+      if (!current) return false;
     }
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
+    syncClienteCache(merged); // atualização otimista imediata
     const ok = await updateRow("clientes", id, clienteToRow(rest));
-    if (!ok) return false;
-    qc.setQueryData<Cliente[]>(QK, (old = []) => old.map((c) => (c.id === id ? merged : c)));
+    if (!ok) {
+      await refreshClienteCache(id); // desfaz a alteração otimista com o dado real
+      return false;
+    }
+    // Reidrata do banco para manter o cache idêntico ao que foi persistido.
+    await refreshClienteCache(id);
     await invalidate();
     return true;
   };
+
 
 
   const deleteCliente = async (id: string) => { await deleteRow("clientes", id); invalidate(); };
