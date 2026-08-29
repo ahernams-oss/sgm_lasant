@@ -118,10 +118,14 @@ export async function montarDadosFerias(): Promise<{ rows: FeriasReportRow[]; es
   return { rows, escala };
 }
 
+const VALIDADE_LINK_S = 60 * 60 * 24 * 60; // 60 dias
+
 async function upload(path: string, blob: Blob) {
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { upsert: true });
   if (error) throw error;
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  const { data, error: signErr } = await supabase.storage.from(BUCKET).createSignedUrl(path, VALIDADE_LINK_S);
+  if (signErr || !data?.signedUrl) throw signErr || new Error("Falha ao gerar link do relatório.");
+  return data.signedUrl;
 }
 
 /** Gera PDF + Excel, publica no storage e envia o e-mail ao RH. */
