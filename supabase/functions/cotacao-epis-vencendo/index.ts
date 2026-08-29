@@ -96,7 +96,7 @@ serve(async (req) => {
     // 2) Fornecedores com linha de fornecimento de EPI (até 5)
     const { data: cadastros } = await supabase
       .from("clientes")
-      .select("id, nome, email, email_compras, telefone, celular, whatsapp, linhas_fornecimento, tipo")
+      .select("id, nome, email, email_compras, telefone, telefone_celular, celulares, grupo_whatsapp, linhas_fornecimento, tipo")
       .eq("tipo", "Fornecedor");
 
     const fornecedores = ((cadastros || []) as Array<Record<string, unknown>>)
@@ -238,7 +238,7 @@ serve(async (req) => {
           emailEnviado = !mailErr;
         }
 
-        const telefone = String(f.whatsapp || f.celular || f.telefone || "").trim();
+        const telefone = String(f.telefone_celular || f.celulares || f.telefone || "").trim();
         let whatsappEnviado = false;
         if (telefone) {
           const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
