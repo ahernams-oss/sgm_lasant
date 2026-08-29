@@ -673,6 +673,7 @@ export type Database = {
           informacoes_financeiras: Json | null
           inscricao_estadual: string | null
           inscricao_municipal: string | null
+          linhas_fornecimento: Json
           locais: Json | null
           locais_entrega: Json | null
           logo_url: string | null
@@ -719,6 +720,7 @@ export type Database = {
           informacoes_financeiras?: Json | null
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          linhas_fornecimento?: Json
           locais?: Json | null
           locais_entrega?: Json | null
           logo_url?: string | null
@@ -765,6 +767,7 @@ export type Database = {
           informacoes_financeiras?: Json | null
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          linhas_fornecimento?: Json
           locais?: Json | null
           locais_entrega?: Json | null
           logo_url?: string | null
