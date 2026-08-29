@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
 
 export interface FeriasReportRow {
   funcionario_nome: string;
@@ -42,43 +43,12 @@ const cobertura = (r: FeriasReportRow) => {
   return r.substitutos.map((s) => `${s.nome}${s.mesmoPosto ? "" : ` (${s.clienteNome})`}`).join(" | ");
 };
 
-function cabecalho(doc: jsPDF, titulo: string, total: number) {
-  const w = doc.internal.pageSize.getWidth();
-  doc.setFillColor(30, 58, 107);
-  doc.rect(0, 0, w, 28, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("LASANT", 14, 12);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.text(titulo, 14, 20);
-  doc.setFontSize(9);
-  const agora = new Date();
-  doc.text(
-    `Emitido em ${agora.toLocaleDateString("pt-BR")} às ${agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`,
-    w - 14, 12, { align: "right" },
-  );
-  doc.text(`Total: ${total} registro(s)`, w - 14, 20, { align: "right" });
-  doc.setTextColor(30, 30, 30);
-}
-
-function rodape(doc: jsPDF) {
-  const pages = doc.getNumberOfPages();
-  const w = doc.internal.pageSize.getWidth();
-  const h = doc.internal.pageSize.getHeight();
-  for (let i = 1; i <= pages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text("LASANT · Mapa de Férias · CLT Art. 134 — concessão em até 12 meses após o término do período aquisitivo", 14, h - 8);
-    doc.text(`Página ${i}/${pages}`, w - 14, h - 8, { align: "right" });
-  }
-}
-
-export function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob" }) {
+export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob" }) {
   const doc = new jsPDF({ orientation: "landscape" });
-  cabecalho(doc, "Relatório de Mapa de Férias", rows.length);
+  await addHeader(doc, {
+    title: "Relatório de Mapa de Férias",
+    subtitle: `Total: ${rows.length} registro(s) · CLT Art. 134 — concessão em até 12 meses`,
+  });
 
   const vencidas = rows.filter((r) => r.diasParaVencer < 0).length;
   const criticas = rows.filter((r) => r.diasParaVencer >= 0 && r.diasParaVencer <= 30).length;
@@ -87,15 +57,15 @@ export function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save"
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("Resumo:", 14, 36);
+  doc.text("Resumo:", 14, 42);
   doc.setFont("helvetica", "normal");
   doc.text(
     `Vencidas: ${vencidas}  |  Críticas (≤30d): ${criticas}  |  Atenção (31-60d): ${atencao}  |  Sem cobertura: ${semCobertura}`,
-    42, 36,
+    42, 42,
   );
 
   autoTable(doc, {
-    startY: 42,
+    startY: 48,
     head: [["Funcionário", "Cliente", "Cargo", "Período Aquisitivo", "Limite", "Situação", "Gozo", "Dias", "Status", "Cobertura do posto"]],
     body: rows.map((r) => [
       r.funcionario_nome,
@@ -133,23 +103,26 @@ export function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save"
     },
   });
 
-  rodape(doc);
+  addFooter(doc);
   if (opts?.output === "blob") return doc.output("blob");
   doc.save("relatorio-mapa-ferias.pdf");
 }
 
-export function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
+export async function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
   const doc = new jsPDF({ orientation: "landscape" });
-  cabecalho(doc, "Escala Sugerida de Férias", escala.length);
+  await addHeader(doc, {
+    title: "Escala Sugerida de Férias",
+    subtitle: `Total: ${escala.length} registro(s)`,
+  });
 
   doc.setFontSize(8);
   doc.text(
     "Sugestão gerada priorizando o limite de concessão mais próximo, garantindo que nenhum posto fique descoberto.",
-    14, 36,
+    14, 42,
   );
 
   autoTable(doc, {
-    startY: 42,
+    startY: 48,
     head: [["Funcionário", "Cliente", "Cargo", "Limite", "Dias p/ limite", "Janela sugerida", "Dias", "Substituto / Ação"]],
     body: escala.map((e) => [
       e.funcionario_nome,
@@ -173,7 +146,7 @@ export function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { output?
     },
   });
 
-  rodape(doc);
+  addFooter(doc);
   if (opts?.output === "blob") return doc.output("blob");
   doc.save("escala-sugerida-ferias.pdf");
 }
