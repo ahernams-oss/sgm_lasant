@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, ChevronsUpDown, Plus, Trash2, Package } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Trash2, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -7,7 +7,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import type { LinhaFornecimento } from "@/contexts/ClientesContext";
 
 const norm = (s: string) =>
@@ -19,49 +19,49 @@ interface Props {
 }
 
 export default function LinhasFornecimentoTab({ linhas, onChange }: Props) {
-  const { materiais } = useMateriaisServicos();
+  const { grupos } = useCategoriasCompras();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [materialId, setMaterialId] = useState("");
+  const [grupoId, setGrupoId] = useState("");
   const [observacao, setObservacao] = useState("");
 
   const selecionados = useMemo(() => new Set(linhas.map((l) => l.materialId)), [linhas]);
 
   const opcoes = useMemo(() => {
     const term = norm(search.trim());
-    const list = materiais.filter((m) => !selecionados.has(m.id));
+    const list = grupos.filter((g) => !selecionados.has(g.id));
     if (!term) return list.slice(0, 50);
     return list
-      .filter((m) => norm(`${m.codigo} ${m.descricao} ${m.unidadeMedida}`).includes(term))
+      .filter((g) => norm(`${g.codigo} ${g.nome}`).includes(term))
       .slice(0, 50);
-  }, [materiais, search, selecionados]);
+  }, [grupos, search, selecionados]);
 
-  const materialSelecionado = materiais.find((m) => m.id === materialId);
+  const grupoSelecionado = grupos.find((g) => g.id === grupoId);
 
   const adicionar = () => {
-    if (!materialId) {
-      toast.error("Selecione um material ou serviço.");
+    if (!grupoId) {
+      toast.error("Selecione um grupo de compras.");
       return;
     }
-    if (selecionados.has(materialId)) {
-      toast.error("Este item já está na linha de fornecimento.");
+    if (selecionados.has(grupoId)) {
+      toast.error("Este grupo já está na linha de fornecimento.");
       return;
     }
-    const m = materiais.find((x) => x.id === materialId);
-    if (!m) return;
+    const g = grupos.find((x) => x.id === grupoId);
+    if (!g) return;
     onChange([
       ...linhas,
       {
         id: crypto.randomUUID(),
-        materialId: m.id,
-        codigo: m.codigo,
-        descricao: m.descricao,
-        tipo: m.tipo,
-        unidadeMedida: m.unidadeMedida,
+        materialId: g.id,
+        codigo: g.codigo,
+        descricao: g.nome,
+        tipo: "Grupo de Compras",
+        unidadeMedida: "",
         observacao: observacao.trim(),
       },
     ]);
-    setMaterialId("");
+    setGrupoId("");
     setObservacao("");
     setSearch("");
     toast.success("Linha de fornecimento adicionada.");
@@ -73,7 +73,7 @@ export default function LinhasFornecimentoTab({ linhas, onChange }: Props) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr_auto] gap-3 items-end">
         <div>
-          <label className="field-label">Material / Serviço</label>
+          <label className="field-label">Grupo de Compras</label>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -83,33 +83,33 @@ export default function LinhasFornecimentoTab({ linhas, onChange }: Props) {
                 aria-expanded={open}
                 className="w-full justify-between font-normal"
               >
-                <span className={cn("truncate", !materialSelecionado && "text-muted-foreground")}>
-                  {materialSelecionado
-                    ? `${materialSelecionado.codigo} — ${materialSelecionado.descricao}`
-                    : "Selecione um material ou serviço..."}
+                <span className={cn("truncate", !grupoSelecionado && "text-muted-foreground")}>
+                  {grupoSelecionado
+                    ? `${grupoSelecionado.codigo} — ${grupoSelecionado.nome}`
+                    : "Selecione um grupo de compras..."}
                 </span>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
               <Command shouldFilter={false}>
-                <CommandInput placeholder="Buscar por código ou descrição..." value={search} onValueChange={setSearch} />
+                <CommandInput placeholder="Buscar por código ou nome do grupo..." value={search} onValueChange={setSearch} />
                 <CommandList>
-                  <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
+                  <CommandEmpty>Nenhum grupo encontrado.</CommandEmpty>
                   <CommandGroup>
-                    {opcoes.map((m) => (
+                    {opcoes.map((g) => (
                       <CommandItem
-                        key={m.id}
-                        value={m.id}
+                        key={g.id}
+                        value={g.id}
                         onSelect={() => {
-                          setMaterialId(m.id);
+                          setGrupoId(g.id);
                           setOpen(false);
                         }}
                       >
-                        <Check className={cn("mr-2 h-4 w-4", materialId === m.id ? "opacity-100" : "opacity-0")} />
+                        <Check className={cn("mr-2 h-4 w-4", grupoId === g.id ? "opacity-100" : "opacity-0")} />
                         <span className="truncate">
-                          <span className="tabular-nums text-muted-foreground mr-2">{m.codigo}</span>
-                          {m.descricao}
+                          <span className="tabular-nums text-muted-foreground mr-2">{g.codigo}</span>
+                          {g.nome}
                         </span>
                       </CommandItem>
                     ))}
@@ -145,13 +145,11 @@ export default function LinhasFornecimentoTab({ linhas, onChange }: Props) {
           <div className="divide-y divide-border border border-border rounded-lg">
             {linhas.map((l) => (
               <div key={l.id} className="flex items-center gap-3 px-3 py-2.5">
-                <Package className="h-4 w-4 text-primary shrink-0" />
+                <Layers className="h-4 w-4 text-primary shrink-0" />
                 <div className="min-w-0 flex-1 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1">
                   <p className="text-sm font-semibold text-primary tabular-nums">{l.codigo || "—"}</p>
                   <p className="text-sm text-foreground truncate sm:col-span-2">{l.descricao}</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {l.tipo}{l.unidadeMedida ? ` · ${l.unidadeMedida}` : ""}
-                  </p>
+                  <p className="text-sm text-muted-foreground truncate">{l.tipo}</p>
                   <p className="text-sm text-muted-foreground truncate">{l.observacao || "—"}</p>
                 </div>
                 <Button
