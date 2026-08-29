@@ -167,7 +167,7 @@ const Fornecedores = () => {
 
   const handleEdit = (fornecedor: Cliente) => {
     setEditingId(fornecedor.id);
-    const { id, informacoesFinanceiras, locais, locaisEntrega, ...rest } = fornecedor;
+    const { id, informacoesFinanceiras, locais, locaisEntrega, linhasFornecimento, ...rest } = fornecedor;
     setEditingData(rest as FormData);
     setFormOpen(true);
   };
@@ -203,6 +203,13 @@ const Fornecedores = () => {
     if (!editingId) return;
     updateCliente(editingId, { informacoesFinanceiras: dados });
   };
+
+  const handleLinhasFornecimentoChange = async (linhas: any[]) => {
+    if (!editingId) return;
+    const ok = await updateCliente(editingId, { linhasFornecimento: linhas });
+    if (!ok) toast.error("Erro ao salvar linhas de fornecimento.");
+  };
+
 
   const filteredFornecedores = useMemo(() => {
     if (!search.trim()) return fornecedores;
