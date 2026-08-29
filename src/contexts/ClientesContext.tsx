@@ -1,6 +1,8 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; chavePix: string; }
 export interface Setor { id: string; descricao: string; ativo: boolean; }
@@ -153,8 +155,13 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
 
   const updateCliente = async (id: string, data: Partial<Omit<Cliente, "id">>): Promise<boolean> => {
     const latestClientes = qc.getQueryData<Cliente[]>(QK) ?? clientes;
-    const current = latestClientes.find(c => c.id === id);
-    if (!current) return false;
+    let current = latestClientes.find(c => c.id === id);
+    if (!current) {
+      // Cache pode estar vazio/desatualizado — busca o registro direto do banco.
+      const { data: row } = await (supabase as any).from("clientes").select("*").eq("id", id).maybeSingle();
+      if (!row) return false;
+      current = rowToCliente(row);
+    }
     const merged = { ...current, ...data };
     const { id: _, ...rest } = merged;
     const ok = await updateRow("clientes", id, clienteToRow(rest));
@@ -163,6 +170,7 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
     await invalidate();
     return true;
   };
+
 
   const deleteCliente = async (id: string) => { await deleteRow("clientes", id); invalidate(); };
 
