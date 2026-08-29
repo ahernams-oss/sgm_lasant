@@ -2782,6 +2782,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ferias_relatorio_envios: {
+        Row: {
+          created_at: string
+          destinatario: string
+          erro: string | null
+          excel_url: string | null
+          id: string
+          motivo: string | null
+          pdf_url: string | null
+          resumo: Json
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          destinatario: string
+          erro?: string | null
+          excel_url?: string | null
+          id?: string
+          motivo?: string | null
+          pdf_url?: string | null
+          resumo?: Json
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          destinatario?: string
+          erro?: string | null
+          excel_url?: string | null
+          id?: string
+          motivo?: string | null
+          pdf_url?: string | null
+          resumo?: Json
+          status?: string
+        }
+        Relationships: []
+      }
       ferramentas: {
         Row: {
           centro_custo_atual_id: string | null

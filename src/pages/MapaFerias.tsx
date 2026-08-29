@@ -17,6 +17,8 @@ import { useCargos } from "@/contexts/CargosContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { gerarPdfFerias, gerarPdfEscalaFerias, gerarExcelFerias } from "@/lib/gerarRelatoriosFerias";
+import { enviarRelatorioFeriasAgora } from "@/lib/enviarRelatorioFerias";
+import { Mail } from "lucide-react";
 
 const ANTECEDENCIAS_ALERTA = [60, 50, 40, 30, 20, 10];
 
@@ -51,6 +53,21 @@ const MapaFerias = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [escalaOpen, setEscalaOpen] = useState(false);
+  const [enviandoRh, setEnviandoRh] = useState(false);
+
+  const enviarAoRh = async () => {
+    setEnviandoRh(true);
+    try {
+      const r = await enviarRelatorioFeriasAgora("Envio manual pelo Mapa de Férias", { ignorarIntervalo: true });
+      if (r.enviado) toast.success("Relatórios (PDF e Excel) enviados ao e-mail do RH.");
+      else toast.error(r.motivoSkip || "Não foi possível enviar.");
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Erro ao enviar relatórios ao RH.");
+    } finally {
+      setEnviandoRh(false);
+    }
+  };
 
   const fetchFerias = async () => {
     setLoading(true);
@@ -228,6 +245,9 @@ const MapaFerias = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={enviarAoRh} disabled={enviandoRh}>
+            <Mail className="h-4 w-4 mr-2" /> {enviandoRh ? "Enviando..." : "Enviar ao RH"}
+          </Button>
           <Button variant="outline" onClick={() => setEscalaOpen(true)}>
             <CalendarClock className="h-4 w-4 mr-2" /> Escala Sugerida
           </Button>
@@ -461,6 +481,11 @@ const MapaFerias = () => {
       <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1">
         <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> CLT - Art. 134</p>
         <p>O período de concessão das férias é de até 12 meses após o término do período aquisitivo.</p>
+        <p>
+          Envio automático: a cada atualização do mapa de férias (inclusão, exclusão ou anexo), o sistema gera os
+          relatórios em PDF e Excel e envia por e-mail ao RH (endereço de RH em Dados da Empresa). Alterações em
+          sequência são agrupadas em um único envio, com intervalo mínimo de 15 minutos entre disparos automáticos.
+        </p>
       </div>
     </div>
   );

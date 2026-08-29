@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Trash2, Upload, FileText, AlertTriangle, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { agendarEnvioRelatorioFerias } from "@/lib/enviarRelatorioFerias";
 
 const STATUS_OPTIONS = ["A vencer", "Programada", "Em gozo", "Concluída", "Vencida"];
 
@@ -131,6 +132,7 @@ export function FeriasTab({ funcionarioId, funcionarioNome, dataAdmissao }: Prop
     });
     if (error) { console.error(error); toast.error('Erro ao adicionar férias.'); return; }
     toast.success('Período de férias cadastrado.');
+    agendarEnvioRelatorioFerias(`Novo período de férias de ${funcionarioNome}`);
     setForm({
       periodo_aquisitivo_inicio: "", periodo_aquisitivo_fim: "", data_limite_concessao: "",
       dias_direito: 30, data_inicio_gozo: "", data_fim_gozo: "", dias_gozados: 0, dias_abonados: 0,
@@ -142,7 +144,11 @@ export function FeriasTab({ funcionarioId, funcionarioNome, dataAdmissao }: Prop
   const handleDelete = async (id: string) => {
     const { error } = await (supabase as any).from('ferias').delete().eq('id', id);
     if (error) toast.error('Erro ao remover.');
-    else { toast.success('Removido.'); fetchFerias(); }
+    else {
+      toast.success('Removido.');
+      agendarEnvioRelatorioFerias(`Período de férias removido (${funcionarioNome})`);
+      fetchFerias();
+    }
   };
 
   const handleUpload = async (id: string, file: File) => {
@@ -154,6 +160,7 @@ export function FeriasTab({ funcionarioId, funcionarioNome, dataAdmissao }: Prop
     const { data: urlData } = supabase.storage.from('ferias-comprovantes').getPublicUrl(filePath);
     await (supabase as any).from('ferias').update({ anexo_url: urlData.publicUrl, anexo_nome: file.name }).eq('id', id);
     toast.success('Comprovante anexado.');
+    agendarEnvioRelatorioFerias(`Comprovante de férias anexado (${funcionarioNome})`);
     setUploading(false);
     fetchFerias();
   };
