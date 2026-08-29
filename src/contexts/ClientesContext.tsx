@@ -58,7 +58,7 @@ export interface Contrato {
 }
 export interface LinhaFornecimento {
   id: string; materialId: string; codigo: string; descricao: string;
-  tipo: "Material" | "Serviço"; unidadeMedida: string; observacao?: string;
+  tipo: "Material" | "Serviço" | "Grupo de Compras"; unidadeMedida: string; observacao?: string;
 }
 export interface Cliente {
 
