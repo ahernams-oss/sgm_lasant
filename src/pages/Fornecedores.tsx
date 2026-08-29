@@ -14,6 +14,8 @@ import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import DadosBancariosTab from "@/components/DadosBancariosTab";
+import LinhasFornecimentoTab from "@/components/LinhasFornecimentoTab";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissao } from "@/hooks/usePermissao";
 
@@ -144,7 +146,9 @@ const Fornecedores = () => {
       locais: id ? (clientes.find(c => c.id === id)?.locais || []) : [],
       locaisEntrega: id ? (clientes.find(c => c.id === id)?.locaisEntrega || []) : [],
       contratos: id ? (clientes.find(c => c.id === id)?.contratos || []) : [],
+      linhasFornecimento: id ? (clientes.find(c => c.id === id)?.linhasFornecimento || []) : [],
     };
+
     if (id) {
       updateCliente(id, fullData);
       toast.success("Fornecedor atualizado com sucesso!");
