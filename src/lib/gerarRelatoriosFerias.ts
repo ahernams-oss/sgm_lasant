@@ -76,7 +76,7 @@ function rodape(doc: jsPDF) {
   }
 }
 
-export function gerarPdfFerias(rows: FeriasReportRow[]) {
+export function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob" }) {
   const doc = new jsPDF({ orientation: "landscape" });
   cabecalho(doc, "Relatório de Mapa de Férias", rows.length);
 
@@ -134,10 +134,11 @@ export function gerarPdfFerias(rows: FeriasReportRow[]) {
   });
 
   rodape(doc);
+  if (opts?.output === "blob") return doc.output("blob");
   doc.save("relatorio-mapa-ferias.pdf");
 }
 
-export function gerarPdfEscalaFerias(escala: EscalaReportRow[]) {
+export function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
   const doc = new jsPDF({ orientation: "landscape" });
   cabecalho(doc, "Escala Sugerida de Férias", escala.length);
 
@@ -173,10 +174,11 @@ export function gerarPdfEscalaFerias(escala: EscalaReportRow[]) {
   });
 
   rodape(doc);
+  if (opts?.output === "blob") return doc.output("blob");
   doc.save("escala-sugerida-ferias.pdf");
 }
 
-export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRow[]) {
+export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
   const wb = XLSX.utils.book_new();
 
   const mapa = rows.map((r) => ({
@@ -235,5 +237,9 @@ export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRo
   ws3["!cols"] = [{ wch: 30 }, { wch: 12 }];
   XLSX.utils.book_append_sheet(wb, ws3, "Resumo");
 
+  if (opts?.output === "blob") {
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    return new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
   XLSX.writeFile(wb, "relatorio-mapa-ferias.xlsx");
 }
