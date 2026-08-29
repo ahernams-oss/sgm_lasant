@@ -78,7 +78,7 @@ export interface Cliente {
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
   contratos: Contrato[];
-  linhasFornecimento: LinhaFornecimento[];
+  linhasFornecimento?: LinhaFornecimento[];
 
 }
 
