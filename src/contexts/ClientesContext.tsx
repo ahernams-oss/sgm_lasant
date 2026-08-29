@@ -56,7 +56,12 @@ export interface Contrato {
   meta1?: string; meta2?: string; meta3?: string;
   faturamentos: Faturamento[];
 }
+export interface LinhaFornecimento {
+  id: string; materialId: string; codigo: string; descricao: string;
+  tipo: "Material" | "Serviço"; unidadeMedida: string; observacao?: string;
+}
 export interface Cliente {
+
   id: string; codigo?: number; tipo: "Cliente" | "Fornecedor"; nome: string; nomeFantasia: string;
   cnpj: string; inscricaoEstadual: string; inscricaoMunicipal: string; esfera: string; descricao: string; cap: string;
   email: string; emailEngenharia: string; emailOsCc: string; emailOsBcc: string;
@@ -73,6 +78,8 @@ export interface Cliente {
   locais: LocalCliente[];
   locaisEntrega: LocalEntrega[];
   contratos: Contrato[];
+  linhasFornecimento?: LinhaFornecimento[];
+
 }
 
 interface ClientesContextType {
@@ -103,6 +110,8 @@ const rowToCliente = (r: any): Cliente => ({
   modeloOsId: r.modelo_os_id ?? "",
   informacoesFinanceiras: r.informacoes_financeiras ?? [],
   locais: r.locais ?? [], locaisEntrega: r.locais_entrega ?? [], contratos: r.contratos ?? [],
+  linhasFornecimento: r.linhas_fornecimento ?? [],
+
 });
 
 const clienteToRow = (c: Omit<Cliente, "id">) => ({
@@ -123,6 +132,8 @@ const clienteToRow = (c: Omit<Cliente, "id">) => ({
   modelo_os_id: c.modeloOsId || null,
   informacoes_financeiras: c.informacoesFinanceiras as any,
   locais: c.locais as any, locais_entrega: c.locaisEntrega as any, contratos: c.contratos as any,
+  linhas_fornecimento: (c.linhasFornecimento ?? []) as any,
+
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {

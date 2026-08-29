@@ -14,6 +14,8 @@ import { useClientes, type Cliente } from "@/contexts/ClientesContext";
 import ClienteForm, { emptyForm, type FormData } from "@/components/ClienteForm";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import DadosBancariosTab from "@/components/DadosBancariosTab";
+import LinhasFornecimentoTab from "@/components/LinhasFornecimentoTab";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissao } from "@/hooks/usePermissao";
 
@@ -144,7 +146,9 @@ const Fornecedores = () => {
       locais: id ? (clientes.find(c => c.id === id)?.locais || []) : [],
       locaisEntrega: id ? (clientes.find(c => c.id === id)?.locaisEntrega || []) : [],
       contratos: id ? (clientes.find(c => c.id === id)?.contratos || []) : [],
+      linhasFornecimento: id ? (clientes.find(c => c.id === id)?.linhasFornecimento || []) : [],
     };
+
     if (id) {
       updateCliente(id, fullData);
       toast.success("Fornecedor atualizado com sucesso!");
@@ -163,7 +167,7 @@ const Fornecedores = () => {
 
   const handleEdit = (fornecedor: Cliente) => {
     setEditingId(fornecedor.id);
-    const { id, informacoesFinanceiras, locais, locaisEntrega, ...rest } = fornecedor;
+    const { id, informacoesFinanceiras, locais, locaisEntrega, linhasFornecimento, ...rest } = fornecedor;
     setEditingData(rest as FormData);
     setFormOpen(true);
   };
@@ -199,6 +203,13 @@ const Fornecedores = () => {
     if (!editingId) return;
     updateCliente(editingId, { informacoesFinanceiras: dados });
   };
+
+  const handleLinhasFornecimentoChange = async (linhas: any[]) => {
+    if (!editingId) return;
+    const ok = await updateCliente(editingId, { linhasFornecimento: linhas });
+    if (!ok) toast.error("Erro ao salvar linhas de fornecimento.");
+  };
+
 
   const filteredFornecedores = useMemo(() => {
     if (!search.trim()) return fornecedores;
@@ -259,6 +270,7 @@ const Fornecedores = () => {
                   <TabsList>
                     <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
                     <TabsTrigger value="dados-bancarios">Dados Bancários</TabsTrigger>
+                    <TabsTrigger value="linhas-fornecimento">Linhas de Fornecimento</TabsTrigger>
                   </TabsList>
                   <TabsContent value="cadastro" className="mt-4">
                     <ClienteForm
@@ -277,7 +289,14 @@ const Fornecedores = () => {
                       onChange={handleDadosBancariosChange}
                     />
                   </TabsContent>
+                  <TabsContent value="linhas-fornecimento" className="mt-4">
+                    <LinhasFornecimentoTab
+                      linhas={editingFornecedor?.linhasFornecimento || []}
+                      onChange={handleLinhasFornecimentoChange}
+                    />
+                  </TabsContent>
                 </Tabs>
+
               ) : (
                 <ClienteForm
                   key="new"
