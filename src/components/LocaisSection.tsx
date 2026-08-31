@@ -459,6 +459,17 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSetor(local.id, pav.id); } }}
                                     className="flex-1 h-8 text-sm"
                                   />
+                                  <div className="flex items-center gap-2 shrink-0 border rounded-md px-2 h-8 bg-background">
+                                    <Checkbox
+                                      id={`critico-novo-${pav.id}`}
+                                      checked={(novoSetorExtras[pav.id] || emptySetorExtras).critico}
+                                      onCheckedChange={(checked) => setNovoSetorExtras((prev) => ({
+                                        ...prev,
+                                        [pav.id]: { ...(prev[pav.id] || emptySetorExtras), critico: checked === true },
+                                      }))}
+                                    />
+                                    <Label htmlFor={`critico-novo-${pav.id}`} className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">Crítico</Label>
+                                  </div>
                                   <Button type="button" size="sm" onClick={() => addSetor(local.id, pav.id)} className="gap-1 shrink-0 h-8 text-xs">
                                     <Plus className="h-3 w-3" /> Adicionar
                                   </Button>
@@ -490,7 +501,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     <Upload className="h-3 w-3" /> Importar
                                   </Button>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 items-end">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2">
                                   {([
                                     ["ocupantesFixos", "Ocupantes Fixos"],
                                     ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
@@ -512,17 +523,6 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                       />
                                     </div>
                                   ))}
-                                  <div className="flex items-center gap-2 pb-1.5">
-                                    <Checkbox
-                                      id={`critico-novo-${pav.id}`}
-                                      checked={(novoSetorExtras[pav.id] || emptySetorExtras).critico}
-                                      onCheckedChange={(checked) => setNovoSetorExtras((prev) => ({
-                                        ...prev,
-                                        [pav.id]: { ...(prev[pav.id] || emptySetorExtras), critico: checked === true },
-                                      }))}
-                                    />
-                                    <Label htmlFor={`critico-novo-${pav.id}`} className="text-[10px] text-muted-foreground cursor-pointer">Crítico</Label>
-                                  </div>
                                 </div>
                                 {(!pav.setores || pav.setores.length === 0) ? (
                                   <p className="text-xs text-muted-foreground text-center py-2">Nenhum setor cadastrado.</p>
