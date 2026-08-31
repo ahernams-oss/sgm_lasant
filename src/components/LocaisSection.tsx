@@ -541,6 +541,14 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                                   className="h-6 text-xs w-40"
                                                   autoFocus
                                                 />
+                                                <div className="flex items-center gap-1.5 border rounded-md px-1.5 h-6 bg-background">
+                                                  <Checkbox
+                                                    id={`critico-edit-${setor.id}`}
+                                                    checked={editingSetorExtras.critico}
+                                                    onCheckedChange={(checked) => setEditingSetorExtras((prev) => ({ ...prev, critico: checked === true }))}
+                                                  />
+                                                  <Label htmlFor={`critico-edit-${setor.id}`} className="text-[10px] text-muted-foreground cursor-pointer whitespace-nowrap">Crítico</Label>
+                                                </div>
                                                 <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
                                                   <Check className="h-3 w-3" />
                                                 </Button>
@@ -564,14 +572,6 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                                     className="h-6 text-xs"
                                                   />
                                                 ))}
-                                                <div className="flex items-center gap-1.5">
-                                                  <Checkbox
-                                                    id={`critico-edit-${setor.id}`}
-                                                    checked={editingSetorExtras.critico}
-                                                    onCheckedChange={(checked) => setEditingSetorExtras((prev) => ({ ...prev, critico: checked === true }))}
-                                                  />
-                                                  <Label htmlFor={`critico-edit-${setor.id}`} className="text-[10px] text-muted-foreground cursor-pointer">Crítico</Label>
-                                                </div>
                                               </div>
                                             </div>
                                           ) : (
