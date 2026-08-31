@@ -1215,7 +1215,21 @@ export default function SolicitacaoServicosPage() {
                 cliente: { node: s.clienteNome || "-" },
                 local: { node: s.localDescricao || "-" },
                 pavimento: { node: s.pavimentoDescricao || "-" },
-                setor: { node: s.setorDescricao || "-" },
+                setor: {
+                  node: (
+                    <div className="flex items-center gap-1.5">
+                      {setoresCriticosIds.has(s.setorId) && (
+                        <img
+                          src={iconSetorCritico.url}
+                          alt="Setor Crítico"
+                          title="Setor Crítico"
+                          className="h-5 w-5 object-contain"
+                        />
+                      )}
+                      <span>{s.setorDescricao || "-"}</span>
+                    </div>
+                  ),
+                },
                 equipamento: { node: s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-" },
                 descricao: { node: s.descricaoServicos || "-", className: "max-w-[200px] truncate" },
                 situacao: {
