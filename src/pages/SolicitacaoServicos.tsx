@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import iconRevisao from "@/assets/icon-revisao.png";
-import iconSetorCritico from "@/assets/icone-setor-critico.png.asset.json";
+import iconSetorCritico from "@/assets/icone-setor-critico.png";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1220,7 +1220,7 @@ export default function SolicitacaoServicosPage() {
                     <div className="flex items-center gap-1.5">
                       {setoresCriticosIds.has(s.setorId) && (
                         <img
-                          src={iconSetorCritico.url}
+                          src={iconSetorCritico}
                           alt="Setor Crítico"
                           title="Setor Crítico"
                           className="h-5 w-5 object-contain"
