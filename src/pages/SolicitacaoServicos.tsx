@@ -146,6 +146,7 @@ export default function SolicitacaoServicosPage() {
       setFilterOrigem("all");
       setFilterImpresso("all");
       setFilterPrioridade("all");
+      setFilterSetorCritico("all");
       setPage(1);
       const next = new URLSearchParams(searchParams);
       next.delete("numero");
