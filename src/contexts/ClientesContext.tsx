@@ -9,6 +9,7 @@ export interface Setor {
   id: string; descricao: string; ativo: boolean;
   ocupantesFixos?: string; ocupantesFlutuantes?: string;
   largura?: string; comprimento?: string; altura?: string;
+  critico?: boolean;
 }
 export interface Pavimento { id: string; descricao: string; ativo: boolean; setores: Setor[]; }
 export interface LocalCliente {
