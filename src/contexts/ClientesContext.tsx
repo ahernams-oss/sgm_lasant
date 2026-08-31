@@ -5,7 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 
 export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; chavePix: string; }
-export interface Setor { id: string; descricao: string; ativo: boolean; }
+export interface Setor {
+  id: string; descricao: string; ativo: boolean;
+  ocupantesFixos?: string; ocupantesFlutuantes?: string;
+  largura?: string; comprimento?: string; altura?: string;
+}
 export interface Pavimento { id: string; descricao: string; ativo: boolean; setores: Setor[]; }
 export interface LocalCliente {
   id: string; descricao: string; cep: string; bairro: string; logradouro: string;

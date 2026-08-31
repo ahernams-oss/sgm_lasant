@@ -3,6 +3,7 @@ import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/Double
 import { toast } from "sonner";
 import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { LocalCliente, Pavimento, Setor } from "@/contexts/ClientesContext";
@@ -33,11 +34,14 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [newLocal, setNewLocal] = useState<Omit<LocalCliente, "id">>(emptyLocal);
   const [novoPavimento, setNovoPavimento] = useState<Record<string, string>>({});
   const [novoSetor, setNovoSetor] = useState<Record<string, string>>({});
+  const emptySetorExtras = { ocupantesFixos: "", ocupantesFlutuantes: "", largura: "", comprimento: "", altura: "" };
+  const [novoSetorExtras, setNovoSetorExtras] = useState<Record<string, typeof emptySetorExtras>>({});
   const [expandedPavId, setExpandedPavId] = useState<string | null>(null);
   const [editingPavId, setEditingPavId] = useState<string | null>(null);
   const [editingPavDesc, setEditingPavDesc] = useState("");
   const [editingSetorId, setEditingSetorId] = useState<string | null>(null);
   const [editingSetorDesc, setEditingSetorDesc] = useState("");
+  const [editingSetorExtras, setEditingSetorExtras] = useState<typeof emptySetorExtras>(emptySetorExtras);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleDelete = (id: string) => {
@@ -104,9 +108,11 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const addSetor = (localId: string, pavId: string) => {
     const desc = (novoSetor[pavId] || "").trim();
     if (!desc) { toast.error("Informe o nome do setor."); return; }
-    const setor: Setor = { id: crypto.randomUUID(), descricao: desc, ativo: true };
+    const extras = novoSetorExtras[pavId] || emptySetorExtras;
+    const setor: Setor = { id: crypto.randomUUID(), descricao: desc, ativo: true, ...extras };
     updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), setor] } : p));
     setNovoSetor((prev) => ({ ...prev, [pavId]: "" }));
+    setNovoSetorExtras((prev) => ({ ...prev, [pavId]: emptySetorExtras }));
     toast.success("Setor adicionado!");
   };
 
@@ -134,11 +140,18 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const startEditSetor = (setor: Setor) => {
     setEditingSetorId(setor.id);
     setEditingSetorDesc(setor.descricao);
+    setEditingSetorExtras({
+      ocupantesFixos: setor.ocupantesFixos || "",
+      ocupantesFlutuantes: setor.ocupantesFlutuantes || "",
+      largura: setor.largura || "",
+      comprimento: setor.comprimento || "",
+      altura: setor.altura || "",
+    });
   };
 
   const confirmEditSetor = (localId: string, pavId: string, setorId: string) => {
     if (!editingSetorDesc.trim()) { toast.error("Informe o nome do setor."); return; }
-    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, descricao: editingSetorDesc.trim() } : s) } : p));
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, descricao: editingSetorDesc.trim(), ...editingSetorExtras } : s) } : p));
     setEditingSetorId(null);
     toast.success("Setor atualizado!");
   };
@@ -475,6 +488,29 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     <Upload className="h-3 w-3" /> Importar
                                   </Button>
                                 </div>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2">
+                                  {([
+                                    ["ocupantesFixos", "Ocupantes Fixos"],
+                                    ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
+                                    ["largura", "Largura (m)"],
+                                    ["comprimento", "Comprimento (m)"],
+                                    ["altura", "Altura (m)"],
+                                  ] as const).map(([field, label]) => (
+                                    <div key={field} className="space-y-0.5">
+                                      <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                                      <Input
+                                        type="number" min="0" step="any"
+                                        placeholder={label}
+                                        value={(novoSetorExtras[pav.id] || emptySetorExtras)[field]}
+                                        onChange={(e) => setNovoSetorExtras((prev) => ({
+                                          ...prev,
+                                          [pav.id]: { ...(prev[pav.id] || emptySetorExtras), [field]: e.target.value },
+                                        }))}
+                                        className="h-8 text-sm"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
                                 {(!pav.setores || pav.setores.length === 0) ? (
                                   <p className="text-xs text-muted-foreground text-center py-2">Nenhum setor cadastrado.</p>
                                 ) : (
@@ -483,20 +519,39 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                       <div key={setor.id} className="flex items-center justify-between px-2 py-1.5">
                                         <div className="flex items-center gap-2">
                                           {editingSetorId === setor.id ? (
-                                            <div className="flex items-center gap-1">
-                                              <Input
-                                                value={editingSetorDesc}
-                                                onChange={(e) => setEditingSetorDesc(e.target.value)}
-                                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSetor(local.id, pav.id, setor.id); } if (e.key === "Escape") setEditingSetorId(null); }}
-                                                className="h-6 text-xs w-40"
-                                                autoFocus
-                                              />
-                                              <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
-                                                <Check className="h-3 w-3" />
-                                              </Button>
-                                              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSetorId(null)} className="h-6 w-6 p-0">
-                                                <X className="h-3 w-3" />
-                                              </Button>
+                                            <div className="flex-1 space-y-1.5">
+                                              <div className="flex items-center gap-1">
+                                                <Input
+                                                  value={editingSetorDesc}
+                                                  onChange={(e) => setEditingSetorDesc(e.target.value)}
+                                                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSetor(local.id, pav.id, setor.id); } if (e.key === "Escape") setEditingSetorId(null); }}
+                                                  className="h-6 text-xs w-40"
+                                                  autoFocus
+                                                />
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
+                                                  <Check className="h-3 w-3" />
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSetorId(null)} className="h-6 w-6 p-0">
+                                                  <X className="h-3 w-3" />
+                                                </Button>
+                                              </div>
+                                              <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
+                                                {([
+                                                  ["ocupantesFixos", "Ocupantes Fixos"],
+                                                  ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
+                                                  ["largura", "Largura (m)"],
+                                                  ["comprimento", "Comprimento (m)"],
+                                                  ["altura", "Altura (m)"],
+                                                ] as const).map(([field, label]) => (
+                                                  <Input
+                                                    key={field} type="number" min="0" step="any"
+                                                    placeholder={label} title={label}
+                                                    value={editingSetorExtras[field]}
+                                                    onChange={(e) => setEditingSetorExtras((prev) => ({ ...prev, [field]: e.target.value }))}
+                                                    className="h-6 text-xs"
+                                                  />
+                                                ))}
+                                              </div>
                                             </div>
                                           ) : (
                                             <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
