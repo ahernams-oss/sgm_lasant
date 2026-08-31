@@ -106,6 +106,12 @@ export default function SolicitacaoServicosPage() {
   const podeStConcluida = tem("solicitacao_servicos.status.concluida");
   const podeStEmAnalise = tem("solicitacao_servicos.status.em_analise");
 
+  const setoresCriticosIds = useMemo(() => {
+    const set = new Set<string>();
+    clientes.forEach(c => (c.locais || []).forEach(l => (l.pavimentos || []).forEach(p => (p.setores || []).forEach(st => { if (st.critico && st.id) set.add(st.id); }))));
+    return set;
+  }, [clientes]);
+
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
     { situacao, data: new Date().toISOString(), usuario: usuarioLogado?.nome || "Sistema" },
