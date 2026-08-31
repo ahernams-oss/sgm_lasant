@@ -5,6 +5,7 @@ import { Plus, Trash2, X, ChevronDown, ChevronUp, Upload, Pencil, Check, FileSpr
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { LocalCliente, Pavimento, Setor } from "@/contexts/ClientesContext";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +35,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [newLocal, setNewLocal] = useState<Omit<LocalCliente, "id">>(emptyLocal);
   const [novoPavimento, setNovoPavimento] = useState<Record<string, string>>({});
   const [novoSetor, setNovoSetor] = useState<Record<string, string>>({});
-  const emptySetorExtras = { ocupantesFixos: "", ocupantesFlutuantes: "", largura: "", comprimento: "", altura: "" };
+  const emptySetorExtras = { ocupantesFixos: "", ocupantesFlutuantes: "", largura: "", comprimento: "", altura: "", critico: false };
   const [novoSetorExtras, setNovoSetorExtras] = useState<Record<string, typeof emptySetorExtras>>({});
   const [expandedPavId, setExpandedPavId] = useState<string | null>(null);
   const [editingPavId, setEditingPavId] = useState<string | null>(null);
@@ -146,6 +147,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
       largura: setor.largura || "",
       comprimento: setor.comprimento || "",
       altura: setor.altura || "",
+      critico: setor.critico || false,
     });
   };
 
@@ -488,7 +490,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     <Upload className="h-3 w-3" /> Importar
                                   </Button>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 items-end">
                                   {([
                                     ["ocupantesFixos", "Ocupantes Fixos"],
                                     ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
@@ -510,6 +512,17 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                       />
                                     </div>
                                   ))}
+                                  <div className="flex items-center gap-2 pb-1.5">
+                                    <Checkbox
+                                      id={`critico-novo-${pav.id}`}
+                                      checked={(novoSetorExtras[pav.id] || emptySetorExtras).critico}
+                                      onCheckedChange={(checked) => setNovoSetorExtras((prev) => ({
+                                        ...prev,
+                                        [pav.id]: { ...(prev[pav.id] || emptySetorExtras), critico: checked === true },
+                                      }))}
+                                    />
+                                    <Label htmlFor={`critico-novo-${pav.id}`} className="text-[10px] text-muted-foreground cursor-pointer">Crítico</Label>
+                                  </div>
                                 </div>
                                 {(!pav.setores || pav.setores.length === 0) ? (
                                   <p className="text-xs text-muted-foreground text-center py-2">Nenhum setor cadastrado.</p>
@@ -535,7 +548,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                                   <X className="h-3 w-3" />
                                                 </Button>
                                               </div>
-                                              <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
+                                              <div className="grid grid-cols-2 md:grid-cols-5 gap-1 items-center">
                                                 {([
                                                   ["ocupantesFixos", "Ocupantes Fixos"],
                                                   ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
@@ -551,12 +564,25 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                                     className="h-6 text-xs"
                                                   />
                                                 ))}
+                                                <div className="flex items-center gap-1.5">
+                                                  <Checkbox
+                                                    id={`critico-edit-${setor.id}`}
+                                                    checked={editingSetorExtras.critico}
+                                                    onCheckedChange={(checked) => setEditingSetorExtras((prev) => ({ ...prev, critico: checked === true }))}
+                                                  />
+                                                  <Label htmlFor={`critico-edit-${setor.id}`} className="text-[10px] text-muted-foreground cursor-pointer">Crítico</Label>
+                                                </div>
                                               </div>
                                             </div>
                                           ) : (
                                             <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
                                               {setor.descricao}
                                             </span>
+                                          )}
+                                          {setor.critico && (
+                                            <Badge variant="destructive" className="text-[9px] px-1.5 py-0">
+                                              Crítico
+                                            </Badge>
                                           )}
                                           <Badge variant={setor.ativo ? "default" : "secondary"} className="text-[9px] px-1.5 py-0">
                                             {setor.ativo ? "Ativo" : "Inativo"}
