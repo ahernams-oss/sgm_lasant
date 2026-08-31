@@ -123,7 +123,7 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
-  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterCliente: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; filterPrioridade: string; }>("solicitacao_servicos_filters_v1");
+  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterCliente: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; filterPrioridade: string; filterSetorCritico: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState(_ssSavedFilters?.filterTipo ?? "all");
@@ -132,7 +132,8 @@ export default function SolicitacaoServicosPage() {
   const [filterOrigem, setFilterOrigem] = useState(_ssSavedFilters?.filterOrigem ?? "all");
   const [filterImpresso, setFilterImpresso] = useState(_ssSavedFilters?.filterImpresso ?? "all");
   const [filterPrioridade, setFilterPrioridade] = useState(_ssSavedFilters?.filterPrioridade ?? "all");
-  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, filterPrioridade });
+  const [filterSetorCritico, setFilterSetorCritico] = useState(_ssSavedFilters?.filterSetorCritico ?? "all");
+  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, filterPrioridade, filterSetorCritico });
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const numero = searchParams.get("numero");
@@ -145,6 +146,7 @@ export default function SolicitacaoServicosPage() {
       setFilterOrigem("all");
       setFilterImpresso("all");
       setFilterPrioridade("all");
+      setFilterSetorCritico("all");
       setPage(1);
       const next = new URLSearchParams(searchParams);
       next.delete("numero");
@@ -709,6 +711,9 @@ export default function SolicitacaoServicosPage() {
       result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
     }
     if (filterImpresso !== "all") result = result.filter(s => filterImpresso === "sim" ? s.impresso : !s.impresso);
+    if (filterSetorCritico !== "all") {
+      result = result.filter(s => filterSetorCritico === "sim" ? setoresCriticosIds.has(s.setorId) : !setoresCriticosIds.has(s.setorId));
+    }
 
     // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
@@ -773,7 +778,7 @@ export default function SolicitacaoServicosPage() {
     });
 
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterPrioridade, filterVisitado, filterOrigem, filterImpresso, orcamentos, sortField, sortDir]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterPrioridade, filterVisitado, filterOrigem, filterImpresso, filterSetorCritico, setoresCriticosIds, orcamentos, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -1101,6 +1106,14 @@ export default function SolicitacaoServicosPage() {
           <SelectContent>
             <SelectItem value="all">Todas as Prioridades</SelectItem>
             {PRIORIDADES.map(p => <SelectItem key={p.value} value={p.value}>{p.value}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterSetorCritico} onValueChange={v => { setFilterSetorCritico(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Setor Crítico" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Setores</SelectItem>
+            <SelectItem value="sim">Setor Crítico</SelectItem>
+            <SelectItem value="nao">Não Crítico</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterVisitado} onValueChange={v => { setFilterVisitado(v); setPage(1); }}>
