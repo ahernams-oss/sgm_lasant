@@ -11,29 +11,15 @@ interface EnvioComprasBody {
 }
 
 /**
- * Envia um e-mail do módulo de Compras para o destinatário e dispara
- * automaticamente uma cópia para EMAIL_COPIA_COMPRAS.
- * A cópia é "best-effort": falhas nela não afetam o envio principal.
+ * Envia um e-mail do módulo de Compras para o destinatário. A cópia interna
+ * para EMAIL_COPIA_COMPRAS é disparada no servidor, de forma best-effort.
  */
 export async function enviarEmailCompras({ body }: { body: EnvioComprasBody }): Promise<{ error: any }> {
   const { templateName, recipientEmail, idempotencyKey, templateData } = body;
 
-  const { error } = await supabase.functions.invoke("send-transactional-email", {
+  const { error } = await supabase.functions.invoke("send-email-compras", {
     body: { templateName, recipientEmail, idempotencyKey, templateData },
   });
-
-  if (recipientEmail?.trim().toLowerCase() !== EMAIL_COPIA_COMPRAS) {
-    supabase.functions
-      .invoke("send-transactional-email", {
-        body: {
-          templateName,
-          recipientEmail: EMAIL_COPIA_COMPRAS,
-          idempotencyKey: `${idempotencyKey}-copia`,
-          templateData: { ...templateData, copiaInterna: true, destinatarioOriginal: recipientEmail },
-        },
-      })
-      .catch(err => console.error("Falha ao enviar cópia para compras:", err));
-  }
 
   return { error };
 }
