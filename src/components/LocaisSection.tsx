@@ -107,9 +107,11 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const addSetor = (localId: string, pavId: string) => {
     const desc = (novoSetor[pavId] || "").trim();
     if (!desc) { toast.error("Informe o nome do setor."); return; }
-    const setor: Setor = { id: crypto.randomUUID(), descricao: desc, ativo: true };
+    const extras = novoSetorExtras[pavId] || emptySetorExtras;
+    const setor: Setor = { id: crypto.randomUUID(), descricao: desc, ativo: true, ...extras };
     updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: [...(p.setores || []), setor] } : p));
     setNovoSetor((prev) => ({ ...prev, [pavId]: "" }));
+    setNovoSetorExtras((prev) => ({ ...prev, [pavId]: emptySetorExtras }));
     toast.success("Setor adicionado!");
   };
 
@@ -137,11 +139,18 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const startEditSetor = (setor: Setor) => {
     setEditingSetorId(setor.id);
     setEditingSetorDesc(setor.descricao);
+    setEditingSetorExtras({
+      ocupantesFixos: setor.ocupantesFixos || "",
+      ocupantesFlutuantes: setor.ocupantesFlutuantes || "",
+      largura: setor.largura || "",
+      comprimento: setor.comprimento || "",
+      altura: setor.altura || "",
+    });
   };
 
   const confirmEditSetor = (localId: string, pavId: string, setorId: string) => {
     if (!editingSetorDesc.trim()) { toast.error("Informe o nome do setor."); return; }
-    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, descricao: editingSetorDesc.trim() } : s) } : p));
+    updatePavimentos(localId, (pavs) => pavs.map((p) => p.id === pavId ? { ...p, setores: (p.setores || []).map((s) => s.id === setorId ? { ...s, descricao: editingSetorDesc.trim(), ...editingSetorExtras } : s) } : p));
     setEditingSetorId(null);
     toast.success("Setor atualizado!");
   };
