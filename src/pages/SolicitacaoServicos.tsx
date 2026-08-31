@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import iconRevisao from "@/assets/icon-revisao.png";
+import iconSetorCritico from "@/assets/icone-setor-critico.png.asset.json";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
