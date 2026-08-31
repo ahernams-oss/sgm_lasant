@@ -487,6 +487,29 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                     <Upload className="h-3 w-3" /> Importar
                                   </Button>
                                 </div>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2">
+                                  {([
+                                    ["ocupantesFixos", "Ocupantes Fixos"],
+                                    ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
+                                    ["largura", "Largura (m)"],
+                                    ["comprimento", "Comprimento (m)"],
+                                    ["altura", "Altura (m)"],
+                                  ] as const).map(([field, label]) => (
+                                    <div key={field} className="space-y-0.5">
+                                      <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                                      <Input
+                                        type="number" min="0" step="any"
+                                        placeholder={label}
+                                        value={(novoSetorExtras[pav.id] || emptySetorExtras)[field]}
+                                        onChange={(e) => setNovoSetorExtras((prev) => ({
+                                          ...prev,
+                                          [pav.id]: { ...(prev[pav.id] || emptySetorExtras), [field]: e.target.value },
+                                        }))}
+                                        className="h-8 text-sm"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
                                 {(!pav.setores || pav.setores.length === 0) ? (
                                   <p className="text-xs text-muted-foreground text-center py-2">Nenhum setor cadastrado.</p>
                                 ) : (
@@ -495,20 +518,39 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
                                       <div key={setor.id} className="flex items-center justify-between px-2 py-1.5">
                                         <div className="flex items-center gap-2">
                                           {editingSetorId === setor.id ? (
-                                            <div className="flex items-center gap-1">
-                                              <Input
-                                                value={editingSetorDesc}
-                                                onChange={(e) => setEditingSetorDesc(e.target.value)}
-                                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSetor(local.id, pav.id, setor.id); } if (e.key === "Escape") setEditingSetorId(null); }}
-                                                className="h-6 text-xs w-40"
-                                                autoFocus
-                                              />
-                                              <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
-                                                <Check className="h-3 w-3" />
-                                              </Button>
-                                              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSetorId(null)} className="h-6 w-6 p-0">
-                                                <X className="h-3 w-3" />
-                                              </Button>
+                                            <div className="flex-1 space-y-1.5">
+                                              <div className="flex items-center gap-1">
+                                                <Input
+                                                  value={editingSetorDesc}
+                                                  onChange={(e) => setEditingSetorDesc(e.target.value)}
+                                                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmEditSetor(local.id, pav.id, setor.id); } if (e.key === "Escape") setEditingSetorId(null); }}
+                                                  className="h-6 text-xs w-40"
+                                                  autoFocus
+                                                />
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => confirmEditSetor(local.id, pav.id, setor.id)} className="h-6 w-6 p-0 text-emerald-600">
+                                                  <Check className="h-3 w-3" />
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => setEditingSetorId(null)} className="h-6 w-6 p-0">
+                                                  <X className="h-3 w-3" />
+                                                </Button>
+                                              </div>
+                                              <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
+                                                {([
+                                                  ["ocupantesFixos", "Ocupantes Fixos"],
+                                                  ["ocupantesFlutuantes", "Ocupantes Flutuantes"],
+                                                  ["largura", "Largura (m)"],
+                                                  ["comprimento", "Comprimento (m)"],
+                                                  ["altura", "Altura (m)"],
+                                                ] as const).map(([field, label]) => (
+                                                  <Input
+                                                    key={field} type="number" min="0" step="any"
+                                                    placeholder={label} title={label}
+                                                    value={editingSetorExtras[field]}
+                                                    onChange={(e) => setEditingSetorExtras((prev) => ({ ...prev, [field]: e.target.value }))}
+                                                    className="h-6 text-xs"
+                                                  />
+                                                ))}
+                                              </div>
                                             </div>
                                           ) : (
                                             <span className={`text-xs ${setor.ativo ? "text-foreground" : "text-muted-foreground line-through"}`}>
