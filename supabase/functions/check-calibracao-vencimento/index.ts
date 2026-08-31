@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
+import { enviarComLog } from "../_shared/transactional-email-templates/log-send.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -62,17 +64,15 @@ serve(async (req) => {
       // Email
       if (eq.email_responsavel_calibracao) {
         try {
-          await supabase.functions.invoke('send-transactional-email', {
-            body: {
-              templateName: 'calibracao-vencimento',
-              recipientEmail: eq.email_responsavel_calibracao,
+          await enviarComLog('calibracao-vencimento', eq.email_responsavel_calibracao, () =>
+            sendTemplateEmail('calibracao-vencimento', eq.email_responsavel_calibracao, {
               idempotencyKey: `calib-${eq.id}-${field}`,
               templateData: {
                 equipamento: eq.equipamento, tag: eq.tag || '', cliente: eq.cliente_nome,
                 vencimento: vencFmt, diasRestantes: label, laboratorio: eq.laboratorio_calibracao || '',
               },
-            },
-          });
+            })
+          );
         } catch (e) { console.error('Email:', e); }
       }
 
