@@ -660,8 +660,10 @@ export default function SolicitacaoServicosPage() {
     return p?.color || "";
   };
 
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const _ssSavedSort = loadPersistedFilters<{ sortField: string | null; sortDir: "asc" | "desc" }>("solicitacao_servicos_sort_v1");
+  const [sortField, setSortField] = useState<string | null>(_ssSavedSort?.sortField ?? null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(_ssSavedSort?.sortDir ?? "asc");
+  usePersistFilters("solicitacao_servicos_sort_v1", { sortField, sortDir });
 
   const handleSort = (field: string) => {
     if (sortField === field) {
