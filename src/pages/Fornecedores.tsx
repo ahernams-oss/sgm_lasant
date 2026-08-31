@@ -75,9 +75,8 @@ const Fornecedores = () => {
     if (!f.email) { toast.error("Fornecedor sem e-mail cadastrado."); return; }
     toast.loading("Enviando e-mail...", { id: "eml-senha" });
     try {
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
+      const { error } = await supabase.functions.invoke("send-email-senha-temporaria", {
         body: {
-          templateName: "password-reset",
           recipientEmail: f.email,
           idempotencyKey: `portal-fornecedor-${f.id}-${Date.now()}`,
           templateData: {

@@ -175,9 +175,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Envia por e-mail
     try {
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
+      const { error } = await supabase.functions.invoke("send-email-senha-temporaria", {
         body: {
-          templateName: "password-reset",
           recipientEmail: user.email,
           idempotencyKey: `pwd-reset-${user.id}-${Date.now()}`,
           templateData: {

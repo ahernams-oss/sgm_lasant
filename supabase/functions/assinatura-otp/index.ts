@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendTemplateEmail } from "../_shared/transactional-email-templates/send-email.ts";
+import { enviarComLog } from "../_shared/transactional-email-templates/log-send.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -72,19 +74,21 @@ serve(async (req) => {
       });
       if (insErr) throw new Error(insErr.message);
 
-      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "assinatura-otp",
-          recipientEmail: email,
-          templateData: {
-            nomeUsuario: usuario.nome,
-            codigo: code,
-            documento: body.documento || "",
-            papel: body.papel || "",
-          },
-        },
-      });
-      if (mailErr) throw new Error(`Falha ao enviar e-mail: ${mailErr.message}`);
+      try {
+        await enviarComLog("assinatura-otp", email, () =>
+          sendTemplateEmail("assinatura-otp", email, {
+            templateData: {
+              nomeUsuario: usuario.nome,
+              codigo: code,
+              documento: body.documento || "",
+              papel: body.papel || "",
+            },
+          })
+        );
+      } catch (mailErr) {
+        const m = mailErr instanceof Error ? mailErr.message : String(mailErr);
+        throw new Error(`Falha ao enviar e-mail: ${m}`);
+      }
 
       return json({ success: true, email_mascarado: mascararEmail(email) });
     }

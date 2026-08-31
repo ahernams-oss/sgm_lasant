@@ -187,9 +187,8 @@ export async function enviarRelatorioFeriasAgora(
     .select("id")
     .maybeSingle();
 
-  const { error } = await supabase.functions.invoke("send-transactional-email", {
+  const { error } = await supabase.functions.invoke("send-email-mapa-ferias", {
     body: {
-      templateName: "mapa-ferias-relatorio",
       recipientEmail: destinatario,
       idempotencyKey: `mapa-ferias-${stamp}`,
       templateData: {
