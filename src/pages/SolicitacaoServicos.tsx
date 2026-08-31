@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import iconRevisao from "@/assets/icon-revisao.png";
+import iconSetorCritico from "@/assets/icone-setor-critico.png.asset.json";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +105,12 @@ export default function SolicitacaoServicosPage() {
   const podeStCancelada = tem("solicitacao_servicos.status.cancelada");
   const podeStConcluida = tem("solicitacao_servicos.status.concluida");
   const podeStEmAnalise = tem("solicitacao_servicos.status.em_analise");
+
+  const setoresCriticosIds = useMemo(() => {
+    const set = new Set<string>();
+    clientes.forEach(c => (c.locais || []).forEach(l => (l.pavimentos || []).forEach(p => (p.setores || []).forEach(st => { if (st.critico && st.id) set.add(st.id); }))));
+    return set;
+  }, [clientes]);
 
   const buildHistoricoEntry = (situacao: string, existingHistorico: HistoricoEntry[] = []): HistoricoEntry[] => [
     ...existingHistorico,
@@ -1208,7 +1215,21 @@ export default function SolicitacaoServicosPage() {
                 cliente: { node: s.clienteNome || "-" },
                 local: { node: s.localDescricao || "-" },
                 pavimento: { node: s.pavimentoDescricao || "-" },
-                setor: { node: s.setorDescricao || "-" },
+                setor: {
+                  node: (
+                    <div className="flex items-center gap-1.5">
+                      {setoresCriticosIds.has(s.setorId) && (
+                        <img
+                          src={iconSetorCritico.url}
+                          alt="Setor Crítico"
+                          title="Setor Crítico"
+                          className="h-5 w-5 object-contain"
+                        />
+                      )}
+                      <span>{s.setorDescricao || "-"}</span>
+                    </div>
+                  ),
+                },
                 equipamento: { node: s.tipo === "Equipamentos" ? (s.equipamentoNome || "-") : "-" },
                 descricao: { node: s.descricaoServicos || "-", className: "max-w-[200px] truncate" },
                 situacao: {
