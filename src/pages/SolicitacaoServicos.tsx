@@ -1108,6 +1108,14 @@ export default function SolicitacaoServicosPage() {
             {PRIORIDADES.map(p => <SelectItem key={p.value} value={p.value}>{p.value}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filterSetorCritico} onValueChange={v => { setFilterSetorCritico(v); setPage(1); }}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Setor Crítico" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Setores</SelectItem>
+            <SelectItem value="sim">Setor Crítico</SelectItem>
+            <SelectItem value="nao">Não Crítico</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={filterVisitado} onValueChange={v => { setFilterVisitado(v); setPage(1); }}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Visitado" /></SelectTrigger>
           <SelectContent>
