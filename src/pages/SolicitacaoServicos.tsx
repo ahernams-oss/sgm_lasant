@@ -711,6 +711,9 @@ export default function SolicitacaoServicosPage() {
       result = result.filter(s => filterOrigem === "orcamento" ? idsComOrcamento.has(s.id) : !idsComOrcamento.has(s.id));
     }
     if (filterImpresso !== "all") result = result.filter(s => filterImpresso === "sim" ? s.impresso : !s.impresso);
+    if (filterSetorCritico !== "all") {
+      result = result.filter(s => filterSetorCritico === "sim" ? setoresCriticosIds.has(s.setorId) : !setoresCriticosIds.has(s.setorId));
+    }
 
     // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
