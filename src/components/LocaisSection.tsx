@@ -33,11 +33,14 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
   const [newLocal, setNewLocal] = useState<Omit<LocalCliente, "id">>(emptyLocal);
   const [novoPavimento, setNovoPavimento] = useState<Record<string, string>>({});
   const [novoSetor, setNovoSetor] = useState<Record<string, string>>({});
+  const emptySetorExtras = { ocupantesFixos: "", ocupantesFlutuantes: "", largura: "", comprimento: "", altura: "" };
+  const [novoSetorExtras, setNovoSetorExtras] = useState<Record<string, typeof emptySetorExtras>>({});
   const [expandedPavId, setExpandedPavId] = useState<string | null>(null);
   const [editingPavId, setEditingPavId] = useState<string | null>(null);
   const [editingPavDesc, setEditingPavDesc] = useState("");
   const [editingSetorId, setEditingSetorId] = useState<string | null>(null);
   const [editingSetorDesc, setEditingSetorDesc] = useState("");
+  const [editingSetorExtras, setEditingSetorExtras] = useState<typeof emptySetorExtras>(emptySetorExtras);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
   const handleDelete = (id: string) => {
