@@ -292,14 +292,14 @@ Deno.serve(async (req) => {
       const ids = [...new Set((data ?? []).map((s: any) => s.funcionario_id).filter(Boolean))];
       let nomes: Record<string, any> = {};
       if (ids.length) {
-        const { data: fs } = await sb.from("funcionarios").select("id,nome,cargo_id,cliente_nome").in("id", ids);
+        const { data: fs } = await sb.from("funcionarios").select("id,nome,cargo_id,cliente_id").in("id", ids);
         nomes = Object.fromEntries((fs ?? []).map((f: any) => [f.id, f]));
       }
       return json({
         solicitacoes: (data ?? []).map((s: any) => ({
           ...s,
           funcionario_nome: nomes[s.funcionario_id]?.nome ?? null,
-          cliente_nome: nomes[s.funcionario_id]?.cliente_nome ?? null,
+          cliente_id: nomes[s.funcionario_id]?.cliente_id ?? null,
         })),
       });
     }
