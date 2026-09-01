@@ -93,6 +93,7 @@ import { NrsCatalogoProvider } from "@/contexts/NrsCatalogoContext";
 import ExamesPage from "./pages/ExamesPage.tsx";
 import UnsubscribePage from "./pages/Unsubscribe.tsx";
 import PortalCandidato from "./pages/PortalCandidato.tsx";
+import SolicitacoesPortalRH from "./pages/rh/SolicitacoesPortal";
 import { PortalAuthProvider } from "@/contexts/PortalAuthContext";
 import PortalLogin from "./pages/portal/PortalLogin";
 import PortalCadastrarSenha from "./pages/portal/PortalCadastrarSenha";
@@ -251,6 +252,7 @@ function ProtectedAppRoutes() {
         <Route path="/epis/devolucoes" element={<RotaProtegida perm="funcionarios"><EpisDevolucoesProvider><EpisDevolucoes /></EpisDevolucoesProvider></RotaProtegida>} />
         <Route path="/epis/prontuario" element={<RotaProtegida perm="funcionarios"><EpisDevolucoesProvider><ProntuarioEpis /></EpisDevolucoesProvider></RotaProtegida>} />
         <Route path="/rh/treinamentos" element={<RotaProtegida perm="funcionarios"><Treinamentos /></RotaProtegida>} />
+        <Route path="/rh/solicitacoes-portal" element={<RotaProtegida perm="funcionarios"><SolicitacoesPortalRH /></RotaProtegida>} />
         <Route path="/rh/importar-holerites" element={<RotaProtegida perm="funcionarios"><ImportarHolerites /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
