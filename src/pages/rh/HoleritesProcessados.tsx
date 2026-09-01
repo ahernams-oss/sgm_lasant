@@ -438,18 +438,18 @@ export default function HoleritesProcessados() {
                           }
                         />
                       </TableHead>
-                      <TableHead>Competência</TableHead>
-                      <TableHead>Funcionário</TableHead>
-                      <TableHead>CPF</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead className="text-right">Salário base</TableHead>
-                      <TableHead className="text-right">Horas</TableHead>
-                      <TableHead className="text-right">Horas extras</TableHead>
-                      <TableHead className="text-right">Valor HE</TableHead>
-                      <TableHead className="text-right">Proventos</TableHead>
-                      <TableHead className="text-right">Descontos</TableHead>
-                      <TableHead className="text-right">Líquido</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
+                      {cabecalhoOrdenavel("competencia", "Competência")}
+                      {cabecalhoOrdenavel("funcionario_id", "Funcionário")}
+                      {cabecalhoOrdenavel("cpf_detectado", "CPF")}
+                      {cabecalhoOrdenavel("tipo", "Tipo")}
+                      {cabecalhoOrdenavel("salario_base", "Salário base", "right")}
+                      {cabecalhoOrdenavel("horas_trabalhadas", "Horas", "right")}
+                      {cabecalhoOrdenavel("horas_extras", "Horas extras", "right")}
+                      {cabecalhoOrdenavel("valor_horas_extras", "Valor HE", "right")}
+                      {cabecalhoOrdenavel("total_proventos", "Proventos", "right")}
+                      {cabecalhoOrdenavel("total_descontos", "Descontos", "right")}
+                      {cabecalhoOrdenavel("valor_liquido", "Líquido", "right")}
+                      {cabecalhoOrdenavel("status", "Status", "center")}
                       <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
