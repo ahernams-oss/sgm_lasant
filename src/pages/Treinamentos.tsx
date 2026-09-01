@@ -13,10 +13,12 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown } from "lucide-react";
+import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown, Award } from "lucide-react";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { exportarTreinamentosCsv, exportarTreinamentosPdf, type TreinamentoExportRow } from "@/lib/exportTreinamentos";
+import { imprimirCertificadoTreinamento, baixarCertificadoTreinamento } from "@/lib/gerarPdfCertificadoTreinamento";
+import { useEmpresa } from "@/contexts/EmpresaContext";
 
 interface Treinamento {
   id: string;
@@ -66,6 +68,7 @@ const emptyForm: FormState = { cpf: "", tipo: "integracao", titulo: "", status: 
 
 export default function Treinamentos() {
   const { funcionarios } = useFuncionarios();
+  const { empresa } = useEmpresa();
   const [list, setList] = useState<Treinamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -167,6 +170,35 @@ export default function Treinamentos() {
     if (error) return toast.error(error.message);
     toast.success("Treinamento concluído.");
     carregar();
+  };
+
+  const dadosCertificado = (t: Treinamento) => ({
+    funcionario: nomePorCpf.get(onlyDigits(t.cpf)) ?? "—",
+    cpf: t.cpf,
+    titulo: t.titulo,
+    tipo: TIPOS.find((x) => x.v === t.tipo)?.l ?? t.tipo,
+    nota: t.nota != null ? String(t.nota) : null,
+    concluidoEm: t.concluido_em,
+    codigo: t.id.slice(0, 8).toUpperCase(),
+  });
+
+  const empresaCertificado = () => ({
+    razaoSocial: empresa?.razaoSocial,
+    nomeFantasia: empresa?.nomeFantasia,
+    cnpj: empresa?.cnpj,
+    cidade: empresa?.cidade,
+    uf: empresa?.uf,
+    logoUrl: empresa?.logoUrl,
+  });
+
+  const certificado = async (t: Treinamento, modo: "imprimir" | "baixar") => {
+    if (t.status !== "concluido") return toast.error("Só é possível emitir certificado de treinamento concluído.");
+    try {
+      const fn = modo === "imprimir" ? imprimirCertificadoTreinamento : baixarCertificadoTreinamento;
+      await fn(dadosCertificado(t), empresaCertificado());
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao gerar certificado.");
+    }
   };
 
   const funcionarioSelecionado = funcionarios.find((f) => onlyDigits(f.cpf) === onlyDigits(form.cpf));
@@ -292,6 +324,16 @@ export default function Treinamentos() {
                           <DropdownMenuItem onClick={() => abrirEdicao(t)}>Editar</DropdownMenuItem>
                           {t.status !== "concluido" && (
                             <DropdownMenuItem onClick={() => marcarConcluido(t)}>Marcar como concluído</DropdownMenuItem>
+                          )}
+                          {t.status === "concluido" && (
+                            <>
+                              <DropdownMenuItem onClick={() => certificado(t, "imprimir")}>
+                                <Award className="w-4 h-4 mr-2" />Imprimir certificado
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => certificado(t, "baixar")}>
+                                <FileDown className="w-4 h-4 mr-2" />Baixar certificado (PDF)
+                              </DropdownMenuItem>
+                            </>
                           )}
                           <DropdownMenuItem className="text-destructive" onClick={() => setExcluirId(t.id)}>
                             Excluir
