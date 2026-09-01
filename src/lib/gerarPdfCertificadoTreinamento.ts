@@ -12,6 +12,10 @@ export interface CertificadoTreinamentoDados {
   assinadoEm?: string | null;
   assinaturaHash?: string | null;
   assinaturaIp?: string | null;
+  respAssinadoEm?: string | null;
+  respAssinanteNome?: string | null;
+  respAssinanteCargo?: string | null;
+  respAssinaturaHash?: string | null;
 }
 
 export interface EmpresaCertificado {
@@ -161,6 +165,16 @@ export async function gerarPdfCertificadoTreinamento(
     doc.setFontSize(6.5);
     doc.setTextColor(130, 130, 130);
     doc.text("Assinatura eletrônica com aceite e autenticação de senha — MP 2.200-2/2001.", pw / 2, vy + 22, { align: "center" });
+    if (dados.respAssinadoEm && dados.respAssinanteNome) {
+      doc.setFontSize(7);
+      doc.setTextColor(90, 90, 90);
+      doc.text(
+        `Responsável: ${dados.respAssinanteNome}${dados.respAssinanteCargo ? ` (${dados.respAssinanteCargo})` : ""} — assinado eletronicamente em ${new Date(dados.respAssinadoEm).toLocaleString("pt-BR")}`,
+        pw / 2,
+        vy - 10,
+        { align: "center" },
+      );
+    }
     doc.setFontSize(7);
     doc.setTextColor(140, 140, 140);
     const local2 = [empresa?.cidade, empresa?.uf].filter(Boolean).join("/");
@@ -175,16 +189,40 @@ export async function gerarPdfCertificadoTreinamento(
     return doc;
   }
 
-  // Assinatura
+  // Assinatura do responsável
   const assY = ph - 40;
-  doc.setDrawColor(120, 120, 120);
-  doc.setLineWidth(0.3);
-  doc.line(pw / 2 - 45, assY, pw / 2 + 45, assY);
-  doc.setFontSize(9);
-  doc.setTextColor(80, 80, 80);
-  doc.text(empresa?.razaoSocial || "Responsável Técnico", pw / 2, assY + 5, { align: "center" });
-  doc.setFontSize(8);
-  doc.text("Responsável pelo treinamento", pw / 2, assY + 10, { align: "center" });
+  if (dados.respAssinadoEm && dados.respAssinaturaHash) {
+    doc.setDrawColor(...DARK_BLUE);
+    doc.setLineWidth(0.3);
+    doc.line(pw / 2 - 55, assY, pw / 2 + 55, assY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...DARK_BLUE);
+    doc.text(dados.respAssinanteNome || empresa?.razaoSocial || "Responsável Técnico", pw / 2, assY + 5, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text(
+      `${dados.respAssinanteCargo ? `${dados.respAssinanteCargo} — ` : ""}Assinado eletronicamente em ${new Date(dados.respAssinadoEm).toLocaleString("pt-BR")}`,
+      pw / 2,
+      assY + 10,
+      { align: "center" },
+    );
+    doc.setFont("courier", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`SHA-256: ${dados.respAssinaturaHash}`, pw / 2, assY + 14.5, { align: "center", maxWidth: pw - 60 });
+    doc.setFont("helvetica", "normal");
+  } else {
+    doc.setDrawColor(120, 120, 120);
+    doc.setLineWidth(0.3);
+    doc.line(pw / 2 - 45, assY, pw / 2 + 45, assY);
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(empresa?.razaoSocial || "Responsável Técnico", pw / 2, assY + 5, { align: "center" });
+    doc.setFontSize(8);
+    doc.text("Responsável pelo treinamento", pw / 2, assY + 10, { align: "center" });
+  }
 
   // Rodapé
   doc.setFontSize(7);
