@@ -128,6 +128,43 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "avaliacoes_desempenho.excluir", label: "Pode Excluir Avaliação" },
         ],
       },
+      {
+        key: "rh_holerites",
+        label: "Holerites (Importação e Processados)",
+        acoes: [
+          { key: "rh_holerites.importar", label: "Pode Importar Holerites (PDF/Excel)" },
+          { key: "rh_holerites.processar", label: "Pode Processar Lote de Holerites" },
+          { key: "rh_holerites.publicar", label: "Pode Publicar/Despublicar Holerites no Portal" },
+          { key: "rh_holerites.imprimir", label: "Pode Imprimir/Baixar PDF de Holerites" },
+        ],
+      },
+      {
+        key: "rh_treinamentos",
+        label: "Treinamentos",
+        acoes: [
+          { key: "rh_treinamentos.criar", label: "Pode Cadastrar Treinamento" },
+          { key: "rh_treinamentos.editar", label: "Pode Editar Treinamento" },
+          { key: "rh_treinamentos.excluir", label: "Pode Excluir Treinamento" },
+          { key: "rh_treinamentos.assinar_certificado", label: "Pode Assinar Certificado Eletronicamente" },
+          { key: "rh_treinamentos.imprimir_certificado", label: "Pode Imprimir/Baixar Certificado (PDF)" },
+        ],
+      },
+      {
+        key: "rh_solicitacoes_portal",
+        label: "Solicitações do Portal (RH)",
+        acoes: [
+          { key: "rh_solicitacoes_portal.visualizar", label: "Pode Visualizar Solicitações do Portal" },
+          { key: "rh_solicitacoes_portal.responder", label: "Pode Responder/Concluir Solicitações" },
+        ],
+      },
+      {
+        key: "epis_devolucoes",
+        label: "Devolução de EPIs",
+        acoes: [
+          { key: "epis_devolucoes.registrar", label: "Pode Registrar Devolução de EPI" },
+          { key: "epis_devolucoes.exportar", label: "Pode Exportar Relatório de Devoluções" },
+        ],
+      },
     ],
   },
   {
@@ -257,6 +294,20 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "fabricantes.criar", label: "Pode Cadastrar Fabricante" },
           { key: "fabricantes.editar", label: "Pode Editar Fabricante" },
           { key: "fabricantes.excluir", label: "Pode Excluir Fabricante" },
+        ],
+      },
+      {
+        key: "pregao",
+        label: "Pregão Eletrônico",
+        acoes: [
+          { key: "pregao.criar", label: "Pode Criar Pregão" },
+          { key: "pregao.editar", label: "Pode Editar Pregão" },
+          { key: "pregao.excluir", label: "Pode Excluir Pregão" },
+          { key: "pregao.gerenciar_itens", label: "Pode Gerenciar Itens do Pregão" },
+          { key: "pregao.gerenciar_participantes", label: "Pode Gerenciar Participantes/Fornecedores" },
+          { key: "pregao.gerenciar_habilitacao", label: "Pode Gerenciar Habilitação" },
+          { key: "pregao.sala_disputa", label: "Pode Operar a Sala de Disputa (Lances)" },
+          { key: "pregao.exportar_ata", label: "Pode Exportar Ata/Resultado (PDF)" },
         ],
       },
     ],
