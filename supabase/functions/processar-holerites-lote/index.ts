@@ -174,6 +174,12 @@ serve(async (req) => {
         lote_id: loteId, pagina: i + 1,
         cpf_detectado: extracted.cpf, nome_detectado: extracted.nome,
         funcionario_id, tipo: extracted.tipo, valor_liquido: extracted.valor_liquido,
+        salario_base: extracted.salario_base,
+        horas_trabalhadas: extracted.horas_trabalhadas,
+        horas_extras: extracted.horas_extras,
+        valor_horas_extras: extracted.valor_horas_extras,
+        total_proventos: extracted.total_proventos,
+        total_descontos: extracted.total_descontos,
         status_match, pdf_pagina_base64: b64,
       };
     }));
