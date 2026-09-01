@@ -63,6 +63,24 @@ export default function HoleritesProcessados() {
   const [tipo, setTipo] = useState<string>("todos");
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(20);
+  const [processando, setProcessando] = useState<string | null>(null);
+
+  const alternarPublicacao = async (r: Registro) => {
+    const acao = r.publicado ? "despublicar" : "publicar";
+    if (!r.publicado && !r.funcionario_id) {
+      toast.error("Vincule o funcionário no lote antes de publicar.");
+      return;
+    }
+    setProcessando(r.id);
+    const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
+      body: { item_id: r.id, acao },
+    });
+    setProcessando(null);
+    const err = error?.message || (data as any)?.error;
+    if (err) { toast.error(err); return; }
+    setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: !r.publicado } : x)));
+    toast.success(r.publicado ? "Holerite despublicado do portal." : "Holerite publicado no portal.");
+  };
 
   const carregar = async () => {
     setLoading(true);
