@@ -356,7 +356,7 @@ export default function HoleritesProcessados() {
                     ))}
                     {!visiveis.length && (
                       <TableRow>
-                        <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={14} className="text-center text-muted-foreground py-8">
                           Nenhum holerite processado com os filtros atuais.
                         </TableCell>
                       </TableRow>
