@@ -1159,28 +1159,39 @@ export default function CotacaoComprasPage() {
       const nomeEmpresa = empresa.nomeFantasia || empresa.razaoSocial || "SGM";
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
+      // Resposta imediata: o convite já está gravado. Envio dos canais em segundo plano.
       const canais: string[] = [];
-      if (canalEmail && enviarEmail) {
-        const { error: emailErr } = await enviarEmailCompras({
-          body: {
-            templateName: "cotacao-confirmation",
-            recipientEmail: enviarEmail,
-            idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
-            templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
-          },
-        });
-        if (emailErr) throw emailErr;
-        canais.push("e-mail");
-      }
-      if (canalWhatsapp && enviarTelefone) {
-        const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
-        const r = await enviarWhatsApp(enviarTelefone, msg);
-        if (r.success) canais.push("WhatsApp");
-        else toast({ title: "Falha no envio do WhatsApp", description: r.error, variant: "destructive" });
-      }
+      if (canalEmail && enviarEmail) canais.push("e-mail");
+      if (canalWhatsapp && enviarTelefone) canais.push("WhatsApp");
 
-      toast({ title: `Cotação enviada para ${forn.nome}!`, description: `Canais: ${canais.join(" + ") || "nenhum"}` });
+      toast({
+        title: `Convite criado para ${forn.nome}!`,
+        description: canais.length ? `Enviando por ${canais.join(" + ")} em segundo plano...` : "Nenhum canal selecionado",
+      });
       setEnviarDialogOpen(false);
+
+      void (async () => {
+        if (canalEmail && enviarEmail) {
+          const { error: emailErr } = await enviarEmailCompras({
+            body: {
+              templateName: "cotacao-confirmation",
+              recipientEmail: enviarEmail,
+              idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
+              templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
+            },
+          });
+          if (emailErr) {
+            toast({ title: "Falha no envio do e-mail", description: String((emailErr as any)?.message || emailErr), variant: "destructive" });
+          }
+        }
+        if (canalWhatsapp && enviarTelefone) {
+          const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
+          const r = await enviarWhatsApp(enviarTelefone, msg);
+          if (!r.success) {
+            toast({ title: "Falha no envio do WhatsApp", description: r.error, variant: "destructive" });
+          }
+        }
+      })();
     } catch (e: any) {
       console.error(e);
       toast({ title: "Erro ao enviar cotação", description: e.message, variant: "destructive" });
@@ -1188,6 +1199,7 @@ export default function CotacaoComprasPage() {
       setEnviarLoading(false);
     }
   };
+
 
   // Gerar + enviar para todos em um clique (e-mail + WhatsApp)
   const handleGerarEEnviarTodos = async () => {
