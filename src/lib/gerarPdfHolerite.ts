@@ -176,12 +176,33 @@ function desenharHolerite(doc: jsPDF, d: HoleriteDados, empresa?: EmpresaHolerit
     y
   );
   y += 16;
+  if (d.assinaturaImagem) {
+    try {
+      doc.addImage(d.assinaturaImagem, "PNG", ml, y - 14, 55, 16);
+    } catch { /* imagem inválida: mantém linha em branco */ }
+  }
   doc.line(ml, y, ml + w * 0.5, y);
   doc.text("Assinatura do funcionário", ml, y + 4);
-  doc.text(`Data: ____/____/________`, ml + w - 3, y + 4, { align: "right" });
+  const dataAssin = d.assinadoEm
+    ? new Date(d.assinadoEm).toLocaleDateString("pt-BR")
+    : "____/____/________";
+  doc.text(`Data: ${dataAssin}`, ml + w - 3, y + 4, { align: "right" });
+  if (d.assinadoEm) {
+    doc.setFontSize(6.5);
+    doc.setTextColor(110);
+    const detalhes = [
+      `Assinado eletronicamente em ${new Date(d.assinadoEm).toLocaleString("pt-BR")}`,
+      d.assinaturaHash ? `Código de verificação: ${d.assinaturaHash}` : "",
+      d.assinaturaIp ? `IP: ${d.assinaturaIp}` : "",
+    ].filter(Boolean).join(" — ");
+    doc.text(detalhes, ml, y + 9);
+    doc.setTextColor(0);
+    doc.setFontSize(8);
+  }
 
-  return y + 10;
+  return y + 14;
 }
+
 
 export function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
   const lista = Array.isArray(dados) ? dados : [dados];
