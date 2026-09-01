@@ -167,7 +167,7 @@ function desenharHolerite(doc: jsPDF, d: HoleriteDados, empresa?: EmpresaHolerit
   doc.text(`R$ ${money(d.valorLiquido)}`, ml + w - 3, y + 7.5, { align: "right" });
   y += liqH + 14;
 
-  // Assinatura
+  // Assinatura eletrônica
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.text(
@@ -175,30 +175,50 @@ function desenharHolerite(doc: jsPDF, d: HoleriteDados, empresa?: EmpresaHolerit
     ml,
     y
   );
-  y += 16;
-  if (d.assinaturaImagem) {
-    try {
-      doc.addImage(d.assinaturaImagem, "PNG", ml, y - 14, 55, 16);
-    } catch { /* imagem inválida: mantém linha em branco */ }
-  }
-  doc.line(ml, y, ml + w * 0.5, y);
-  doc.text("Assinatura do funcionário", ml, y + 4);
-  const dataAssin = d.assinadoEm
-    ? new Date(d.assinadoEm).toLocaleDateString("pt-BR")
-    : "____/____/________";
-  doc.text(`Data: ${dataAssin}`, ml + w - 3, y + 4, { align: "right" });
+  y += 6;
+
   if (d.assinadoEm) {
+    const boxH = 24;
+    doc.setDrawColor(150);
+    doc.rect(ml, y, w, boxH);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("ASSINADO ELETRONICAMENTE", ml + 3, y + 5.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.text(
+      `${d.funcionarioNome ?? ""}${d.funcionarioCpf ? ` — CPF ${d.funcionarioCpf}` : ""}`,
+      ml + 3,
+      y + 10.5
+    );
+    doc.text(
+      `Data/hora: ${new Date(d.assinadoEm).toLocaleString("pt-BR")}${d.assinaturaIp ? `  |  IP: ${d.assinaturaIp}` : ""}`,
+      ml + 3,
+      y + 15
+    );
     doc.setFontSize(6.5);
     doc.setTextColor(110);
-    const detalhes = [
-      `Assinado eletronicamente em ${new Date(d.assinadoEm).toLocaleString("pt-BR")}`,
-      d.assinaturaHash ? `Código de verificação: ${d.assinaturaHash}` : "",
-      d.assinaturaIp ? `IP: ${d.assinaturaIp}` : "",
-    ].filter(Boolean).join(" — ");
-    doc.text(detalhes, ml, y + 9);
+    doc.text(
+      `Hash SHA-256: ${d.assinaturaHash ?? "-"}`,
+      ml + 3,
+      y + 19.5
+    );
+    doc.text(
+      "Documento assinado eletronicamente com autenticação de senha (MP 2.200-2/2001, art. 10, §2º).",
+      ml + 3,
+      y + 22.5
+    );
     doc.setTextColor(0);
+    doc.setDrawColor(0);
     doc.setFontSize(8);
+    y += boxH;
+  } else {
+    y += 12;
+    doc.line(ml, y, ml + w * 0.5, y);
+    doc.text("Assinatura do funcionário", ml, y + 4);
+    doc.text("Data: ____/____/________", ml + w - 3, y + 4, { align: "right" });
   }
+
 
   return y + 14;
 }
