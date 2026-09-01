@@ -128,6 +128,43 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "avaliacoes_desempenho.excluir", label: "Pode Excluir Avaliação" },
         ],
       },
+      {
+        key: "rh_holerites",
+        label: "Holerites (Importação e Processados)",
+        acoes: [
+          { key: "rh_holerites.importar", label: "Pode Importar Holerites (PDF/Excel)" },
+          { key: "rh_holerites.processar", label: "Pode Processar Lote de Holerites" },
+          { key: "rh_holerites.publicar", label: "Pode Publicar/Despublicar Holerites no Portal" },
+          { key: "rh_holerites.imprimir", label: "Pode Imprimir/Baixar PDF de Holerites" },
+        ],
+      },
+      {
+        key: "rh_treinamentos",
+        label: "Treinamentos",
+        acoes: [
+          { key: "rh_treinamentos.criar", label: "Pode Cadastrar Treinamento" },
+          { key: "rh_treinamentos.editar", label: "Pode Editar Treinamento" },
+          { key: "rh_treinamentos.excluir", label: "Pode Excluir Treinamento" },
+          { key: "rh_treinamentos.assinar_certificado", label: "Pode Assinar Certificado Eletronicamente" },
+          { key: "rh_treinamentos.imprimir_certificado", label: "Pode Imprimir/Baixar Certificado (PDF)" },
+        ],
+      },
+      {
+        key: "rh_solicitacoes_portal",
+        label: "Solicitações do Portal (RH)",
+        acoes: [
+          { key: "rh_solicitacoes_portal.visualizar", label: "Pode Visualizar Solicitações do Portal" },
+          { key: "rh_solicitacoes_portal.responder", label: "Pode Responder/Concluir Solicitações" },
+        ],
+      },
+      {
+        key: "epis_devolucoes",
+        label: "Devolução de EPIs",
+        acoes: [
+          { key: "epis_devolucoes.registrar", label: "Pode Registrar Devolução de EPI" },
+          { key: "epis_devolucoes.exportar", label: "Pode Exportar Relatório de Devoluções" },
+        ],
+      },
     ],
   },
   {
@@ -259,6 +296,20 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "fabricantes.excluir", label: "Pode Excluir Fabricante" },
         ],
       },
+      {
+        key: "pregao",
+        label: "Pregão Eletrônico",
+        acoes: [
+          { key: "pregao.criar", label: "Pode Criar Pregão" },
+          { key: "pregao.editar", label: "Pode Editar Pregão" },
+          { key: "pregao.excluir", label: "Pode Excluir Pregão" },
+          { key: "pregao.gerenciar_itens", label: "Pode Gerenciar Itens do Pregão" },
+          { key: "pregao.gerenciar_participantes", label: "Pode Gerenciar Participantes/Fornecedores" },
+          { key: "pregao.gerenciar_habilitacao", label: "Pode Gerenciar Habilitação" },
+          { key: "pregao.sala_disputa", label: "Pode Operar a Sala de Disputa (Lances)" },
+          { key: "pregao.exportar_ata", label: "Pode Exportar Ata/Resultado (PDF)" },
+        ],
+      },
     ],
   },
   {
@@ -351,6 +402,24 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "servicos.criar", label: "Cadastrar serviço" },
           { key: "servicos.editar", label: "Editar serviço" },
           { key: "servicos.excluir", label: "Excluir serviço" },
+        ],
+      },
+      {
+        key: "epis_catalogo",
+        label: "Catálogo de EPIs",
+        acoes: [
+          { key: "epis_catalogo.criar", label: "Cadastrar EPI no catálogo" },
+          { key: "epis_catalogo.editar", label: "Editar EPI do catálogo" },
+          { key: "epis_catalogo.excluir", label: "Excluir EPI do catálogo" },
+        ],
+      },
+      {
+        key: "nrs_catalogo",
+        label: "Catálogo de NRs",
+        acoes: [
+          { key: "nrs_catalogo.criar", label: "Cadastrar NR" },
+          { key: "nrs_catalogo.editar", label: "Editar NR" },
+          { key: "nrs_catalogo.excluir", label: "Excluir NR" },
         ],
       },
     ],
@@ -506,6 +575,30 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "responsaveis_tecnicos.criar", label: "Cadastrar responsável" },
           { key: "responsaveis_tecnicos.editar", label: "Editar responsável" },
           { key: "responsaveis_tecnicos.excluir", label: "Excluir responsável" },
+        ],
+      },
+      {
+        key: "boletim_medicao",
+        label: "Boletim de Medições",
+        acoes: [
+          { key: "boletim_medicao.criar", label: "Criar boletim de medição" },
+          { key: "boletim_medicao.editar", label: "Editar boletim de medição" },
+          { key: "boletim_medicao.excluir", label: "Excluir boletim de medição" },
+          { key: "boletim_medicao.assinar", label: "Assinar boletim (assinatura eletrônica)" },
+          { key: "boletim_medicao.exportar_pdf", label: "Exportar PDF" },
+          { key: "boletim_medicao.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
+      {
+        key: "contratos_terceiros",
+        label: "Contratos de Terceiros",
+        acoes: [
+          { key: "contratos_terceiros.criar", label: "Criar contrato de terceiro" },
+          { key: "contratos_terceiros.editar", label: "Editar contrato de terceiro" },
+          { key: "contratos_terceiros.excluir", label: "Excluir contrato de terceiro" },
+          { key: "contratos_terceiros.gerenciar_aditivos", label: "Gerenciar aditivos" },
+          { key: "contratos_terceiros.gerenciar_anexos", label: "Gerenciar anexos" },
+          { key: "contratos_terceiros.exportar_pdf", label: "Exportar PDF" },
         ],
       },
       {
@@ -768,6 +861,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
   {
     grupo: "Financeiro",
     modulos: [
+      { key: "faturamentos", label: "Faturamentos (por Contrato)", acoes: [
+        { key: "faturamentos.criar", label: "Pode Lançar Faturamento" },
+        { key: "faturamentos.editar", label: "Pode Editar Faturamento" },
+        { key: "faturamentos.excluir", label: "Pode Excluir Faturamento" },
+        { key: "faturamentos.visualizar", label: "Pode Visualizar Acompanhamento de Faturamentos" },
+        { key: "faturamentos.transferir_saldo", label: "Pode Transferir Saldos entre Contratos" },
+      ]},
       { key: "financeiro.dashboard", label: "Dashboard Financeiro", acoes: [{ key: "financeiro.dashboard.visualizar", label: "Pode Visualizar Dashboard Financeiro" }] },
       { key: "financeiro.contas_pagar", label: "Contas a Pagar", acoes: [
         { key: "financeiro.contas_pagar.criar", label: "Pode Criar Conta a Pagar" },
