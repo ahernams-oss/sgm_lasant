@@ -12,7 +12,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import PaginationControls from "@/components/PaginationControls";
-import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer, Download } from "lucide-react";
+import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { imprimirHolerite, baixarHolerite, type HoleriteDados } from "@/lib/gerarPdfHolerite";
 import { toast } from "sonner";
@@ -78,6 +78,7 @@ export default function HoleritesProcessados() {
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [assinaturas, setAssinaturas] = useState<Record<string, Assinatura>>({});
   const [lote, setLote] = useState<{ feito: number; total: number } | null>(null);
+  const [ordenacao, setOrdenacao] = useState<{ coluna: keyof Registro | "competencia" | "status"; direcao: "asc" | "desc" } | null>(null);
 
 
   const alternarSelecao = (id: string, on: boolean) =>
@@ -223,7 +224,7 @@ export default function HoleritesProcessados() {
   const filtrados = useMemo(() => {
     const q = semAcento(busca.trim());
     const qDigitos = busca.replace(/\D/g, "");
-    return registros.filter((r) => {
+    const lista = registros.filter((r) => {
       if (r.ignorar) return false;
       if (ano !== "todos" && String(r.lote?.competencia_ano) !== ano) return false;
       if (mes !== "todos" && String(r.lote?.competencia_mes) !== mes) return false;
@@ -235,7 +236,46 @@ export default function HoleritesProcessados() {
         (r.cpf_detectado || "").replace(/\D/g, "").includes(qDigitos);
       return nomeOk || cpfOk;
     });
-  }, [registros, busca, mes, ano, tipo, funcionarios]);
+
+    if (!ordenacao) return lista;
+
+    const dir = ordenacao.direcao === "asc" ? 1 : -1;
+    return [...lista].sort((a, b) => {
+      let va: any;
+      let vb: any;
+      switch (ordenacao.coluna) {
+        case "competencia":
+          va = (a.lote?.competencia_ano ?? 0) * 100 + (a.lote?.competencia_mes ?? 0);
+          vb = (b.lote?.competencia_ano ?? 0) * 100 + (b.lote?.competencia_mes ?? 0);
+          break;
+        case "funcionario_id":
+          va = semAcento(nomeFuncionario(a));
+          vb = semAcento(nomeFuncionario(b));
+          break;
+        case "cpf_detectado":
+          va = (a.cpf_detectado || "").replace(/\D/g, "");
+          vb = (b.cpf_detectado || "").replace(/\D/g, "");
+          break;
+        case "tipo":
+          va = TIPOS[a.tipo] || a.tipo;
+          vb = TIPOS[b.tipo] || b.tipo;
+          break;
+        case "status":
+          va = a.publicado ? 1 : 0;
+          vb = b.publicado ? 1 : 0;
+          break;
+        default:
+          va = a[ordenacao.coluna];
+          vb = b[ordenacao.coluna];
+      }
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "string" && typeof vb === "string") return va.localeCompare(vb, "pt-BR", { numeric: true }) * dir;
+      if (typeof va === "number" && typeof vb === "number") return (va - vb) * dir;
+      return String(va).localeCompare(String(vb), "pt-BR", { numeric: true }) * dir;
+    });
+  }, [registros, busca, mes, ano, tipo, funcionarios, ordenacao]);
 
 
   useEffect(() => { setPagina(1); }, [busca, mes, ano, tipo, porPagina]);
@@ -264,6 +304,29 @@ export default function HoleritesProcessados() {
     a.download = "holerites-processados.csv";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const cabecalhoOrdenavel = (
+    coluna: keyof Registro | "competencia" | "status",
+    label: string,
+    align: "left" | "right" | "center" = "left"
+  ) => {
+    const ativo = ordenacao?.coluna === coluna;
+    const proxima = ativo && ordenacao.direcao === "asc" ? "desc" : "asc";
+    const Icon = ativo ? (ordenacao.direcao === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+    const alignClass = align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start";
+    return (
+      <TableHead className={align === "right" ? "text-right" : align === "center" ? "text-center" : undefined}>
+        <button
+          type="button"
+          onClick={() => setOrdenacao({ coluna, direcao: proxima })}
+          className={`flex items-center gap-1 ${alignClass} w-full hover:text-foreground focus:outline-none`}
+        >
+          {label}
+          <Icon className={`h-3.5 w-3.5 ${ativo ? "text-foreground" : "text-muted-foreground/60"}`} />
+        </button>
+      </TableHead>
+    );
   };
 
   return (
@@ -375,18 +438,18 @@ export default function HoleritesProcessados() {
                           }
                         />
                       </TableHead>
-                      <TableHead>Competência</TableHead>
-                      <TableHead>Funcionário</TableHead>
-                      <TableHead>CPF</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead className="text-right">Salário base</TableHead>
-                      <TableHead className="text-right">Horas</TableHead>
-                      <TableHead className="text-right">Horas extras</TableHead>
-                      <TableHead className="text-right">Valor HE</TableHead>
-                      <TableHead className="text-right">Proventos</TableHead>
-                      <TableHead className="text-right">Descontos</TableHead>
-                      <TableHead className="text-right">Líquido</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
+                      {cabecalhoOrdenavel("competencia", "Competência")}
+                      {cabecalhoOrdenavel("funcionario_id", "Funcionário")}
+                      {cabecalhoOrdenavel("cpf_detectado", "CPF")}
+                      {cabecalhoOrdenavel("tipo", "Tipo")}
+                      {cabecalhoOrdenavel("salario_base", "Salário base", "right")}
+                      {cabecalhoOrdenavel("horas_trabalhadas", "Horas", "right")}
+                      {cabecalhoOrdenavel("horas_extras", "Horas extras", "right")}
+                      {cabecalhoOrdenavel("valor_horas_extras", "Valor HE", "right")}
+                      {cabecalhoOrdenavel("total_proventos", "Proventos", "right")}
+                      {cabecalhoOrdenavel("total_descontos", "Descontos", "right")}
+                      {cabecalhoOrdenavel("valor_liquido", "Líquido", "right")}
+                      {cabecalhoOrdenavel("status", "Status", "center")}
                       <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
