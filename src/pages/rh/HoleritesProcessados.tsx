@@ -134,6 +134,17 @@ export default function HoleritesProcessados() {
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     setRegistros((data || []) as any);
+
+    const { data: assin } = await supabase
+      .from("portal_holerites")
+      .select("funcionario_id,tipo,competencia_mes,competencia_ano,assinado_em,assinatura_imagem,assinatura_hash,assinatura_ip")
+      .not("assinado_em", "is", null)
+      .limit(5000);
+    const mapa: Record<string, Assinatura> = {};
+    (assin || []).forEach((a: any) => {
+      mapa[`${a.funcionario_id}|${a.tipo}|${a.competencia_mes}|${a.competencia_ano}`] = a;
+    });
+    setAssinaturas(mapa);
   };
 
   useEffect(() => { carregar(); }, []);
@@ -143,8 +154,12 @@ export default function HoleritesProcessados() {
     return f?.nome || r.nome_detectado || "—";
   };
 
+  const assinaturaDe = (r: Registro) =>
+    assinaturas[`${r.funcionario_id}|${r.tipo}|${r.lote?.competencia_mes}|${r.lote?.competencia_ano}`];
+
   const paraHolerite = (r: Registro): HoleriteDados => {
     const f: any = funcionarios.find((x: any) => x.id === r.funcionario_id);
+    const a = assinaturaDe(r);
     return {
       competenciaMes: r.lote?.competencia_mes ?? null,
       competenciaAno: r.lote?.competencia_ano ?? null,
@@ -159,8 +174,13 @@ export default function HoleritesProcessados() {
       totalProventos: r.total_proventos,
       totalDescontos: r.total_descontos,
       valorLiquido: r.valor_liquido,
+      assinaturaImagem: a?.assinatura_imagem ?? null,
+      assinadoEm: a?.assinado_em ?? null,
+      assinaturaHash: a?.assinatura_hash ?? null,
+      assinaturaIp: a?.assinatura_ip ?? null,
     };
   };
+
 
   const imprimirUm = (r: Registro) => imprimirHolerite(paraHolerite(r), empresa as any);
 
