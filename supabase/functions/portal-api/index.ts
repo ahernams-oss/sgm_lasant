@@ -281,6 +281,50 @@ Deno.serve(async (req) => {
       }
       return json({ ok: true, promovido: !!cred });
     }
+
+    // ---- RH: gestão das solicitações enviadas pelos colaboradores ----
+    if (action === "admin-solicitacoes-list") {
+      let q = sb.from("portal_solicitacoes_rh").select("*").order("created_at", { ascending: false }).limit(500);
+      if (body.status) q = q.eq("status", String(body.status));
+      if (body.tipo) q = q.eq("tipo", String(body.tipo));
+      const { data, error } = await q;
+      if (error) return json({ error: error.message }, 500);
+      const ids = [...new Set((data ?? []).map((s: any) => s.funcionario_id).filter(Boolean))];
+      let nomes: Record<string, any> = {};
+      if (ids.length) {
+        const { data: fs } = await sb.from("funcionarios").select("id,nome,cargo_id,cliente_id").in("id", ids);
+        nomes = Object.fromEntries((fs ?? []).map((f: any) => [f.id, f]));
+      }
+      return json({
+        solicitacoes: (data ?? []).map((s: any) => ({
+          ...s,
+          funcionario_nome: nomes[s.funcionario_id]?.nome ?? null,
+          cliente_id: nomes[s.funcionario_id]?.cliente_id ?? null,
+        })),
+      });
+    }
+    if (action === "admin-solicitacao-responder") {
+      const id = String(body.id || "");
+      const status = String(body.status || "");
+      if (!id || !["aberta", "em_analise", "concluida", "rejeitada"].includes(status))
+        return json({ error: "Parâmetros inválidos." }, 400);
+      const { error } = await sb.from("portal_solicitacoes_rh").update({
+        status,
+        resposta_rh: body.resposta_rh ?? null,
+        respondido_em: new Date().toISOString(),
+        respondido_por: body.respondido_por ?? null,
+      }).eq("id", id);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+    if (action === "admin-solicitacao-anexo-url") {
+      const id = String(body.id || "");
+      const { data: s } = await sb.from("portal_solicitacoes_rh").select("anexo_path,anexo_nome").eq("id", id).maybeSingle();
+      if (!s?.anexo_path) return json({ error: "Anexo não disponível." }, 404);
+      const { data: u } = await sb.storage.from("funcionarios-anexos").createSignedUrl(s.anexo_path, 300);
+      return json({ url: u?.signedUrl, nome: s.anexo_nome });
+    }
+
     const cred = await requireAuth(req);
     if (!cred) return json({ error: "Sessão inválida ou expirada." }, 401);
 

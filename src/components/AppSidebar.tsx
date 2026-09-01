@@ -90,6 +90,7 @@ const menuItems = [
       { title: "Mapa de Uniformes", url: "/mapa-uniformes", icon: Shirt, perm: "mapa_funcionarios" },
       { title: "Avaliações de Desempenho", url: "/avaliacoes-desempenho", icon: ClipboardCheck, perm: "avaliacoes_desempenho" },
       { title: "Treinamentos", url: "/rh/treinamentos", icon: GraduationCap, perm: "funcionarios" },
+      { title: "Solicitações do Portal", url: "/rh/solicitacoes-portal", icon: FileText, perm: "funcionarios" },
       { title: "Importar Holerites", url: "/rh/importar-holerites", icon: FileText, perm: "funcionarios" },
     ],
   },
