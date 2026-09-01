@@ -69,7 +69,9 @@ export default function HoleritesProcessados() {
   const [porPagina, setPorPagina] = useState(20);
   const [processando, setProcessando] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [assinaturas, setAssinaturas] = useState<Record<string, Assinatura>>({});
   const [lote, setLote] = useState<{ feito: number; total: number } | null>(null);
+
 
   const alternarSelecao = (id: string, on: boolean) =>
     setSelecionados((prev) => (on ? [...new Set([...prev, id])] : prev.filter((x) => x !== id)));
