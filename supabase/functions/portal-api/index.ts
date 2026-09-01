@@ -353,11 +353,45 @@ Deno.serve(async (req) => {
     if (action === "list-holerites") {
       if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
       const { data } = await sb.from("portal_holerites")
-        .select("id, tipo, competencia_mes, competencia_ano, descricao, disponibilizado_em, visualizado_em")
+        .select("id, tipo, competencia_mes, competencia_ano, descricao, disponibilizado_em, visualizado_em, assinado_em, assinatura_hash")
         .eq("funcionario_id", cred.funcionario_id)
         .order("competencia_ano", { ascending: false }).order("competencia_mes", { ascending: false });
       return json({ holerites: data ?? [] });
     }
+    if (action === "assinar-holerite") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const id = String(body.id || "");
+      const senha = String(body.senha || "");
+      const imagem = String(body.assinatura || "");
+      if (!id) return json({ error: "Holerite não informado." }, 400);
+      if (!imagem.startsWith("data:image/")) return json({ error: "Assinatura inválida." }, 400);
+      if (imagem.length > 400_000) return json({ error: "Assinatura muito grande." }, 400);
+      if (!bcrypt.compareSync(senha, cred.senha_hash)) {
+        await log(cred.cpf, cred.id, "assinar-holerite", false, { id }, req);
+        return json({ error: "Senha incorreta." }, 401);
+      }
+      const { data: h } = await sb.from("portal_holerites")
+        .select("id, assinado_em").eq("id", id).eq("funcionario_id", cred.funcionario_id).maybeSingle();
+      if (!h) return json({ error: "Não encontrado." }, 404);
+      if (h.assinado_em) return json({ error: "Holerite já assinado." }, 400);
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+      const dispositivo = req.headers.get("user-agent") || "";
+      const assinadoEm = new Date().toISOString();
+      const buf = new TextEncoder().encode(`${id}|${cred.cpf}|${assinadoEm}|${ip}`);
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase().slice(0, 32);
+      const { error: upErr } = await sb.from("portal_holerites").update({
+        assinado_em: assinadoEm,
+        assinatura_imagem: imagem,
+        assinatura_ip: ip,
+        assinatura_dispositivo: dispositivo.slice(0, 300),
+        assinatura_hash: hash,
+      }).eq("id", id).eq("funcionario_id", cred.funcionario_id);
+      if (upErr) return json({ error: upErr.message }, 500);
+      await log(cred.cpf, cred.id, "assinar-holerite", true, { id, hash }, req);
+      return json({ ok: true, assinado_em: assinadoEm, hash });
+    }
+
     if (action === "download-holerite") {
       if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
       const id = String(body.id || "");
