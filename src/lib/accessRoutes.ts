@@ -56,6 +56,8 @@ export const ACCESS_ROUTES: { perm: string; url: string }[] = [
   { perm: "clientes", url: "/clientes" },
   { perm: "fornecedores", url: "/fornecedores" },
   { perm: "equipamentos", url: "/cadastros/equipamentos" },
+  { perm: "epis_catalogo", url: "/epis/catalogo" },
+  { perm: "nrs_catalogo", url: "/cadastros/nrs" },
   { perm: "cargos", url: "/cargos" },
   { perm: "categorias_servicos", url: "/cadastros/categorias-servicos" },
   { perm: "servicos", url: "/cadastros/servicos" },
