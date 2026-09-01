@@ -14,7 +14,12 @@ export interface HoleriteDados {
   totalProventos?: number | null;
   totalDescontos?: number | null;
   valorLiquido?: number | null;
+  assinaturaImagem?: string | null;
+  assinadoEm?: string | null;
+  assinaturaHash?: string | null;
+  assinaturaIp?: string | null;
 }
+
 
 export interface EmpresaHolerite {
   razaoSocial?: string;
