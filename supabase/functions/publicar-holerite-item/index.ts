@@ -47,6 +47,17 @@ serve(async (req) => {
         .upload(path, bytes, { contentType: "application/pdf", upsert: true });
       if (upErr) throw upErr;
 
+      // Atualização: remove holerite anterior da mesma competência/tipo do funcionário
+      const { data: antigos } = await supabase.from("portal_holerites").select("id,arquivo_path")
+        .eq("funcionario_id", item.funcionario_id).eq("tipo", item.tipo)
+        .eq("competencia_mes", lote.competencia_mes).eq("competencia_ano", lote.competencia_ano);
+      for (const a of antigos || []) {
+        if (a.arquivo_path && a.arquivo_path !== path) {
+          await supabase.storage.from("portal-holerites").remove([a.arquivo_path]);
+        }
+        await supabase.from("portal_holerites").delete().eq("id", a.id);
+      }
+
       const { error: insErr } = await supabase.from("portal_holerites").insert({
         funcionario_id: item.funcionario_id,
         tipo: item.tipo,

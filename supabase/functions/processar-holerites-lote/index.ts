@@ -127,6 +127,18 @@ serve(async (req) => {
 
     // Cria lote (apenas na primeira chamada)
     if (!loteId) {
+      // Reimportação da MESMA competência = atualização: remove lotes/itens anteriores
+      const { data: antigos } = await supabase
+        .from("portal_holerites_import_lote")
+        .select("id")
+        .eq("competencia_mes", competencia_mes)
+        .eq("competencia_ano", competencia_ano);
+      const ids = (antigos || []).map((l: any) => l.id);
+      if (ids.length) {
+        await supabase.from("portal_holerites_import_item").delete().in("lote_id", ids);
+        await supabase.from("portal_holerites_import_lote").delete().in("id", ids);
+      }
+
       const { data: lote, error: loteErr } = await supabase
         .from("portal_holerites_import_lote")
         .insert({
