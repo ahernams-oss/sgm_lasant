@@ -40,6 +40,13 @@ interface Registro {
   } | null;
 }
 
+interface Assinatura {
+  assinado_em: string | null;
+  assinatura_imagem: string | null;
+  assinatura_hash: string | null;
+  assinatura_ip: string | null;
+}
+
 const TIPOS: Record<string, string> = {
   folha: "Folha Mensal",
   "13o": "13º Salário",
