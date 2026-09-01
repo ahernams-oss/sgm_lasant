@@ -40,6 +40,13 @@ interface Registro {
   } | null;
 }
 
+interface Assinatura {
+  assinado_em: string | null;
+  assinatura_imagem: string | null;
+  assinatura_hash: string | null;
+  assinatura_ip: string | null;
+}
+
 const TIPOS: Record<string, string> = {
   folha: "Folha Mensal",
   "13o": "13º Salário",
@@ -69,7 +76,9 @@ export default function HoleritesProcessados() {
   const [porPagina, setPorPagina] = useState(20);
   const [processando, setProcessando] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [assinaturas, setAssinaturas] = useState<Record<string, Assinatura>>({});
   const [lote, setLote] = useState<{ feito: number; total: number } | null>(null);
+
 
   const alternarSelecao = (id: string, on: boolean) =>
     setSelecionados((prev) => (on ? [...new Set([...prev, id])] : prev.filter((x) => x !== id)));
@@ -134,6 +143,17 @@ export default function HoleritesProcessados() {
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     setRegistros((data || []) as any);
+
+    const { data: assin } = await supabase
+      .from("portal_holerites")
+      .select("funcionario_id,tipo,competencia_mes,competencia_ano,assinado_em,assinatura_imagem,assinatura_hash,assinatura_ip")
+      .not("assinado_em", "is", null)
+      .limit(5000);
+    const mapa: Record<string, Assinatura> = {};
+    (assin || []).forEach((a: any) => {
+      mapa[`${a.funcionario_id}|${a.tipo}|${a.competencia_mes}|${a.competencia_ano}`] = a;
+    });
+    setAssinaturas(mapa);
   };
 
   useEffect(() => { carregar(); }, []);
@@ -143,8 +163,12 @@ export default function HoleritesProcessados() {
     return f?.nome || r.nome_detectado || "—";
   };
 
+  const assinaturaDe = (r: Registro) =>
+    assinaturas[`${r.funcionario_id}|${r.tipo}|${r.lote?.competencia_mes}|${r.lote?.competencia_ano}`];
+
   const paraHolerite = (r: Registro): HoleriteDados => {
     const f: any = funcionarios.find((x: any) => x.id === r.funcionario_id);
+    const a = assinaturaDe(r);
     return {
       competenciaMes: r.lote?.competencia_mes ?? null,
       competenciaAno: r.lote?.competencia_ano ?? null,
@@ -159,8 +183,13 @@ export default function HoleritesProcessados() {
       totalProventos: r.total_proventos,
       totalDescontos: r.total_descontos,
       valorLiquido: r.valor_liquido,
+      assinaturaImagem: a?.assinatura_imagem ?? null,
+      assinadoEm: a?.assinado_em ?? null,
+      assinaturaHash: a?.assinatura_hash ?? null,
+      assinaturaIp: a?.assinatura_ip ?? null,
     };
   };
+
 
   const imprimirUm = (r: Registro) => imprimirHolerite(paraHolerite(r), empresa as any);
 
@@ -384,10 +413,21 @@ export default function HoleritesProcessados() {
                         <TableCell className="text-right">{money(r.total_descontos)}</TableCell>
                         <TableCell className="text-right font-semibold">{money(r.valor_liquido)}</TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={r.publicado ? "default" : "secondary"}>
-                            {r.publicado ? "Publicado" : "Em conferência"}
-                          </Badge>
+                          <div className="flex flex-col items-center gap-1">
+                            <Badge variant={r.publicado ? "default" : "secondary"}>
+                              {r.publicado ? "Publicado" : "Em conferência"}
+                            </Badge>
+                            {assinaturaDe(r)?.assinado_em && (
+                              <Badge
+                                variant="outline"
+                                title={`Assinado em ${new Date(assinaturaDe(r)!.assinado_em!).toLocaleString("pt-BR")}${assinaturaDe(r)?.assinatura_hash ? ` — Código ${assinaturaDe(r)!.assinatura_hash}` : ""}`}
+                              >
+                                Assinado
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
+
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                           <Button

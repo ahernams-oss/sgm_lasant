@@ -7112,6 +7112,11 @@ export type Database = {
       portal_holerites: {
         Row: {
           arquivo_path: string
+          assinado_em: string | null
+          assinatura_dispositivo: string | null
+          assinatura_hash: string | null
+          assinatura_imagem: string | null
+          assinatura_ip: string | null
           competencia_ano: number
           competencia_mes: number
           created_at: string
@@ -7126,6 +7131,11 @@ export type Database = {
         }
         Insert: {
           arquivo_path: string
+          assinado_em?: string | null
+          assinatura_dispositivo?: string | null
+          assinatura_hash?: string | null
+          assinatura_imagem?: string | null
+          assinatura_ip?: string | null
           competencia_ano: number
           competencia_mes: number
           created_at?: string
@@ -7140,6 +7150,11 @@ export type Database = {
         }
         Update: {
           arquivo_path?: string
+          assinado_em?: string | null
+          assinatura_dispositivo?: string | null
+          assinatura_hash?: string | null
+          assinatura_imagem?: string | null
+          assinatura_ip?: string | null
           competencia_ano?: number
           competencia_mes?: number
           created_at?: string
