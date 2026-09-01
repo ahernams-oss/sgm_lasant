@@ -188,20 +188,26 @@ export default function HoleritesProcessados() {
     return Array.from(s).sort().reverse();
   }, [registros]);
 
+  const semAcento = (s: string) =>
+    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const filtrados = useMemo(() => {
-    const q = busca.trim().toLowerCase();
+    const q = semAcento(busca.trim());
+    const qDigitos = busca.replace(/\D/g, "");
     return registros.filter((r) => {
       if (r.ignorar) return false;
       if (ano !== "todos" && String(r.lote?.competencia_ano) !== ano) return false;
       if (mes !== "todos" && String(r.lote?.competencia_mes) !== mes) return false;
       if (tipo !== "todos" && r.tipo !== tipo) return false;
       if (!q) return true;
-      return (
-        nomeFuncionario(r).toLowerCase().includes(q) ||
-        (r.cpf_detectado || "").includes(q.replace(/\D/g, ""))
-      );
+      const nomeOk = semAcento(nomeFuncionario(r)).includes(q);
+      const cpfOk =
+        qDigitos.length > 0 &&
+        (r.cpf_detectado || "").replace(/\D/g, "").includes(qDigitos);
+      return nomeOk || cpfOk;
     });
   }, [registros, busca, mes, ano, tipo, funcionarios]);
+
 
   useEffect(() => { setPagina(1); }, [busca, mes, ano, tipo, porPagina]);
 
