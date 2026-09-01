@@ -145,6 +145,7 @@ import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosCon
 import OrdensServicoPage from "@/pages/OrdensServico";
 import AprovarLoteSS from "@/pages/AprovarLoteSS";
 import ImportarHolerites from "@/pages/ImportarHolerites";
+import HoleritesProcessados from "@/pages/rh/HoleritesProcessados";
 import Treinamentos from "@/pages/Treinamentos";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
