@@ -183,14 +183,7 @@ export function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   lista.forEach((d, i) => {
     if (i > 0) doc.addPage();
-    // duas vias por página
-    const fim = desenharHolerite(doc, d, empresa, 15);
-    doc.setDrawColor(180);
-    doc.setLineDashPattern([2, 2], 0);
-    doc.line(14, fim + 4, doc.internal.pageSize.getWidth() - 14, fim + 4);
-    doc.setLineDashPattern([], 0);
-    doc.setDrawColor(120);
-    desenharHolerite(doc, d, empresa, fim + 12);
+    desenharHolerite(doc, d, empresa, 15);
   });
   return doc;
 }
