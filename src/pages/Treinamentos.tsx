@@ -68,6 +68,7 @@ const emptyForm: FormState = { cpf: "", tipo: "integracao", titulo: "", status: 
 
 export default function Treinamentos() {
   const { funcionarios } = useFuncionarios();
+  const { empresa } = useEmpresa();
   const [list, setList] = useState<Treinamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
