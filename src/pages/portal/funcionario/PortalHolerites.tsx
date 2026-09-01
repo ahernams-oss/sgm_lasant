@@ -22,11 +22,48 @@ export default function PortalHolerites() {
       .finally(() => setLoading(false));
   }, []);
 
-  const download = async (id: string) => {
+  const blobDoHolerite = async (id: string) => {
+    const { url } = await portalCall<{ url: string }>("download-holerite", { id });
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error("Não foi possível obter o arquivo.");
+    return URL.createObjectURL(await resp.blob());
+  };
+
+  const download = async (h: H) => {
+    setBusy(h.id + "d");
     try {
-      const { url } = await portalCall<{ url: string }>("download-holerite", { id });
-      window.open(url, "_blank");
-    } catch (e: any) { toast.error(e.message); }
+      const href = await blobDoHolerite(h.id);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = `holerite-${String(h.competencia_mes).padStart(2, "0")}-${h.competencia_ano}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(href), 30000);
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(null); }
+  };
+
+  const imprimir = async (h: H) => {
+    setBusy(h.id + "p");
+    try {
+      const href = await blobDoHolerite(h.id);
+      const frame = document.createElement("iframe");
+      frame.style.position = "fixed";
+      frame.style.right = "0";
+      frame.style.bottom = "0";
+      frame.style.width = "0";
+      frame.style.height = "0";
+      frame.style.border = "0";
+      frame.src = href;
+      frame.onload = () => {
+        try {
+          frame.contentWindow?.focus();
+          frame.contentWindow?.print();
+        } catch {
+          window.open(href, "_blank");
+        }
+      };
+      document.body.appendChild(frame);
+      setTimeout(() => { URL.revokeObjectURL(href); frame.remove(); }, 60000);
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(null); }
   };
 
   return (
