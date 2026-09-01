@@ -12,7 +12,9 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import PaginationControls from "@/components/PaginationControls";
-import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2 } from "lucide-react";
+import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer } from "lucide-react";
+import { useEmpresa } from "@/contexts/EmpresaContext";
+import { imprimirHolerite, type HoleriteDados } from "@/lib/gerarPdfHolerite";
 import { toast } from "sonner";
 
 interface Registro {
@@ -55,6 +57,7 @@ const horas = (v: number | null) =>
 
 export default function HoleritesProcessados() {
   const { funcionarios } = useFuncionarios();
+  const { empresa } = useEmpresa();
   const now = new Date();
   const [loading, setLoading] = useState(true);
   const [registros, setRegistros] = useState<Registro[]>([]);
@@ -140,6 +143,33 @@ export default function HoleritesProcessados() {
     return f?.nome || r.nome_detectado || "—";
   };
 
+  const paraHolerite = (r: Registro): HoleriteDados => {
+    const f: any = funcionarios.find((x: any) => x.id === r.funcionario_id);
+    return {
+      competenciaMes: r.lote?.competencia_mes ?? null,
+      competenciaAno: r.lote?.competencia_ano ?? null,
+      tipo: r.tipo,
+      funcionarioNome: nomeFuncionario(r),
+      funcionarioCpf: f?.cpf || r.cpf_detectado || "",
+      funcionarioCargo: f?.cargoNome || f?.cargo || "",
+      salarioBase: r.salario_base,
+      horasTrabalhadas: r.horas_trabalhadas,
+      horasExtras: r.horas_extras,
+      valorHorasExtras: r.valor_horas_extras,
+      totalProventos: r.total_proventos,
+      totalDescontos: r.total_descontos,
+      valorLiquido: r.valor_liquido,
+    };
+  };
+
+  const imprimirUm = (r: Registro) => imprimirHolerite(paraHolerite(r), empresa as any);
+
+  const imprimirSelecionados = () => {
+    const alvos = registros.filter((r) => selecionados.includes(r.id));
+    if (!alvos.length) return;
+    imprimirHolerite(alvos.map(paraHolerite), empresa as any);
+  };
+
   const anos = useMemo(() => {
     const s = new Set<string>();
     registros.forEach((r) => r.lote && s.add(String(r.lote.competencia_ano)));
@@ -203,6 +233,9 @@ export default function HoleritesProcessados() {
               </Button>
               <Button size="sm" variant="outline" disabled={!!lote} onClick={() => executarLote("despublicar")}>
                 <Undo2 className="mr-2 h-4 w-4" />Despublicar selecionados
+              </Button>
+              <Button size="sm" variant="outline" onClick={imprimirSelecionados}>
+                <Printer className="mr-2 h-4 w-4" />Imprimir selecionados
               </Button>
             </>
           )}
@@ -336,6 +369,15 @@ export default function HoleritesProcessados() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Imprimir holerite"
+                            onClick={() => imprimirUm(r)}
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
                           <Button
                             size="sm"
                             variant={r.publicado ? "outline" : "default"}
@@ -351,6 +393,7 @@ export default function HoleritesProcessados() {
                               <><Upload className="mr-1 h-4 w-4" />Publicar</>
                             )}
                           </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
