@@ -861,6 +861,13 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
   {
     grupo: "Financeiro",
     modulos: [
+      { key: "faturamentos", label: "Faturamentos (por Contrato)", acoes: [
+        { key: "faturamentos.criar", label: "Pode Lançar Faturamento" },
+        { key: "faturamentos.editar", label: "Pode Editar Faturamento" },
+        { key: "faturamentos.excluir", label: "Pode Excluir Faturamento" },
+        { key: "faturamentos.visualizar", label: "Pode Visualizar Acompanhamento de Faturamentos" },
+        { key: "faturamentos.transferir_saldo", label: "Pode Transferir Saldos entre Contratos" },
+      ]},
       { key: "financeiro.dashboard", label: "Dashboard Financeiro", acoes: [{ key: "financeiro.dashboard.visualizar", label: "Pode Visualizar Dashboard Financeiro" }] },
       { key: "financeiro.contas_pagar", label: "Contas a Pagar", acoes: [
         { key: "financeiro.contas_pagar.criar", label: "Pode Criar Conta a Pagar" },
