@@ -218,7 +218,7 @@ serve(async (req) => {
     } = body;
     // Processamento em blocos para não estourar o limite de 150s da edge function.
     const inicio: number = Number(body.inicio ?? 0);       // índice da 1ª página (0-based)
-    const tamanho: number = Math.min(Number(body.tamanho ?? 4), 6);
+    const tamanho: number = Math.min(Number(body.tamanho ?? 4), body.excelBase64 ? 50 : 6);
     let loteId: string | null = body.lote_id ?? null;
 
     const excelBase64: string | null = body.excelBase64 ?? null;

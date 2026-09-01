@@ -94,7 +94,7 @@ export default function ImportarHolerites() {
             importado_por_nome: usuarioLogado?.nome,
             lote_id: lid,
             inicio,
-            tamanho: isExcel ? 6 : 4,
+            tamanho: isExcel ? 25 : 4,
           },
         });
         if (error) throw error;
