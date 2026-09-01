@@ -420,7 +420,7 @@ export default function HoleritesProcessados() {
                             {assinaturaDe(r)?.assinado_em && (
                               <Badge
                                 variant="outline"
-                                title={`Assinado em ${new Date(assinaturaDe(r)!.assinado_em!).toLocaleString("pt-BR")}${assinaturaDe(r)?.assinatura_hash ? ` — Código ${assinaturaDe(r)!.assinatura_hash}` : ""}`}
+                                title={`Assinado em ${new Date(assinaturaDe(r)!.assinado_em!).toLocaleString("pt-BR")}${assinaturaDe(r)?.assinatura_hash ? ` — SHA-256 ${assinaturaDe(r)!.assinatura_hash}` : ""}`}
                               >
                                 Assinado
                               </Badge>
