@@ -404,6 +404,24 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "servicos.excluir", label: "Excluir serviço" },
         ],
       },
+      {
+        key: "epis_catalogo",
+        label: "Catálogo de EPIs",
+        acoes: [
+          { key: "epis_catalogo.criar", label: "Cadastrar EPI no catálogo" },
+          { key: "epis_catalogo.editar", label: "Editar EPI do catálogo" },
+          { key: "epis_catalogo.excluir", label: "Excluir EPI do catálogo" },
+        ],
+      },
+      {
+        key: "nrs_catalogo",
+        label: "Catálogo de NRs",
+        acoes: [
+          { key: "nrs_catalogo.criar", label: "Cadastrar NR" },
+          { key: "nrs_catalogo.editar", label: "Editar NR" },
+          { key: "nrs_catalogo.excluir", label: "Excluir NR" },
+        ],
+      },
     ],
   },
   {
@@ -557,6 +575,30 @@ export const MODULOS_SISTEMA: GrupoPermissao[] = [
           { key: "responsaveis_tecnicos.criar", label: "Cadastrar responsável" },
           { key: "responsaveis_tecnicos.editar", label: "Editar responsável" },
           { key: "responsaveis_tecnicos.excluir", label: "Excluir responsável" },
+        ],
+      },
+      {
+        key: "boletim_medicao",
+        label: "Boletim de Medições",
+        acoes: [
+          { key: "boletim_medicao.criar", label: "Criar boletim de medição" },
+          { key: "boletim_medicao.editar", label: "Editar boletim de medição" },
+          { key: "boletim_medicao.excluir", label: "Excluir boletim de medição" },
+          { key: "boletim_medicao.assinar", label: "Assinar boletim (assinatura eletrônica)" },
+          { key: "boletim_medicao.exportar_pdf", label: "Exportar PDF" },
+          { key: "boletim_medicao.exportar_excel", label: "Exportar Excel" },
+        ],
+      },
+      {
+        key: "contratos_terceiros",
+        label: "Contratos de Terceiros",
+        acoes: [
+          { key: "contratos_terceiros.criar", label: "Criar contrato de terceiro" },
+          { key: "contratos_terceiros.editar", label: "Editar contrato de terceiro" },
+          { key: "contratos_terceiros.excluir", label: "Excluir contrato de terceiro" },
+          { key: "contratos_terceiros.gerenciar_aditivos", label: "Gerenciar aditivos" },
+          { key: "contratos_terceiros.gerenciar_anexos", label: "Gerenciar anexos" },
+          { key: "contratos_terceiros.exportar_pdf", label: "Exportar PDF" },
         ],
       },
       {
