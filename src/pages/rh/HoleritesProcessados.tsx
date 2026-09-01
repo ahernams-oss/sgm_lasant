@@ -224,7 +224,7 @@ export default function HoleritesProcessados() {
   const filtrados = useMemo(() => {
     const q = semAcento(busca.trim());
     const qDigitos = busca.replace(/\D/g, "");
-    return registros.filter((r) => {
+    const lista = registros.filter((r) => {
       if (r.ignorar) return false;
       if (ano !== "todos" && String(r.lote?.competencia_ano) !== ano) return false;
       if (mes !== "todos" && String(r.lote?.competencia_mes) !== mes) return false;
@@ -236,7 +236,46 @@ export default function HoleritesProcessados() {
         (r.cpf_detectado || "").replace(/\D/g, "").includes(qDigitos);
       return nomeOk || cpfOk;
     });
-  }, [registros, busca, mes, ano, tipo, funcionarios]);
+
+    if (!ordenacao) return lista;
+
+    const dir = ordenacao.direcao === "asc" ? 1 : -1;
+    return [...lista].sort((a, b) => {
+      let va: any;
+      let vb: any;
+      switch (ordenacao.coluna) {
+        case "competencia":
+          va = (a.lote?.competencia_ano ?? 0) * 100 + (a.lote?.competencia_mes ?? 0);
+          vb = (b.lote?.competencia_ano ?? 0) * 100 + (b.lote?.competencia_mes ?? 0);
+          break;
+        case "funcionario_id":
+          va = semAcento(nomeFuncionario(a));
+          vb = semAcento(nomeFuncionario(b));
+          break;
+        case "cpf_detectado":
+          va = (a.cpf_detectado || "").replace(/\D/g, "");
+          vb = (b.cpf_detectado || "").replace(/\D/g, "");
+          break;
+        case "tipo":
+          va = TIPOS[a.tipo] || a.tipo;
+          vb = TIPOS[b.tipo] || b.tipo;
+          break;
+        case "status":
+          va = a.publicado ? 1 : 0;
+          vb = b.publicado ? 1 : 0;
+          break;
+        default:
+          va = a[ordenacao.coluna];
+          vb = b[ordenacao.coluna];
+      }
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "string" && typeof vb === "string") return va.localeCompare(vb, "pt-BR", { numeric: true }) * dir;
+      if (typeof va === "number" && typeof vb === "number") return (va - vb) * dir;
+      return String(va).localeCompare(String(vb), "pt-BR", { numeric: true }) * dir;
+    });
+  }, [registros, busca, mes, ano, tipo, funcionarios, ordenacao]);
 
 
   useEffect(() => { setPagina(1); }, [busca, mes, ano, tipo, porPagina]);
