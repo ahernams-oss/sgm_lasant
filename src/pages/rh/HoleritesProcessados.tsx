@@ -12,9 +12,9 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import PaginationControls from "@/components/PaginationControls";
-import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer } from "lucide-react";
+import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer, Download } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
-import { imprimirHolerite, type HoleriteDados } from "@/lib/gerarPdfHolerite";
+import { imprimirHolerite, baixarHolerite, type HoleriteDados } from "@/lib/gerarPdfHolerite";
 import { toast } from "sonner";
 
 interface Registro {
@@ -164,6 +164,17 @@ export default function HoleritesProcessados() {
 
   const imprimirUm = (r: Registro) => imprimirHolerite(paraHolerite(r), empresa as any);
 
+  const nomeArquivo = (r: Registro) =>
+    `holerite-${nomeFuncionario(r).replace(/[^\w]+/g, "-").toLowerCase()}-${String(r.lote?.competencia_mes ?? "").padStart(2, "0")}-${r.lote?.competencia_ano ?? ""}.pdf`;
+
+  const baixarUm = (r: Registro) => baixarHolerite(paraHolerite(r), empresa as any, nomeArquivo(r));
+
+  const baixarSelecionados = () => {
+    const alvos = registros.filter((r) => selecionados.includes(r.id));
+    if (!alvos.length) return;
+    baixarHolerite(alvos.map(paraHolerite), empresa as any, "holerites.pdf");
+  };
+
   const imprimirSelecionados = () => {
     const alvos = registros.filter((r) => selecionados.includes(r.id));
     if (!alvos.length) return;
@@ -236,6 +247,9 @@ export default function HoleritesProcessados() {
               </Button>
               <Button size="sm" variant="outline" onClick={imprimirSelecionados}>
                 <Printer className="mr-2 h-4 w-4" />Imprimir selecionados
+              </Button>
+              <Button size="sm" variant="outline" onClick={baixarSelecionados}>
+                <Download className="mr-2 h-4 w-4" />Baixar PDF
               </Button>
             </>
           )}
@@ -377,6 +391,14 @@ export default function HoleritesProcessados() {
                             onClick={() => imprimirUm(r)}
                           >
                             <Printer className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Baixar holerite em PDF"
+                            onClick={() => baixarUm(r)}
+                          >
+                            <Download className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
