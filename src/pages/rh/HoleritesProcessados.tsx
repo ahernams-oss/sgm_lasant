@@ -306,6 +306,29 @@ export default function HoleritesProcessados() {
     URL.revokeObjectURL(url);
   };
 
+  const cabecalhoOrdenavel = (
+    coluna: keyof Registro | "competencia" | "status",
+    label: string,
+    align: "left" | "right" | "center" = "left"
+  ) => {
+    const ativo = ordenacao?.coluna === coluna;
+    const proxima = ativo && ordenacao.direcao === "asc" ? "desc" : "asc";
+    const Icon = ativo ? (ordenacao.direcao === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+    const alignClass = align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start";
+    return (
+      <TableHead className={align === "right" ? "text-right" : align === "center" ? "text-center" : undefined}>
+        <button
+          type="button"
+          onClick={() => setOrdenacao({ coluna, direcao: proxima })}
+          className={`flex items-center gap-1 ${alignClass} w-full hover:text-foreground focus:outline-none`}
+        >
+          {label}
+          <Icon className={`h-3.5 w-3.5 ${ativo ? "text-foreground" : "text-muted-foreground/60"}`} />
+        </button>
+      </TableHead>
+    );
+  };
+
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3">
