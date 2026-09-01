@@ -283,6 +283,16 @@ export default function HoleritesProcessados() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={!!visiveis.length && visiveis.every((v) => selecionados.includes(v.id))}
+                          onCheckedChange={(v) =>
+                            setSelecionados((prev) =>
+                              v ? [...new Set([...prev, ...visiveis.map((x) => x.id)])] : prev.filter((id) => !visiveis.some((x) => x.id === id))
+                            )
+                          }
+                        />
+                      </TableHead>
                       <TableHead>Competência</TableHead>
                       <TableHead>Funcionário</TableHead>
                       <TableHead>CPF</TableHead>
