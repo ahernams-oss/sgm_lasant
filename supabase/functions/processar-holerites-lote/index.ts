@@ -221,7 +221,10 @@ serve(async (req) => {
     const tamanho: number = Math.min(Number(body.tamanho ?? 4), 6);
     let loteId: string | null = body.lote_id ?? null;
 
-    if (!pdfBase64 || !competencia_mes || !competencia_ano) {
+    const excelBase64: string | null = body.excelBase64 ?? null;
+    const modo: "pdf" | "excel" = excelBase64 ? "excel" : "pdf";
+
+    if ((!pdfBase64 && !excelBase64) || !competencia_mes || !competencia_ano) {
       return new Response(JSON.stringify({ error: "Parâmetros obrigatórios ausentes." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -232,10 +235,19 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Decode PDF
-    const bin = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0));
-    const srcDoc = await PDFDocument.load(bin);
-    const totalPages = srcDoc.getPageCount();
+    // Decode fonte (PDF consolidado ou planilha Excel)
+    let srcDoc: any = null;
+    let registrosExcel: any[] = [];
+    let totalPages = 0;
+    if (modo === "excel") {
+      registrosExcel = lerExcel(excelBase64!);
+      totalPages = registrosExcel.length;
+      if (!totalPages) throw new Error("Nenhuma linha de funcionário encontrada na planilha.");
+    } else {
+      const bin = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0));
+      srcDoc = await PDFDocument.load(bin);
+      totalPages = srcDoc.getPageCount();
+    }
 
     // Cria lote (apenas na primeira chamada)
     if (!loteId) {
@@ -281,8 +293,31 @@ serve(async (req) => {
     const indices: number[] = [];
     for (let i = inicio; i < fim; i++) indices.push(i);
 
-    // Processa páginas do bloco em paralelo
+    // Processa páginas/linhas do bloco em paralelo
     const items = await Promise.all(indices.map(async (i) => {
+      if (modo === "excel") {
+        const r = registrosExcel[i];
+        const b64x = await pdfDoRegistro(r, competencia_mes, competencia_ano);
+        let funcionario_id: string | null = null;
+        let status_match = "nao_encontrado";
+        if (r.cpf) {
+          const matches = byCpf.get(r.cpf) || [];
+          if (matches.length === 1) { funcionario_id = matches[0].id; status_match = "auto"; }
+          else if (matches.length > 1) { status_match = "ambiguo"; }
+        }
+        return {
+          lote_id: loteId, pagina: i + 1,
+          cpf_detectado: r.cpf, nome_detectado: r.nome,
+          funcionario_id, tipo: r.tipo, valor_liquido: r.valor_liquido,
+          salario_base: r.salario_base,
+          horas_trabalhadas: r.horas_trabalhadas,
+          horas_extras: r.horas_extras,
+          valor_horas_extras: r.valor_horas_extras,
+          total_proventos: r.total_proventos,
+          total_descontos: r.total_descontos,
+          status_match, pdf_pagina_base64: b64x,
+        };
+      }
       const singleDoc = await PDFDocument.create();
       const [pg] = await singleDoc.copyPages(srcDoc, [i]);
       singleDoc.addPage(pg);
