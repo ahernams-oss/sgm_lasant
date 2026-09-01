@@ -266,11 +266,10 @@ export default function HoleritesProcessados() {
               </div>
               <PaginationControls
                 currentPage={pagina}
-                totalPages={totalPaginas}
-                itemsPerPage={porPagina}
                 totalItems={filtrados.length}
+                pageSize={porPagina}
                 onPageChange={setPagina}
-                onItemsPerPageChange={setPorPagina}
+                onPageSizeChange={setPorPagina}
               />
             </>
           )}
