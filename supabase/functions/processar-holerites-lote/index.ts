@@ -19,7 +19,14 @@ const VAZIO = {
   total_descontos: null as number | null,
 };
 
-const num = (v: any) => (v == null || v === "" || isNaN(Number(v)) ? null : Number(v));
+const num = (v: any) => {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return isNaN(v) ? null : v;
+  let s = String(v).replace(/[R$\s]/gi, "");
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  const n = Number(s);
+  return isNaN(n) ? null : n;
+};
 
 async function extractComIA(pdfBase64: string, mes: number, ano: number) {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
