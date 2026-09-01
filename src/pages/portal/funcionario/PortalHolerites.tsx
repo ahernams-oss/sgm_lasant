@@ -82,13 +82,31 @@ export default function PortalHolerites() {
           <Card key={h.id}>
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <div className="font-medium">{TIPO_LABEL[h.tipo] ?? h.tipo}</div>
+                <div className="font-medium flex items-center gap-2">
+                  {TIPO_LABEL[h.tipo] ?? h.tipo}
+                  {h.assinado_em && (
+                    <Badge variant="secondary" className="gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Assinado
+                    </Badge>
+                  )}
+                </div>
                 <div className="text-sm text-muted-foreground">
                   {MESES[h.competencia_mes - 1]}/{h.competencia_ano}
                   {h.descricao && ` — ${h.descricao}`}
                 </div>
+                {h.assinado_em && (
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Assinado em {new Date(h.assinado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                    {h.assinatura_hash && ` — Código: ${h.assinatura_hash}`}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
+                {!h.assinado_em && (
+                  <Button size="sm" variant="secondary" onClick={() => setAssinar(h)}>
+                    <PenLine className="w-4 h-4 mr-1" />Assinar
+                  </Button>
+                )}
                 <Button size="sm" variant="outline" disabled={busy === h.id + "p"} onClick={() => imprimir(h)}>
                   {busy === h.id + "p" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Printer className="w-4 h-4 mr-1" />}Imprimir
                 </Button>
@@ -100,6 +118,16 @@ export default function PortalHolerites() {
           </Card>
         ))}
       </div>
+      <AssinaturaHoleriteDialog
+        open={!!assinar}
+        onOpenChange={(v) => !v && setAssinar(null)}
+        holeriteId={assinar?.id ?? null}
+        competencia={assinar ? `${MESES[assinar.competencia_mes - 1]}/${assinar.competencia_ano}` : undefined}
+        onAssinado={(id, assinadoEm) =>
+          setList((prev) => prev.map((x) => (x.id === id ? { ...x, assinado_em: assinadoEm } : x)))
+        }
+      />
     </PortalLayout>
   );
+
 }
