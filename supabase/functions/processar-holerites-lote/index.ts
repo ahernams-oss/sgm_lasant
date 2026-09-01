@@ -33,11 +33,14 @@ Regras:
 - Se mencionar "Férias" (recibo de férias) → tipo "ferias".
 - Caso contrário → tipo "folha".
 - valor_liquido é o LÍQUIDO A RECEBER (valor final que o funcionário recebe).
-- salario_base é o salário base / salário contratual do funcionário.
-- horas_trabalhadas é a quantidade de horas normais do evento de salário (ex.: 220).
-- horas_extras é a SOMA das quantidades de horas de todos os eventos de hora extra (50%, 100%, etc.).
-- valor_horas_extras é a SOMA em R$ dos eventos de hora extra.
-- Números decimais com ponto, sem separador de milhar e sem "R$".
+- A tabela de eventos tem as colunas: CÓDIGO, DESCRIÇÃO, REFERÊNCIA, VENCIMENTOS (proventos) e DESCONTOS.
+- salario_base = valor da coluna VENCIMENTOS da linha cuja DESCRIÇÃO é "Horas Normais" (ou "Salário Normal"/"Horas Trabalhadas").
+- horas_trabalhadas = valor da coluna REFERÊNCIA dessa MESMA linha de "Horas Normais" (ex.: 220,00).
+- horas_extras = SOMA dos valores da coluna REFERÊNCIA de TODAS as linhas cuja DESCRIÇÃO contenha "Horas Extras" (50%, 100%, etc.).
+- valor_horas_extras = SOMA dos valores da coluna VENCIMENTOS dessas mesmas linhas de "Horas Extras".
+- total_proventos = valor do campo "Total de Vencimentos" (rodapé do holerite).
+- total_descontos = valor do campo "Total de Descontos" (rodapé do holerite).
+- Números decimais com ponto, sem separador de milhar e sem "R$" (ex.: "1.234,56" → 1234.56).
 - Se não encontrar algum campo, use null.`;
 
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
