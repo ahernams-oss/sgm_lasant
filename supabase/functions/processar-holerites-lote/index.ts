@@ -67,7 +67,16 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { pdfBase64, arquivo_nome, competencia_mes, competencia_ano, importado_por, importado_por_nome } = await req.json();
+    const body = await req.json();
+    const {
+      pdfBase64, arquivo_nome, competencia_mes, competencia_ano,
+      importado_por, importado_por_nome,
+    } = body;
+    // Processamento em blocos para não estourar o limite de 150s da edge function.
+    const inicio: number = Number(body.inicio ?? 0);       // índice da 1ª página (0-based)
+    const tamanho: number = Math.min(Number(body.tamanho ?? 4), 6);
+    let loteId: string | null = body.lote_id ?? null;
+
     if (!pdfBase64 || !competencia_mes || !competencia_ano) {
       return new Response(JSON.stringify({ error: "Parâmetros obrigatórios ausentes." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,16 +93,19 @@ serve(async (req) => {
     const srcDoc = await PDFDocument.load(bin);
     const totalPages = srcDoc.getPageCount();
 
-    // Cria lote
-    const { data: lote, error: loteErr } = await supabase
-      .from("portal_holerites_import_lote")
-      .insert({
-        arquivo_nome, competencia_mes, competencia_ano,
-        total_paginas: totalPages, status: "conferencia",
-        importado_por, importado_por_nome,
-      })
-      .select("id").single();
-    if (loteErr) throw loteErr;
+    // Cria lote (apenas na primeira chamada)
+    if (!loteId) {
+      const { data: lote, error: loteErr } = await supabase
+        .from("portal_holerites_import_lote")
+        .insert({
+          arquivo_nome, competencia_mes, competencia_ano,
+          total_paginas: totalPages, status: "conferencia",
+          importado_por, importado_por_nome,
+        })
+        .select("id").single();
+      if (loteErr) throw loteErr;
+      loteId = lote.id;
+    }
 
     // Carrega funcionarios (para matching)
     const { data: funcs } = await supabase
@@ -109,14 +121,22 @@ serve(async (req) => {
       byCpf.set(c, arr);
     });
 
-    // Processa cada página
-    const items: any[] = [];
-    for (let i = 0; i < totalPages; i++) {
+    const fim = Math.min(inicio + tamanho, totalPages);
+    const indices: number[] = [];
+    for (let i = inicio; i < fim; i++) indices.push(i);
+
+    // Processa páginas do bloco em paralelo
+    const items = await Promise.all(indices.map(async (i) => {
       const singleDoc = await PDFDocument.create();
       const [pg] = await singleDoc.copyPages(srcDoc, [i]);
       singleDoc.addPage(pg);
       const bytes = await singleDoc.save();
-      const b64 = btoa(String.fromCharCode(...bytes));
+      let b64 = "";
+      const CH = 0x8000;
+      for (let k = 0; k < bytes.length; k += CH) {
+        b64 += String.fromCharCode(...bytes.subarray(k, k + CH));
+      }
+      b64 = btoa(b64);
 
       const extracted = await extractComIA(b64, competencia_mes, competencia_ano);
 
@@ -128,24 +148,29 @@ serve(async (req) => {
         else if (matches.length > 1) { status_match = "ambiguo"; }
       }
 
-      items.push({
-        lote_id: lote.id, pagina: i + 1,
+      return {
+        lote_id: loteId, pagina: i + 1,
         cpf_detectado: extracted.cpf, nome_detectado: extracted.nome,
         funcionario_id, tipo: extracted.tipo, valor_liquido: extracted.valor_liquido,
         status_match, pdf_pagina_base64: b64,
-      });
-    }
+      };
+    }));
 
-    // Insere em batches
-    const chunk = 20;
-    for (let i = 0; i < items.length; i += chunk) {
-      const { error: itErr } = await supabase.from("portal_holerites_import_item").insert(items.slice(i, i + chunk));
+    if (items.length) {
+      const { error: itErr } = await supabase.from("portal_holerites_import_item").insert(items);
       if (itErr) throw itErr;
     }
 
-    return new Response(JSON.stringify({ lote_id: lote.id, total: totalPages }), {
+    return new Response(JSON.stringify({
+      lote_id: loteId,
+      total: totalPages,
+      processadas: fim,
+      concluido: fim >= totalPages,
+      proximo_inicio: fim,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (e) {
     console.error(e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {

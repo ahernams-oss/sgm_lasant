@@ -68,32 +68,53 @@ export default function ImportarHolerites() {
     setItens(data as any);
   };
 
+  const [progresso, setProgresso] = useState<string>("");
+
   const analisar = async () => {
     if (!file) return toast.error("Selecione um PDF");
     setProcessing(true);
+    setProgresso("");
     try {
       const b64 = await fileToBase64(file);
-      const { data, error } = await supabase.functions.invoke("processar-holerites-lote", {
-        body: {
-          pdfBase64: b64,
-          arquivo_nome: file.name,
-          competencia_mes: mes,
-          competencia_ano: ano,
-          importado_por: usuarioLogado?.id,
-          importado_por_nome: usuarioLogado?.nome,
-        },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      setLoteId((data as any).lote_id);
-      await carregarItens((data as any).lote_id);
-      toast.success(`${(data as any).total} páginas analisadas.`);
+      let lid: string | null = null;
+      let inicio = 0;
+      let total = 0;
+      // Processa em blocos para evitar timeout da função (150s)
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { data, error } = await supabase.functions.invoke("processar-holerites-lote", {
+          body: {
+            pdfBase64: b64,
+            arquivo_nome: file.name,
+            competencia_mes: mes,
+            competencia_ano: ano,
+            importado_por: usuarioLogado?.id,
+            importado_por_nome: usuarioLogado?.nome,
+            lote_id: lid,
+            inicio,
+            tamanho: 4,
+          },
+        });
+        if (error) throw error;
+        const d = data as any;
+        if (d?.error) throw new Error(d.error);
+        lid = d.lote_id;
+        total = d.total;
+        inicio = d.proximo_inicio;
+        setProgresso(`${d.processadas} de ${d.total} páginas analisadas…`);
+        if (d.concluido) break;
+      }
+      setLoteId(lid);
+      if (lid) await carregarItens(lid);
+      toast.success(`${total} páginas analisadas.`);
     } catch (e: any) {
       toast.error(e.message || "Erro ao processar PDF.");
     } finally {
       setProcessing(false);
+      setProgresso("");
     }
   };
+
 
   const atualizarItem = async (id: string, patch: Partial<Item>) => {
     setItens((old) => old.map((i) => (i.id === id ? { ...i, ...patch } as Item : i)));
@@ -147,7 +168,7 @@ export default function ImportarHolerites() {
             <Button onClick={analisar} disabled={!file || processing}>
               {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analisando com IA…</> : <><Upload className="mr-2 h-4 w-4" />Analisar PDF</>}
             </Button>
-            {processing && <p className="text-xs text-muted-foreground mt-2">Pode levar até 1 minuto por página. Aguarde…</p>}
+            {processing && <p className="text-xs text-muted-foreground mt-2">{progresso || "Processando em blocos…"} Aguarde.</p>}
           </div>
         </CardContent>
       </Card>
