@@ -7433,6 +7433,10 @@ export type Database = {
           id: string
           nota: number | null
           processo_seletivo_id: string | null
+          resp_assinado_em: string | null
+          resp_assinante_cargo: string | null
+          resp_assinante_nome: string | null
+          resp_assinatura_hash: string | null
           status: string
           tipo: string
           titulo: string
@@ -7450,6 +7454,10 @@ export type Database = {
           id?: string
           nota?: number | null
           processo_seletivo_id?: string | null
+          resp_assinado_em?: string | null
+          resp_assinante_cargo?: string | null
+          resp_assinante_nome?: string | null
+          resp_assinatura_hash?: string | null
           status?: string
           tipo: string
           titulo: string
@@ -7467,6 +7475,10 @@ export type Database = {
           id?: string
           nota?: number | null
           processo_seletivo_id?: string | null
+          resp_assinado_em?: string | null
+          resp_assinante_cargo?: string | null
+          resp_assinante_nome?: string | null
+          resp_assinatura_hash?: string | null
           status?: string
           tipo?: string
           titulo?: string
