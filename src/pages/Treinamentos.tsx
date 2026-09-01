@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown, Award } from "lucide-react";
+import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown, Award, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { exportarTreinamentosCsv, exportarTreinamentosPdf, type TreinamentoExportRow } from "@/lib/exportTreinamentos";
@@ -29,6 +29,9 @@ interface Treinamento {
   nota: number | null;
   concluido_em: string | null;
   created_at: string;
+  assinado_em: string | null;
+  assinatura_hash: string | null;
+  assinatura_ip: string | null;
 }
 
 const TIPOS = [
@@ -90,7 +93,7 @@ export default function Treinamentos() {
     setLoading(true);
     const { data, error } = await supabase
       .from("portal_treinamentos")
-      .select("id, cpf, tipo, titulo, status, nota, concluido_em, created_at")
+      .select("id, cpf, tipo, titulo, status, nota, concluido_em, created_at, assinado_em, assinatura_hash, assinatura_ip")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setList((data as Treinamento[]) ?? []);
@@ -180,6 +183,9 @@ export default function Treinamentos() {
     nota: t.nota != null ? String(t.nota) : null,
     concluidoEm: t.concluido_em,
     codigo: t.id.slice(0, 8).toUpperCase(),
+    assinadoEm: t.assinado_em,
+    assinaturaHash: t.assinatura_hash,
+    assinaturaIp: t.assinatura_ip,
   });
 
   const empresaCertificado = () => ({
@@ -312,7 +318,20 @@ export default function Treinamentos() {
                     <TableCell>{t.cpf}</TableCell>
                     <TableCell>{t.titulo}</TableCell>
                     <TableCell>{TIPOS.find((x) => x.v === t.tipo)?.l ?? t.tipo}</TableCell>
-                    <TableCell>{statusBadge(t.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1 items-start">
+                        {statusBadge(t.status)}
+                        {t.assinado_em && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px]"
+                            title={`Validado em ${new Date(t.assinado_em).toLocaleString("pt-BR")}${t.assinatura_hash ? ` — SHA-256 ${t.assinatura_hash}` : ""}`}
+                          >
+                            <ShieldCheck className="w-3 h-3 mr-1" />Validado
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{t.nota ?? "—"}</TableCell>
                     <TableCell>{fmt(t.concluido_em)}</TableCell>
                     <TableCell>
