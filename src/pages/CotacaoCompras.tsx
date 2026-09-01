@@ -1223,7 +1223,7 @@ export default function CotacaoComprasPage() {
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
       const results: Array<{ fornecedorNome: string; link: string; erro?: string }> = [];
-      const pendentes: Array<{ nome: string; email: string; telefone: string; link: string }> = [];
+      const pendentes: Array<{ id: string; nome: string; email: string; telefone: string; link: string }> = [];
 
       const alvos = fornecedores.filter(f => fornecedoresSelecionadosIds.includes(f.id));
       if (alvos.length === 0) throw new Error("Selecione ao menos um fornecedor");
@@ -1255,7 +1255,7 @@ export default function CotacaoComprasPage() {
           }
 
           results.push({ fornecedorNome: forn.nome, link });
-          pendentes.push({ nome: forn.nome, email: emailForn, telefone: telForn, link });
+          pendentes.push({ id: forn.id, nome: forn.nome, email: emailForn, telefone: telForn, link });
         } catch (e: any) {
           results.push({ fornecedorNome: forn.nome, link: "", erro: e.message });
         }
@@ -1278,7 +1278,7 @@ export default function CotacaoComprasPage() {
                 body: {
                   templateName: "cotacao-confirmation",
                   recipientEmail: p.email,
-                  idempotencyKey: `cotacao-${cot.id}-${p.nome}`,
+                  idempotencyKey: `cotacao-${cot.id}-${p.id}`,
                   templateData: { fornecedorNome: p.nome, cotacaoNumero: cot.numero, comprador, link: p.link, nomeEmpresa },
                 },
               });
