@@ -325,6 +325,16 @@ export default function Treinamentos() {
                           {t.status !== "concluido" && (
                             <DropdownMenuItem onClick={() => marcarConcluido(t)}>Marcar como concluído</DropdownMenuItem>
                           )}
+                          {t.status === "concluido" && (
+                            <>
+                              <DropdownMenuItem onClick={() => certificado(t, "imprimir")}>
+                                <Award className="w-4 h-4 mr-2" />Imprimir certificado
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => certificado(t, "baixar")}>
+                                <FileDown className="w-4 h-4 mr-2" />Baixar certificado (PDF)
+                              </DropdownMenuItem>
+                            </>
+                          )}
                           <DropdownMenuItem className="text-destructive" onClick={() => setExcluirId(t.id)}>
                             Excluir
                           </DropdownMenuItem>
