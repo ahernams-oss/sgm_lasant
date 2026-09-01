@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PaginationControls from "@/components/PaginationControls";
-import { Loader2, FileSpreadsheet, RefreshCw } from "lucide-react";
+import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Registro {
