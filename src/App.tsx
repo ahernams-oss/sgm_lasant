@@ -254,6 +254,7 @@ function ProtectedAppRoutes() {
         <Route path="/rh/treinamentos" element={<RotaProtegida perm="funcionarios"><Treinamentos /></RotaProtegida>} />
         <Route path="/rh/solicitacoes-portal" element={<RotaProtegida perm="funcionarios"><SolicitacoesPortalRH /></RotaProtegida>} />
         <Route path="/rh/importar-holerites" element={<RotaProtegida perm="funcionarios"><ImportarHolerites /></RotaProtegida>} />
+        <Route path="/rh/holerites-processados" element={<RotaProtegida perm="funcionarios"><HoleritesProcessados /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
         <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
