@@ -1223,11 +1223,12 @@ export default function CotacaoComprasPage() {
       const comprador = cot.comprador || usuarioLogado?.nome || "Departamento de Compras";
 
       const results: Array<{ fornecedorNome: string; link: string; erro?: string }> = [];
-      let enviadosEmail = 0;
-      let enviadosWpp = 0;
+      const pendentes: Array<{ nome: string; email: string; telefone: string; link: string }> = [];
 
       const alvos = fornecedores.filter(f => fornecedoresSelecionadosIds.includes(f.id));
       if (alvos.length === 0) throw new Error("Selecione ao menos um fornecedor");
+
+      // 1) Grava os convites e responde imediatamente
       for (const forn of alvos) {
         const emailForn = forn.emailCompras || forn.email || "";
         const telForn = getTelefoneFornecedor(forn);
@@ -1253,42 +1254,51 @@ export default function CotacaoComprasPage() {
             continue;
           }
 
-          const canais: string[] = [];
-
-          if (canalEmail && emailForn) {
-            try {
-              await enviarEmailCompras({
-                body: {
-                  templateName: "cotacao-confirmation",
-                  recipientEmail: emailForn,
-                  idempotencyKey: `cotacao-${cot.id}-${forn.id}`,
-                  templateData: { fornecedorNome: forn.nome, cotacaoNumero: cot.numero, comprador, link, nomeEmpresa },
-                },
-              });
-              enviadosEmail++;
-              canais.push("e-mail");
-            } catch { /* ignore individual */ }
-          }
-
-          if (canalWhatsapp && telForn) {
-            const msg = montarMensagemWhatsapp(forn.nome, cot.numero, link, comprador, nomeEmpresa);
-            const r = await enviarWhatsApp(telForn, msg);
-            if (r.success) { enviadosWpp++; canais.push("WhatsApp"); }
-          }
-
-          results.push({ fornecedorNome: forn.nome, link, erro: canais.length === 0 ? "Falha em todos os canais" : undefined });
+          results.push({ fornecedorNome: forn.nome, link });
+          pendentes.push({ nome: forn.nome, email: emailForn, telefone: telForn, link });
         } catch (e: any) {
           results.push({ fornecedorNome: forn.nome, link: "", erro: e.message });
         }
       }
 
       setLinksGeradosTodos(results);
-      toast({ title: `Envios concluídos`, description: `${enviadosEmail} e-mail(s) e ${enviadosWpp} WhatsApp(s) enviados` });
+      toast({
+        title: `${results.filter(r => r.link).length} convite(s) criado(s)`,
+        description: pendentes.length ? "Enviando e-mails/WhatsApp em segundo plano..." : undefined,
+      });
+
+      // 2) Envio dos canais em segundo plano
+      void (async () => {
+        let enviadosEmail = 0;
+        let enviadosWpp = 0;
+        for (const p of pendentes) {
+          if (canalEmail && p.email) {
+            try {
+              const { error } = await enviarEmailCompras({
+                body: {
+                  templateName: "cotacao-confirmation",
+                  recipientEmail: p.email,
+                  idempotencyKey: `cotacao-${cot.id}-${p.nome}`,
+                  templateData: { fornecedorNome: p.nome, cotacaoNumero: cot.numero, comprador, link: p.link, nomeEmpresa },
+                },
+              });
+              if (!error) enviadosEmail++;
+            } catch { /* ignore individual */ }
+          }
+          if (canalWhatsapp && p.telefone) {
+            const msg = montarMensagemWhatsapp(p.nome, cot.numero, p.link, comprador, nomeEmpresa);
+            const r = await enviarWhatsApp(p.telefone, msg);
+            if (r.success) enviadosWpp++;
+          }
+        }
+        toast({ title: "Envios concluídos", description: `${enviadosEmail} e-mail(s) e ${enviadosWpp} WhatsApp(s) enviados` });
+      })();
     } catch (e: any) {
       toast({ title: "Erro ao enviar cotações", description: e.message, variant: "destructive" });
     } finally {
       setEnviarTodosLoading(false);
     }
+
   };
 
   const handleCopyAllLinks = () => {
