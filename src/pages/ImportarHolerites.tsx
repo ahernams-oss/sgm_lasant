@@ -168,7 +168,7 @@ export default function ImportarHolerites() {
             <Button onClick={analisar} disabled={!file || processing}>
               {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analisando com IA…</> : <><Upload className="mr-2 h-4 w-4" />Analisar PDF</>}
             </Button>
-            {processing && <p className="text-xs text-muted-foreground mt-2">Pode levar até 1 minuto por página. Aguarde…</p>}
+            {processing && <p className="text-xs text-muted-foreground mt-2">{progresso || "Processando em blocos…"} Aguarde.</p>}
           </div>
         </CardContent>
       </Card>
