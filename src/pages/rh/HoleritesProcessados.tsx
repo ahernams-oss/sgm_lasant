@@ -10,6 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import PaginationControls from "@/components/PaginationControls";
 import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2 } from "lucide-react";
 import { toast } from "sonner";
