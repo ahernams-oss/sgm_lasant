@@ -12,7 +12,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import PaginationControls from "@/components/PaginationControls";
-import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer, Download } from "lucide-react";
+import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2, Printer, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { imprimirHolerite, baixarHolerite, type HoleriteDados } from "@/lib/gerarPdfHolerite";
 import { toast } from "sonner";
