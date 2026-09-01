@@ -78,6 +78,7 @@ export default function HoleritesProcessados() {
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [assinaturas, setAssinaturas] = useState<Record<string, Assinatura>>({});
   const [lote, setLote] = useState<{ feito: number; total: number } | null>(null);
+  const [ordenacao, setOrdenacao] = useState<{ coluna: keyof Registro | "competencia" | "status"; direcao: "asc" | "desc" } | null>(null);
 
 
   const alternarSelecao = (id: string, on: boolean) =>
