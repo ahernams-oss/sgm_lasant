@@ -3,7 +3,7 @@ import PortalLayout from "@/components/portal/PortalLayout";
 import { portalCall } from "@/lib/portalClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Printer, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface H { id: string; tipo: string; competencia_mes: number; competencia_ano: number; descricao?: string; disponibilizado_em: string; }
@@ -13,6 +13,7 @@ const TIPO_LABEL: Record<string,string> = { folha: "Holerite Mensal", "13o": "13
 export default function PortalHolerites() {
   const [list, setList] = useState<H[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
     portalCall<{ holerites: H[] }>("list-holerites")
@@ -21,11 +22,48 @@ export default function PortalHolerites() {
       .finally(() => setLoading(false));
   }, []);
 
-  const download = async (id: string) => {
+  const blobDoHolerite = async (id: string) => {
+    const { url } = await portalCall<{ url: string }>("download-holerite", { id });
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error("Não foi possível obter o arquivo.");
+    return URL.createObjectURL(await resp.blob());
+  };
+
+  const download = async (h: H) => {
+    setBusy(h.id + "d");
     try {
-      const { url } = await portalCall<{ url: string }>("download-holerite", { id });
-      window.open(url, "_blank");
-    } catch (e: any) { toast.error(e.message); }
+      const href = await blobDoHolerite(h.id);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = `holerite-${String(h.competencia_mes).padStart(2, "0")}-${h.competencia_ano}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(href), 30000);
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(null); }
+  };
+
+  const imprimir = async (h: H) => {
+    setBusy(h.id + "p");
+    try {
+      const href = await blobDoHolerite(h.id);
+      const frame = document.createElement("iframe");
+      frame.style.position = "fixed";
+      frame.style.right = "0";
+      frame.style.bottom = "0";
+      frame.style.width = "0";
+      frame.style.height = "0";
+      frame.style.border = "0";
+      frame.src = href;
+      frame.onload = () => {
+        try {
+          frame.contentWindow?.focus();
+          frame.contentWindow?.print();
+        } catch {
+          window.open(href, "_blank");
+        }
+      };
+      document.body.appendChild(frame);
+      setTimeout(() => { URL.revokeObjectURL(href); frame.remove(); }, 60000);
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(null); }
   };
 
   return (
@@ -46,7 +84,14 @@ export default function PortalHolerites() {
                   {h.descricao && ` — ${h.descricao}`}
                 </div>
               </div>
-              <Button size="sm" onClick={() => download(h.id)}><Download className="w-4 h-4 mr-1" />Baixar</Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" disabled={busy === h.id + "p"} onClick={() => imprimir(h)}>
+                  {busy === h.id + "p" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Printer className="w-4 h-4 mr-1" />}Imprimir
+                </Button>
+                <Button size="sm" disabled={busy === h.id + "d"} onClick={() => download(h)}>
+                  {busy === h.id + "d" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}Baixar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}

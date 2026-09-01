@@ -10,6 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import PaginationControls from "@/components/PaginationControls";
 import { Loader2, FileSpreadsheet, RefreshCw, Upload, Undo2 } from "lucide-react";
 import { toast } from "sonner";
@@ -64,6 +65,42 @@ export default function HoleritesProcessados() {
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(20);
   const [processando, setProcessando] = useState<string | null>(null);
+  const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [lote, setLote] = useState<{ feito: number; total: number } | null>(null);
+
+  const alternarSelecao = (id: string, on: boolean) =>
+    setSelecionados((prev) => (on ? [...new Set([...prev, id])] : prev.filter((x) => x !== id)));
+
+  const executarLote = async (acao: "publicar" | "despublicar") => {
+    const alvos = registros.filter(
+      (r) => selecionados.includes(r.id) && (acao === "publicar" ? !r.publicado && r.funcionario_id : r.publicado)
+    );
+    if (!alvos.length) {
+      toast.error(acao === "publicar" ? "Nenhum item pendente e vinculado selecionado." : "Nenhum item publicado selecionado.");
+      return;
+    }
+    setLote({ feito: 0, total: alvos.length });
+    let ok = 0, falhas = 0;
+    for (let i = 0; i < alvos.length; i += 4) {
+      const bloco = alvos.slice(i, i + 4);
+      await Promise.all(
+        bloco.map(async (r) => {
+          const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
+            body: { item_id: r.id, acao },
+          });
+          const err = error?.message || (data as any)?.error;
+          if (err) { falhas++; return; }
+          ok++;
+          setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: acao === "publicar" } : x)));
+        })
+      );
+      setLote({ feito: Math.min(i + 4, alvos.length), total: alvos.length });
+    }
+    setLote(null);
+    setSelecionados([]);
+    toast.success(`${ok} holerite(s) ${acao === "publicar" ? "publicados" : "despublicados"}${falhas ? ` — ${falhas} falha(s)` : ""}.`);
+  };
+
 
   const alternarPublicacao = async (r: Registro) => {
     const acao = r.publicado ? "despublicar" : "publicar";
@@ -157,7 +194,18 @@ export default function HoleritesProcessados() {
     <div className="p-6 max-w-[1600px] mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Holerites Processados</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          {!!selecionados.length && (
+            <>
+              <span className="text-sm text-muted-foreground">{selecionados.length} selecionado(s)</span>
+              <Button size="sm" disabled={!!lote} onClick={() => executarLote("publicar")}>
+                {lote ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{lote.feito}/{lote.total}</> : <><Upload className="mr-2 h-4 w-4" />Publicar selecionados</>}
+              </Button>
+              <Button size="sm" variant="outline" disabled={!!lote} onClick={() => executarLote("despublicar")}>
+                <Undo2 className="mr-2 h-4 w-4" />Despublicar selecionados
+              </Button>
+            </>
+          )}
           <Button variant="outline" size="sm" onClick={carregar}>
             <RefreshCw className="mr-2 h-4 w-4" />Atualizar
           </Button>
@@ -235,6 +283,16 @@ export default function HoleritesProcessados() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={!!visiveis.length && visiveis.every((v) => selecionados.includes(v.id))}
+                          onCheckedChange={(v) =>
+                            setSelecionados((prev) =>
+                              v ? [...new Set([...prev, ...visiveis.map((x) => x.id)])] : prev.filter((id) => !visiveis.some((x) => x.id === id))
+                            )
+                          }
+                        />
+                      </TableHead>
                       <TableHead>Competência</TableHead>
                       <TableHead>Funcionário</TableHead>
                       <TableHead>CPF</TableHead>
@@ -253,6 +311,12 @@ export default function HoleritesProcessados() {
                   <TableBody>
                     {visiveis.map((r) => (
                       <TableRow key={r.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selecionados.includes(r.id)}
+                            onCheckedChange={(v) => alternarSelecao(r.id, !!v)}
+                          />
+                        </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {r.lote ? `${String(r.lote.competencia_mes).padStart(2, "0")}/${r.lote.competencia_ano}` : "—"}
                         </TableCell>
@@ -292,7 +356,7 @@ export default function HoleritesProcessados() {
                     ))}
                     {!visiveis.length && (
                       <TableRow>
-                        <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={14} className="text-center text-muted-foreground py-8">
                           Nenhum holerite processado com os filtros atuais.
                         </TableCell>
                       </TableRow>
