@@ -194,7 +194,18 @@ export default function HoleritesProcessados() {
     <div className="p-6 max-w-[1600px] mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Holerites Processados</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          {!!selecionados.length && (
+            <>
+              <span className="text-sm text-muted-foreground">{selecionados.length} selecionado(s)</span>
+              <Button size="sm" disabled={!!lote} onClick={() => executarLote("publicar")}>
+                {lote ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{lote.feito}/{lote.total}</> : <><Upload className="mr-2 h-4 w-4" />Publicar selecionados</>}
+              </Button>
+              <Button size="sm" variant="outline" disabled={!!lote} onClick={() => executarLote("despublicar")}>
+                <Undo2 className="mr-2 h-4 w-4" />Despublicar selecionados
+              </Button>
+            </>
+          )}
           <Button variant="outline" size="sm" onClick={carregar}>
             <RefreshCw className="mr-2 h-4 w-4" />Atualizar
           </Button>
