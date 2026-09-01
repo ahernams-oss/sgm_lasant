@@ -7422,6 +7422,10 @@ export type Database = {
       }
       portal_treinamentos: {
         Row: {
+          assinado_em: string | null
+          assinatura_dispositivo: string | null
+          assinatura_hash: string | null
+          assinatura_ip: string | null
           certificado_path: string | null
           concluido_em: string | null
           cpf: string
@@ -7435,6 +7439,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assinado_em?: string | null
+          assinatura_dispositivo?: string | null
+          assinatura_hash?: string | null
+          assinatura_ip?: string | null
           certificado_path?: string | null
           concluido_em?: string | null
           cpf: string
@@ -7448,6 +7456,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assinado_em?: string | null
+          assinatura_dispositivo?: string | null
+          assinatura_hash?: string | null
+          assinatura_ip?: string | null
           certificado_path?: string | null
           concluido_em?: string | null
           cpf?: string
