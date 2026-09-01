@@ -92,26 +92,42 @@ export default function HoleritesProcessados() {
       toast.error(acao === "publicar" ? "Nenhum item pendente e vinculado selecionado." : "Nenhum item publicado selecionado.");
       return;
     }
-    setLote({ feito: 0, total: alvos.length });
-    let ok = 0, falhas = 0;
-    for (let i = 0; i < alvos.length; i += 4) {
-      const bloco = alvos.slice(i, i + 4);
-      await Promise.all(
-        bloco.map(async (r) => {
-          const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
-            body: { item_id: r.id, acao },
-          });
-          const err = error?.message || (data as any)?.error;
-          if (err) { falhas++; return; }
-          ok++;
-          setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: acao === "publicar" } : x)));
-        })
-      );
-      setLote({ feito: Math.min(i + 4, alvos.length), total: alvos.length });
-    }
-    setLote(null);
+
+    // Resposta imediata: marca na tela e processa em segundo plano
+    const ids = alvos.map((a) => a.id);
+    setRegistros((prev) => prev.map((x) => (ids.includes(x.id) ? { ...x, publicado: acao === "publicar" } : x)));
     setSelecionados([]);
-    toast.success(`${ok} holerite(s) ${acao === "publicar" ? "publicados" : "despublicados"}${falhas ? ` — ${falhas} falha(s)` : ""}.`);
+    setLote({ feito: 0, total: alvos.length });
+    toast.info(
+      `${alvos.length} holerite(s) enviados para ${acao === "publicar" ? "publicação" : "despublicação"} em segundo plano.`,
+    );
+
+    void (async () => {
+      let ok = 0, falhas = 0;
+      for (let i = 0; i < alvos.length; i += 4) {
+        const bloco = alvos.slice(i, i + 4);
+        await Promise.all(
+          bloco.map(async (r) => {
+            try {
+              const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
+                body: { item_id: r.id, acao },
+              });
+              const err = error?.message || (data as any)?.error;
+              if (err) throw new Error(err);
+              ok++;
+            } catch {
+              falhas++;
+              // reverte apenas o item que falhou
+              setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: acao !== "publicar" } : x)));
+            }
+          })
+        );
+        setLote({ feito: Math.min(i + 4, alvos.length), total: alvos.length });
+      }
+      setLote(null);
+      if (falhas) toast.error(`${ok} concluído(s), ${falhas} falha(s).`);
+      else toast.success(`${ok} holerite(s) ${acao === "publicar" ? "publicados" : "despublicados"}.`);
+    })();
   };
 
 
@@ -121,16 +137,24 @@ export default function HoleritesProcessados() {
       toast.error("Vincule o funcionário no lote antes de publicar.");
       return;
     }
-    setProcessando(r.id);
-    const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
-      body: { item_id: r.id, acao },
-    });
-    setProcessando(null);
-    const err = error?.message || (data as any)?.error;
-    if (err) { toast.error(err); return; }
+    // Resposta imediata + execução em segundo plano
     setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: !r.publicado } : x)));
-    toast.success(r.publicado ? "Holerite despublicado do portal." : "Holerite publicado no portal.");
+    toast.info(acao === "publicar" ? "Publicando no portal em segundo plano..." : "Despublicando em segundo plano...");
+
+    void (async () => {
+      const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
+        body: { item_id: r.id, acao },
+      });
+      const err = error?.message || (data as any)?.error;
+      if (err) {
+        setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: r.publicado } : x)));
+        toast.error(err);
+        return;
+      }
+      toast.success(r.publicado ? "Holerite despublicado do portal." : "Holerite publicado no portal.");
+    })();
   };
+
 
   const carregar = async () => {
     setLoading(true);
