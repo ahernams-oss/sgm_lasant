@@ -13,6 +13,7 @@ const TIPO_LABEL: Record<string,string> = { folha: "Holerite Mensal", "13o": "13
 export default function PortalHolerites() {
   const [list, setList] = useState<H[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
     portalCall<{ holerites: H[] }>("list-holerites")
