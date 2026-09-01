@@ -46,7 +46,7 @@ serve(async (req) => {
       if (insErr) { console.error("insert holerite err", insErr); continue; }
 
       await supabase.from("portal_holerites_import_item")
-        .update({ publicado: true, pdf_pagina_base64: null })
+        .update({ publicado: true })
         .eq("id", item.id);
       publicados++;
     }
