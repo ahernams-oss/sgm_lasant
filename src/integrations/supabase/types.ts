@@ -7167,6 +7167,8 @@ export type Database = {
           cpf_detectado: string | null
           created_at: string
           funcionario_id: string | null
+          horas_extras: number | null
+          horas_trabalhadas: number | null
           id: string
           ignorar: boolean
           lote_id: string
@@ -7175,15 +7177,21 @@ export type Database = {
           pagina: number
           pdf_pagina_base64: string | null
           publicado: boolean
+          salario_base: number | null
           status_match: string
           tipo: string
+          total_descontos: number | null
+          total_proventos: number | null
           updated_at: string
+          valor_horas_extras: number | null
           valor_liquido: number | null
         }
         Insert: {
           cpf_detectado?: string | null
           created_at?: string
           funcionario_id?: string | null
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
           id?: string
           ignorar?: boolean
           lote_id: string
@@ -7192,15 +7200,21 @@ export type Database = {
           pagina: number
           pdf_pagina_base64?: string | null
           publicado?: boolean
+          salario_base?: number | null
           status_match?: string
           tipo?: string
+          total_descontos?: number | null
+          total_proventos?: number | null
           updated_at?: string
+          valor_horas_extras?: number | null
           valor_liquido?: number | null
         }
         Update: {
           cpf_detectado?: string | null
           created_at?: string
           funcionario_id?: string | null
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
           id?: string
           ignorar?: boolean
           lote_id?: string
@@ -7209,9 +7223,13 @@ export type Database = {
           pagina?: number
           pdf_pagina_base64?: string | null
           publicado?: boolean
+          salario_base?: number | null
           status_match?: string
           tipo?: string
+          total_descontos?: number | null
+          total_proventos?: number | null
           updated_at?: string
+          valor_horas_extras?: number | null
           valor_liquido?: number | null
         }
         Relationships: [

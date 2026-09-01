@@ -11,11 +11,21 @@ const corsHeaders = {
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
 
+const VAZIO = {
+  cpf: null as string | null, nome: null as string | null, tipo: "folha",
+  valor_liquido: null as number | null, salario_base: null as number | null,
+  horas_trabalhadas: null as number | null, horas_extras: null as number | null,
+  valor_horas_extras: null as number | null, total_proventos: null as number | null,
+  total_descontos: null as number | null,
+};
+
+const num = (v: any) => (v == null || v === "" || isNaN(Number(v)) ? null : Number(v));
+
 async function extractComIA(pdfBase64: string, mes: number, ano: number) {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
   const prompt = `Este é um holerite (contracheque) de UM único funcionário referente à competência ${mes.toString().padStart(2, "0")}/${ano}.
 Extraia estas informações e retorne APENAS um JSON válido, sem markdown:
-{"cpf":"somente dígitos","nome":"nome completo","tipo":"folha|13o|ferias|rescisao|outros","valor_liquido": numero_decimal}
+{"cpf":"somente dígitos","nome":"nome completo","tipo":"folha|13o|ferias|rescisao|outros","valor_liquido":numero,"salario_base":numero,"horas_trabalhadas":numero,"horas_extras":numero,"valor_horas_extras":numero,"total_proventos":numero,"total_descontos":numero}
 
 Regras:
 - Se o documento mencionar "Rescisão" ou "TRCT" → tipo "rescisao".
@@ -23,6 +33,11 @@ Regras:
 - Se mencionar "Férias" (recibo de férias) → tipo "ferias".
 - Caso contrário → tipo "folha".
 - valor_liquido é o LÍQUIDO A RECEBER (valor final que o funcionário recebe).
+- salario_base é o salário base / salário contratual do funcionário.
+- horas_trabalhadas é a quantidade de horas normais do evento de salário (ex.: 220).
+- horas_extras é a SOMA das quantidades de horas de todos os eventos de hora extra (50%, 100%, etc.).
+- valor_horas_extras é a SOMA em R$ dos eventos de hora extra.
+- Números decimais com ponto, sem separador de milhar e sem "R$".
 - Se não encontrar algum campo, use null.`;
 
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -44,24 +59,31 @@ Regras:
   if (!resp.ok) {
     const t = await resp.text();
     console.error("IA err:", resp.status, t);
-    return { cpf: null, nome: null, tipo: "folha", valor_liquido: null };
+    return { ...VAZIO };
   }
   const data = await resp.json();
   const content: string = data?.choices?.[0]?.message?.content ?? "";
   const m = content.match(/\{[\s\S]*\}/);
-  if (!m) return { cpf: null, nome: null, tipo: "folha", valor_liquido: null };
+  if (!m) return { ...VAZIO };
   try {
     const parsed = JSON.parse(m[0]);
     return {
       cpf: parsed.cpf ? onlyDigits(String(parsed.cpf)) : null,
       nome: parsed.nome ?? null,
       tipo: ["folha", "13o", "ferias", "rescisao", "outros"].includes(parsed.tipo) ? parsed.tipo : "folha",
-      valor_liquido: parsed.valor_liquido != null ? Number(parsed.valor_liquido) : null,
+      valor_liquido: num(parsed.valor_liquido),
+      salario_base: num(parsed.salario_base),
+      horas_trabalhadas: num(parsed.horas_trabalhadas),
+      horas_extras: num(parsed.horas_extras),
+      valor_horas_extras: num(parsed.valor_horas_extras),
+      total_proventos: num(parsed.total_proventos),
+      total_descontos: num(parsed.total_descontos),
     };
   } catch {
-    return { cpf: null, nome: null, tipo: "folha", valor_liquido: null };
+    return { ...VAZIO };
   }
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -152,6 +174,12 @@ serve(async (req) => {
         lote_id: loteId, pagina: i + 1,
         cpf_detectado: extracted.cpf, nome_detectado: extracted.nome,
         funcionario_id, tipo: extracted.tipo, valor_liquido: extracted.valor_liquido,
+        salario_base: extracted.salario_base,
+        horas_trabalhadas: extracted.horas_trabalhadas,
+        horas_extras: extracted.horas_extras,
+        valor_horas_extras: extracted.valor_horas_extras,
+        total_proventos: extracted.total_proventos,
+        total_descontos: extracted.total_descontos,
         status_match, pdf_pagina_base64: b64,
       };
     }));

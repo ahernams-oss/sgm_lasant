@@ -92,6 +92,7 @@ const menuItems = [
       { title: "Treinamentos", url: "/rh/treinamentos", icon: GraduationCap, perm: "funcionarios" },
       { title: "Solicitações do Portal", url: "/rh/solicitacoes-portal", icon: FileText, perm: "funcionarios" },
       { title: "Importar Holerites", url: "/rh/importar-holerites", icon: FileText, perm: "funcionarios" },
+      { title: "Holerites Processados", url: "/rh/holerites-processados", icon: FileText, perm: "funcionarios" },
     ],
   },
   {
