@@ -172,6 +172,35 @@ export default function Treinamentos() {
     carregar();
   };
 
+  const dadosCertificado = (t: Treinamento) => ({
+    funcionario: nomePorCpf.get(onlyDigits(t.cpf)) ?? "—",
+    cpf: t.cpf,
+    titulo: t.titulo,
+    tipo: TIPOS.find((x) => x.v === t.tipo)?.l ?? t.tipo,
+    nota: t.nota != null ? String(t.nota) : null,
+    concluidoEm: t.concluido_em,
+    codigo: t.id.slice(0, 8).toUpperCase(),
+  });
+
+  const empresaCertificado = () => ({
+    razaoSocial: empresa?.razaoSocial,
+    nomeFantasia: empresa?.nomeFantasia,
+    cnpj: empresa?.cnpj,
+    cidade: empresa?.cidade,
+    uf: empresa?.uf,
+    logoUrl: empresa?.logoUrl,
+  });
+
+  const certificado = async (t: Treinamento, modo: "imprimir" | "baixar") => {
+    if (t.status !== "concluido") return toast.error("Só é possível emitir certificado de treinamento concluído.");
+    try {
+      const fn = modo === "imprimir" ? imprimirCertificadoTreinamento : baixarCertificadoTreinamento;
+      await fn(dadosCertificado(t), empresaCertificado());
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao gerar certificado.");
+    }
+  };
+
   const funcionarioSelecionado = funcionarios.find((f) => onlyDigits(f.cpf) === onlyDigits(form.cpf));
 
   const linhasExport = (): TreinamentoExportRow[] =>
