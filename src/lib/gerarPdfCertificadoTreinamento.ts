@@ -9,6 +9,9 @@ export interface CertificadoTreinamentoDados {
   nota?: string | null;
   concluidoEm?: string | null;
   codigo?: string;
+  assinadoEm?: string | null;
+  assinaturaHash?: string | null;
+  assinaturaIp?: string | null;
 }
 
 export interface EmpresaCertificado {
@@ -128,6 +131,49 @@ export async function gerarPdfCertificadoTreinamento(
       y += 7;
     });
   });
+
+  // Validação eletrônica (SHA-256) ou linha de assinatura
+  if (dados.assinadoEm && dados.assinaturaHash) {
+    const vy = ph - 46;
+    doc.setDrawColor(...GOLD);
+    doc.setLineWidth(0.4);
+    doc.rect(24, vy - 6, pw - 48, 30);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...DARK_BLUE);
+    doc.text("VALIDADO ELETRONICAMENTE PELO TITULAR", pw / 2, vy, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(80, 80, 80);
+    doc.text(
+      `${dados.funcionario} — CPF ${fmtCpf(dados.cpf)} — em ${new Date(dados.assinadoEm).toLocaleString("pt-BR")}${
+        dados.assinaturaIp ? ` — IP ${dados.assinaturaIp}` : ""
+      }`,
+      pw / 2,
+      vy + 6,
+      { align: "center" },
+    );
+    doc.text("Código de verificação SHA-256:", pw / 2, vy + 12, { align: "center" });
+    doc.setFont("courier", "normal");
+    doc.setFontSize(7);
+    doc.text(dados.assinaturaHash, pw / 2, vy + 17, { align: "center", maxWidth: pw - 60 });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(130, 130, 130);
+    doc.text("Assinatura eletrônica com aceite e autenticação de senha — MP 2.200-2/2001.", pw / 2, vy + 22, { align: "center" });
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 140);
+    const local2 = [empresa?.cidade, empresa?.uf].filter(Boolean).join("/");
+    doc.text(
+      `${local2 ? `${local2}, ` : ""}emitido em ${new Date().toLocaleDateString("pt-BR")}${
+        dados.codigo ? ` — Código: ${dados.codigo}` : ""
+      }`,
+      pw / 2,
+      ph - 12,
+      { align: "center" },
+    );
+    return doc;
+  }
 
   // Assinatura
   const assY = ph - 40;

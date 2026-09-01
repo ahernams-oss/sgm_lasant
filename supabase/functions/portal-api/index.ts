@@ -391,6 +391,43 @@ Deno.serve(async (req) => {
       return json({ ok: true, assinado_em: assinadoEm, hash });
     }
 
+    if (action === "assinar-certificado") {
+      if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
+      const id = String(body.id || "");
+      const senha = String(body.senha || "");
+      const aceite = body.aceite === true;
+      if (!id) return json({ error: "Treinamento não informado." }, 400);
+      if (!aceite) return json({ error: "É necessário aceitar a declaração para assinar." }, 400);
+      if (!bcrypt.compareSync(senha, cred.senha_hash)) {
+        await log(cred.cpf, cred.id, "assinar-certificado", false, { id }, req);
+        return json({ error: "Senha incorreta." }, 401);
+      }
+      const { data: t } = await sb.from("portal_treinamentos")
+        .select("id, titulo, status, concluido_em, assinado_em").eq("id", id).eq("cpf", cred.cpf).maybeSingle();
+      if (!t) return json({ error: "Treinamento não encontrado." }, 404);
+      if (t.status !== "concluido") return json({ error: "Treinamento ainda não concluído." }, 400);
+      if (t.assinado_em) return json({ error: "Certificado já validado." }, 400);
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+      const dispositivo = req.headers.get("user-agent") || "";
+      const assinadoEm = new Date().toISOString();
+      const buf = new TextEncoder().encode(
+        `${id}|${t.titulo}|${t.concluido_em ?? ""}|${cred.cpf}|${cred.funcionario_id ?? ""}|${assinadoEm}|${ip}|${dispositivo}`,
+      );
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+      const { error: upErr } = await sb.from("portal_treinamentos").update({
+        assinado_em: assinadoEm,
+        assinatura_ip: ip,
+        assinatura_dispositivo: dispositivo.slice(0, 300),
+        assinatura_hash: hash,
+      }).eq("id", id).eq("cpf", cred.cpf);
+      if (upErr) return json({ error: upErr.message }, 500);
+      await log(cred.cpf, cred.id, "assinar-certificado", true, { id, hash }, req);
+      return json({ ok: true, assinado_em: assinadoEm, hash });
+    }
+
+
+
     if (action === "download-holerite") {
       if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
       const id = String(body.id || "");
