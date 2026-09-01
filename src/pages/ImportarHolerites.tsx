@@ -70,8 +70,10 @@ export default function ImportarHolerites() {
 
   const [progresso, setProgresso] = useState<string>("");
 
+  const isExcel = !!file && /\.(xlsx|xls|csv)$/i.test(file.name);
+
   const analisar = async () => {
-    if (!file) return toast.error("Selecione um PDF");
+    if (!file) return toast.error("Selecione um arquivo PDF ou Excel");
     setProcessing(true);
     setProgresso("");
     try {
@@ -84,7 +86,7 @@ export default function ImportarHolerites() {
       while (true) {
         const { data, error } = await supabase.functions.invoke("processar-holerites-lote", {
           body: {
-            pdfBase64: b64,
+            ...(isExcel ? { excelBase64: b64 } : { pdfBase64: b64 }),
             arquivo_nome: file.name,
             competencia_mes: mes,
             competencia_ano: ano,
@@ -92,7 +94,7 @@ export default function ImportarHolerites() {
             importado_por_nome: usuarioLogado?.nome,
             lote_id: lid,
             inicio,
-            tamanho: 4,
+            tamanho: isExcel ? 6 : 4,
           },
         });
         if (error) throw error;
@@ -101,14 +103,14 @@ export default function ImportarHolerites() {
         lid = d.lote_id;
         total = d.total;
         inicio = d.proximo_inicio;
-        setProgresso(`${d.processadas} de ${d.total} páginas analisadas…`);
+        setProgresso(`${d.processadas} de ${d.total} ${isExcel ? "registros" : "páginas"} processados…`);
         if (d.concluido) break;
       }
       setLoteId(lid);
       if (lid) await carregarItens(lid);
-      toast.success(`${total} páginas analisadas.`);
+      toast.success(`${total} ${isExcel ? "registros" : "páginas"} analisados.`);
     } catch (e: any) {
-      toast.error(e.message || "Erro ao processar PDF.");
+      toast.error(e.message || "Erro ao processar o arquivo.");
     } finally {
       setProcessing(false);
       setProgresso("");
@@ -147,7 +149,7 @@ export default function ImportarHolerites() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">1. Enviar PDF consolidado</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">1. Enviar PDF consolidado ou planilha Excel</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <Label>Mês</Label>
@@ -161,12 +163,20 @@ export default function ImportarHolerites() {
             <Input type="number" value={ano} onChange={(e) => setAno(Number(e.target.value))} />
           </div>
           <div className="md:col-span-2">
-            <Label>PDF (todos os holerites do mês)</Label>
-            <Input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            <Label>Arquivo (PDF com todos os holerites ou Excel com uma linha por funcionário)</Label>
+            <Input
+              type="file"
+              accept=".pdf,application/pdf,.xlsx,.xls,.csv"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Excel: colunas CPF, Nome, Tipo, Salário Base, Horas, Horas Extras, Valor Horas Extras,
+              Total de Vencimentos, Total de Descontos e Valor Líquido.
+            </p>
           </div>
           <div className="md:col-span-4">
             <Button onClick={analisar} disabled={!file || processing}>
-              {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analisando com IA…</> : <><Upload className="mr-2 h-4 w-4" />Analisar PDF</>}
+              {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{isExcel ? "Processando planilha…" : "Analisando com IA…"}</> : <><Upload className="mr-2 h-4 w-4" />{isExcel ? "Analisar planilha" : "Analisar PDF"}</>}
             </Button>
             {processing && <p className="text-xs text-muted-foreground mt-2">{progresso || "Processando em blocos…"} Aguarde.</p>}
           </div>
@@ -176,7 +186,7 @@ export default function ImportarHolerites() {
       {loteId && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">2. Conferência ({itens.length} páginas)</CardTitle>
+            <CardTitle className="text-base">2. Conferência ({itens.length} registros)</CardTitle>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{publicaveis} prontos</Badge>
               {pendentes > 0 && <Badge variant="destructive">{pendentes} pendentes</Badge>}
@@ -190,7 +200,7 @@ export default function ImportarHolerites() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">Pág.</TableHead>
+                  <TableHead className="w-12">#</TableHead>
                   <TableHead className="w-8"></TableHead>
                   <TableHead>CPF detectado</TableHead>
                   <TableHead>Nome detectado</TableHead>
