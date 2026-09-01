@@ -19,7 +19,14 @@ const VAZIO = {
   total_descontos: null as number | null,
 };
 
-const num = (v: any) => (v == null || v === "" || isNaN(Number(v)) ? null : Number(v));
+const num = (v: any) => {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return isNaN(v) ? null : v;
+  let s = String(v).replace(/[R$\s]/gi, "");
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  const n = Number(s);
+  return isNaN(n) ? null : n;
+};
 
 async function extractComIA(pdfBase64: string, mes: number, ano: number) {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
@@ -33,11 +40,14 @@ Regras:
 - Se mencionar "Férias" (recibo de férias) → tipo "ferias".
 - Caso contrário → tipo "folha".
 - valor_liquido é o LÍQUIDO A RECEBER (valor final que o funcionário recebe).
-- salario_base é o salário base / salário contratual do funcionário.
-- horas_trabalhadas é a quantidade de horas normais do evento de salário (ex.: 220).
-- horas_extras é a SOMA das quantidades de horas de todos os eventos de hora extra (50%, 100%, etc.).
-- valor_horas_extras é a SOMA em R$ dos eventos de hora extra.
-- Números decimais com ponto, sem separador de milhar e sem "R$".
+- A tabela de eventos tem as colunas: CÓDIGO, DESCRIÇÃO, REFERÊNCIA, VENCIMENTOS (proventos) e DESCONTOS.
+- salario_base = valor da coluna VENCIMENTOS da linha cuja DESCRIÇÃO é "Horas Normais" (ou "Salário Normal"/"Horas Trabalhadas").
+- horas_trabalhadas = valor da coluna REFERÊNCIA dessa MESMA linha de "Horas Normais" (ex.: 220,00).
+- horas_extras = SOMA dos valores da coluna REFERÊNCIA de TODAS as linhas cuja DESCRIÇÃO contenha "Horas Extras" (50%, 100%, etc.).
+- valor_horas_extras = SOMA dos valores da coluna VENCIMENTOS dessas mesmas linhas de "Horas Extras".
+- total_proventos = valor do campo "Total de Vencimentos" (rodapé do holerite).
+- total_descontos = valor do campo "Total de Descontos" (rodapé do holerite).
+- Números decimais com ponto, sem separador de milhar e sem "R$" (ex.: "1.234,56" → 1234.56).
 - Se não encontrar algum campo, use null.`;
 
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
