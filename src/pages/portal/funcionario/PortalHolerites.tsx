@@ -84,7 +84,14 @@ export default function PortalHolerites() {
                   {h.descricao && ` — ${h.descricao}`}
                 </div>
               </div>
-              <Button size="sm" onClick={() => download(h.id)}><Download className="w-4 h-4 mr-1" />Baixar</Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" disabled={busy === h.id + "p"} onClick={() => imprimir(h)}>
+                  {busy === h.id + "p" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Printer className="w-4 h-4 mr-1" />}Imprimir
+                </Button>
+                <Button size="sm" disabled={busy === h.id + "d"} onClick={() => download(h)}>
+                  {busy === h.id + "d" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}Baixar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
