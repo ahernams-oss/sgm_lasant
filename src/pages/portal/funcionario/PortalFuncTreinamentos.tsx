@@ -20,6 +20,10 @@ interface T {
   assinado_em?: string | null;
   assinatura_hash?: string | null;
   assinatura_ip?: string | null;
+  resp_assinado_em?: string | null;
+  resp_assinante_nome?: string | null;
+  resp_assinante_cargo?: string | null;
+  resp_assinatura_hash?: string | null;
 }
 
 const fmt = (d?: string | null) => (d ? new Date(d).toLocaleString("pt-BR") : "—");
@@ -50,6 +54,10 @@ export default function PortalFuncTreinamentos() {
         assinadoEm: t.assinado_em ?? null,
         assinaturaHash: t.assinatura_hash ?? null,
         assinaturaIp: t.assinatura_ip ?? null,
+        respAssinadoEm: t.resp_assinado_em ?? null,
+        respAssinanteNome: t.resp_assinante_nome ?? null,
+        respAssinanteCargo: t.resp_assinante_cargo ?? null,
+        respAssinaturaHash: t.resp_assinatura_hash ?? null,
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gerar certificado.");
