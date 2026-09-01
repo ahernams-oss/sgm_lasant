@@ -242,20 +242,20 @@ function ProtectedAppRoutes() {
 
         <Route path="/dashboard" element={<RotaProtegida perm="dashboard_gp"><Dashboard /></RotaProtegida>} />
         <Route path="/clientes" element={<RotaProtegida perm="clientes"><OrdensServicoProvider><Clientes /></OrdensServicoProvider></RotaProtegida>} />
-        <Route path="/clientes/transferencias-saldo" element={<RotaProtegida perm="clientes" requireAcessoTotal><TransferenciasSaldoContrato /></RotaProtegida>} />
+        <Route path="/clientes/transferencias-saldo" element={<RotaProtegida perm="faturamentos" requireAcessoTotal><TransferenciasSaldoContrato /></RotaProtegida>} />
         <Route path="/fornecedores" element={<RotaProtegida perm="fornecedores"><Fornecedores /></RotaProtegida>} />
         <Route path="/cargos" element={<RotaProtegida perm="cargos"><Cargos /></RotaProtegida>} />
         <Route path="/funcionarios" element={<RotaProtegida perm="funcionarios"><Funcionarios /></RotaProtegida>} />
         <Route path="/epis" element={<RotaProtegida perm="funcionarios"><EpisPage /></RotaProtegida>} />
-        <Route path="/cadastros/nrs" element={<RotaProtegida perm="cargos"><NrsCatalogoProvider><NrsCatalogoPage /></NrsCatalogoProvider></RotaProtegida>} />
-        <Route path="/epis/catalogo" element={<RotaProtegida perm="cargos"><EpisCatalogoPage /></RotaProtegida>} />
+        <Route path="/cadastros/nrs" element={<RotaProtegida perm="nrs_catalogo"><NrsCatalogoProvider><NrsCatalogoPage /></NrsCatalogoProvider></RotaProtegida>} />
+        <Route path="/epis/catalogo" element={<RotaProtegida perm="epis_catalogo"><EpisCatalogoPage /></RotaProtegida>} />
         <Route path="/epis/recebimentos" element={<RotaProtegida perm="epi_recebimento_facial"><RelatorioRecebimentoEpis /></RotaProtegida>} />
-        <Route path="/epis/devolucoes" element={<RotaProtegida perm="funcionarios"><EpisDevolucoesProvider><EpisDevolucoes /></EpisDevolucoesProvider></RotaProtegida>} />
+        <Route path="/epis/devolucoes" element={<RotaProtegida perm="epis_devolucoes"><EpisDevolucoesProvider><EpisDevolucoes /></EpisDevolucoesProvider></RotaProtegida>} />
         <Route path="/epis/prontuario" element={<RotaProtegida perm="funcionarios"><EpisDevolucoesProvider><ProntuarioEpis /></EpisDevolucoesProvider></RotaProtegida>} />
-        <Route path="/rh/treinamentos" element={<RotaProtegida perm="funcionarios"><Treinamentos /></RotaProtegida>} />
-        <Route path="/rh/solicitacoes-portal" element={<RotaProtegida perm="funcionarios"><SolicitacoesPortalRH /></RotaProtegida>} />
-        <Route path="/rh/importar-holerites" element={<RotaProtegida perm="funcionarios"><ImportarHolerites /></RotaProtegida>} />
-        <Route path="/rh/holerites-processados" element={<RotaProtegida perm="funcionarios"><HoleritesProcessados /></RotaProtegida>} />
+        <Route path="/rh/treinamentos" element={<RotaProtegida perm="rh_treinamentos"><Treinamentos /></RotaProtegida>} />
+        <Route path="/rh/solicitacoes-portal" element={<RotaProtegida perm="rh_solicitacoes_portal"><SolicitacoesPortalRH /></RotaProtegida>} />
+        <Route path="/rh/importar-holerites" element={<RotaProtegida perm="rh_holerites"><ImportarHolerites /></RotaProtegida>} />
+        <Route path="/rh/holerites-processados" element={<RotaProtegida perm="rh_holerites"><HoleritesProcessados /></RotaProtegida>} />
         <Route path="/exames" element={<RotaProtegida perm="funcionarios"><ExamesPage /></RotaProtegida>} />
         <Route path="/mapa-funcionarios" element={<RotaProtegida perm="mapa_funcionarios"><MapaFuncionarios /></RotaProtegida>} />
         <Route path="/mapa-plantoes" element={<RotaProtegida perm="mapa_funcionarios"><MapaPlantoes /></RotaProtegida>} />
@@ -320,7 +320,7 @@ function ProtectedAppRoutes() {
             </RotaProtegida>
           }
         />
-        <Route path="/engenharia/contratos-terceiros" element={<RotaProtegida perm="medicoes"><ContratosTerceirosPage /></RotaProtegida>} />
+        <Route path="/engenharia/contratos-terceiros" element={<RotaProtegida perm="contratos_terceiros"><ContratosTerceirosPage /></RotaProtegida>} />
         <Route path="/engenharia/medicoes" element={<RotaProtegida perm="medicoes"><MedicoesProvider><MedicoesServicosPage /></MedicoesProvider></RotaProtegida>} />
 
         <Route path="/patrimonio/ferramentas" element={<RotaProtegida perm="ferramentas"><FerramentasPage /></RotaProtegida>} />
@@ -431,7 +431,7 @@ function ProtectedAppRoutes() {
         <Route path="/engenharia/rdo" element={<RotaProtegida perm="rdo"><RdoPage /></RotaProtegida>} />
         <Route path="/engenharia/cronograma" element={<RotaProtegida perm="cronograma"><CronogramaPage /></RotaProtegida>} />
         <Route path="/engenharia/eventograma" element={<RotaProtegida perm="eventograma"><EventogramaPage /></RotaProtegida>} />
-        <Route path="/engenharia/boletim-medicao" element={<RotaProtegida perm="medicoes"><BoletinsMedicaoProvider><BoletimMedicaoPage /></BoletinsMedicaoProvider></RotaProtegida>} />
+        <Route path="/engenharia/boletim-medicao" element={<RotaProtegida perm="boletim_medicao"><BoletinsMedicaoProvider><BoletimMedicaoPage /></BoletinsMedicaoProvider></RotaProtegida>} />
         <Route path="/obras/bim" element={<RotaProtegida perm="bim"><BimPage /></RotaProtegida>} />
         <Route path="/engenharia/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
         <Route path="/cadastros/responsaveis-tecnicos" element={<RotaProtegida perm="responsaveis_tecnicos"><ResponsaveisTecnicosPage /></RotaProtegida>} />
@@ -461,7 +461,7 @@ function ProtectedAppRoutes() {
         <Route path="/financeiro/condicoes-pagamento" element={<RotaProtegida perm="financeiro.condicoes_pagamento"><CondicoesPagamento /></RotaProtegida>} />
         <Route path="/financeiro/nfes-recebidas" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfesRecebidas /></RotaProtegida>} />
         <Route path="/financeiro/nfse" element={<RotaProtegida perm="financeiro.nfes_recebidas"><NfseEmitir /></RotaProtegida>} />
-        <Route path="/financeiro/faturamentos" element={<RotaProtegida perm="clientes"><Faturamentos /></RotaProtegida>} />
+        <Route path="/financeiro/faturamentos" element={<RotaProtegida perm="faturamentos"><Faturamentos /></RotaProtegida>} />
         <Route
           path="/gerencial/relatorios"
           element={
