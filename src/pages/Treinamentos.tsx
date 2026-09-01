@@ -13,12 +13,16 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown, Award, ShieldCheck } from "lucide-react";
+import { GraduationCap, Plus, MoreHorizontal, Loader2, Check, ChevronsUpDown, CheckCircle2, Clock, PlayCircle, FileSpreadsheet, FileDown, Award, ShieldCheck, FileSignature } from "lucide-react";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { exportarTreinamentosCsv, exportarTreinamentosPdf, type TreinamentoExportRow } from "@/lib/exportTreinamentos";
 import { imprimirCertificadoTreinamento, baixarCertificadoTreinamento } from "@/lib/gerarPdfCertificadoTreinamento";
 import { useEmpresa } from "@/contexts/EmpresaContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCargos } from "@/contexts/CargosContext";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Treinamento {
   id: string;
@@ -32,6 +36,10 @@ interface Treinamento {
   assinado_em: string | null;
   assinatura_hash: string | null;
   assinatura_ip: string | null;
+  resp_assinado_em: string | null;
+  resp_assinante_nome: string | null;
+  resp_assinante_cargo: string | null;
+  resp_assinatura_hash: string | null;
 }
 
 const TIPOS = [
@@ -82,6 +90,12 @@ export default function Treinamentos() {
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [comboOpen, setComboOpen] = useState(false);
   const [excluirId, setExcluirId] = useState<string | null>(null);
+  const { usuarioLogado } = useAuth();
+  const { cargos } = useCargos();
+  const [assinarAlvo, setAssinarAlvo] = useState<Treinamento | null>(null);
+  const [senhaAssinatura, setSenhaAssinatura] = useState("");
+  const [aceiteAssinatura, setAceiteAssinatura] = useState(false);
+  const [assinando, setAssinando] = useState(false);
 
   const nomePorCpf = useMemo(() => {
     const m = new Map<string, string>();
@@ -93,7 +107,7 @@ export default function Treinamentos() {
     setLoading(true);
     const { data, error } = await supabase
       .from("portal_treinamentos")
-      .select("id, cpf, tipo, titulo, status, nota, concluido_em, created_at, assinado_em, assinatura_hash, assinatura_ip")
+      .select("id, cpf, tipo, titulo, status, nota, concluido_em, created_at, assinado_em, assinatura_hash, assinatura_ip, resp_assinado_em, resp_assinante_nome, resp_assinante_cargo, resp_assinatura_hash")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setList((data as Treinamento[]) ?? []);
@@ -186,6 +200,10 @@ export default function Treinamentos() {
     assinadoEm: t.assinado_em,
     assinaturaHash: t.assinatura_hash,
     assinaturaIp: t.assinatura_ip,
+    respAssinadoEm: t.resp_assinado_em,
+    respAssinanteNome: t.resp_assinante_nome,
+    respAssinanteCargo: t.resp_assinante_cargo,
+    respAssinaturaHash: t.resp_assinatura_hash,
   });
 
   const empresaCertificado = () => ({
@@ -204,6 +222,38 @@ export default function Treinamentos() {
       await fn(dadosCertificado(t), empresaCertificado());
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gerar certificado.");
+    }
+  };
+
+  const assinarCertificado = async () => {
+    const t = assinarAlvo;
+    if (!t) return;
+    if (!usuarioLogado?.email) return toast.error("Usuário não autenticado.");
+    if (!aceiteAssinatura) return toast.error("Marque o aceite para assinar eletronicamente.");
+    if (senhaAssinatura.length < 4) return toast.error("Informe sua senha.");
+    setAssinando(true);
+    try {
+      const ok = await verificarSenhaUsuario(usuarioLogado.email, senhaAssinatura);
+      if (!ok) { toast.error("Senha incorreta."); return; }
+      const assinadoEm = new Date().toISOString();
+      const cargoNome = cargos.find((c) => c.id === usuarioLogado.cargoId)?.nome ?? "";
+      const base = `${t.id}|${t.titulo}|${t.cpf}|${t.concluido_em ?? ""}|${usuarioLogado.id}|${usuarioLogado.email}|${assinadoEm}`;
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(base));
+      const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+      const { error } = await supabase.from("portal_treinamentos").update({
+        resp_assinado_em: assinadoEm,
+        resp_assinante_nome: usuarioLogado.nome,
+        resp_assinante_cargo: cargoNome,
+        resp_assinatura_hash: hash,
+      }).eq("id", t.id);
+      if (error) return toast.error(error.message);
+      toast.success("Certificado assinado eletronicamente.");
+      setAssinarAlvo(null);
+      setSenhaAssinatura("");
+      setAceiteAssinatura(false);
+      carregar();
+    } finally {
+      setAssinando(false);
     }
   };
 
@@ -321,6 +371,15 @@ export default function Treinamentos() {
                     <TableCell>
                       <div className="flex flex-col gap-1 items-start">
                         {statusBadge(t.status)}
+                        {t.resp_assinado_em && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px]"
+                            title={`Assinado por ${t.resp_assinante_nome ?? ""} em ${new Date(t.resp_assinado_em).toLocaleString("pt-BR")}${t.resp_assinatura_hash ? ` — SHA-256 ${t.resp_assinatura_hash}` : ""}`}
+                          >
+                            <FileSignature className="w-3 h-3 mr-1" />Assinado
+                          </Badge>
+                        )}
                         {t.assinado_em && (
                           <Badge
                             variant="outline"
@@ -343,6 +402,11 @@ export default function Treinamentos() {
                           <DropdownMenuItem onClick={() => abrirEdicao(t)}>Editar</DropdownMenuItem>
                           {t.status !== "concluido" && (
                             <DropdownMenuItem onClick={() => marcarConcluido(t)}>Marcar como concluído</DropdownMenuItem>
+                          )}
+                          {t.status === "concluido" && !t.resp_assinado_em && (
+                            <DropdownMenuItem onClick={() => setAssinarAlvo(t)}>
+                              <FileSignature className="w-4 h-4 mr-2" />Assinar certificado
+                            </DropdownMenuItem>
                           )}
                           {t.status === "concluido" && (
                             <>
@@ -373,6 +437,35 @@ export default function Treinamentos() {
         onOpenChange={(v) => !v && setExcluirId(null)}
         onConfirm={() => { if (excluirId) excluir(excluirId); setExcluirId(null); }}
       />
+
+      <Dialog open={!!assinarAlvo} onOpenChange={(v) => { if (!v) { setAssinarAlvo(null); setSenhaAssinatura(""); setAceiteAssinatura(false); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><FileSignature className="w-4 h-4" /> Assinar certificado</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {assinarAlvo?.titulo} — {nomePorCpf.get(onlyDigits(assinarAlvo?.cpf ?? "")) ?? ""}
+            </p>
+            <div className="flex items-start gap-2 rounded-md border p-3">
+              <Checkbox id="aceite-cert-rh" checked={aceiteAssinatura} onCheckedChange={(v) => setAceiteAssinatura(v === true)} />
+              <Label htmlFor="aceite-cert-rh" className="text-sm font-normal leading-snug cursor-pointer">
+                Declaro, como responsável pelo treinamento, a veracidade das informações e assino este certificado
+                eletronicamente (MP 2.200-2/2001).
+              </Label>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="senha-cert-rh">Confirme sua senha</Label>
+              <Input id="senha-cert-rh" type="password" value={senhaAssinatura} onChange={(e) => setSenhaAssinatura(e.target.value)} autoComplete="current-password" />
+            </div>
+            <p className="text-xs text-muted-foreground">Serão registrados nome, cargo, data/hora e um código de verificação SHA-256.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssinarAlvo(null)}>Cancelar</Button>
+            <Button onClick={assinarCertificado} disabled={assinando || !aceiteAssinatura}>
+              {assinando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Assinar eletronicamente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
