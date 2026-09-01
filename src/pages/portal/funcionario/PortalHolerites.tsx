@@ -3,7 +3,7 @@ import PortalLayout from "@/components/portal/PortalLayout";
 import { portalCall } from "@/lib/portalClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Printer, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface H { id: string; tipo: string; competencia_mes: number; competencia_ano: number; descricao?: string; disponibilizado_em: string; }
