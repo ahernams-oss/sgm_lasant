@@ -247,6 +247,7 @@ export default function HoleritesProcessados() {
                       <TableHead className="text-right">Descontos</TableHead>
                       <TableHead className="text-right">Líquido</TableHead>
                       <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -270,11 +271,28 @@ export default function HoleritesProcessados() {
                             {r.publicado ? "Publicado" : "Em conferência"}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            size="sm"
+                            variant={r.publicado ? "outline" : "default"}
+                            className="whitespace-nowrap"
+                            disabled={processando === r.id}
+                            onClick={() => alternarPublicacao(r)}
+                          >
+                            {processando === r.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : r.publicado ? (
+                              <><Undo2 className="mr-1 h-4 w-4" />Despublicar</>
+                            ) : (
+                              <><Upload className="mr-1 h-4 w-4" />Publicar</>
+                            )}
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {!visiveis.length && (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
                           Nenhum holerite processado com os filtros atuais.
                         </TableCell>
                       </TableRow>
