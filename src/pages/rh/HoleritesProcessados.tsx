@@ -311,6 +311,12 @@ export default function HoleritesProcessados() {
                   <TableBody>
                     {visiveis.map((r) => (
                       <TableRow key={r.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selecionados.includes(r.id)}
+                            onCheckedChange={(v) => alternarSelecao(r.id, !!v)}
+                          />
+                        </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {r.lote ? `${String(r.lote.competencia_mes).padStart(2, "0")}/${r.lote.competencia_ano}` : "—"}
                         </TableCell>
