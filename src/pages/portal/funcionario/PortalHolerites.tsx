@@ -97,7 +97,7 @@ export default function PortalHolerites() {
                 {h.assinado_em && (
                   <div className="text-xs text-muted-foreground mt-0.5">
                     Assinado em {new Date(h.assinado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
-                    {h.assinatura_hash && ` — Código: ${h.assinatura_hash}`}
+                    {h.assinatura_hash && ` — SHA-256: ${h.assinatura_hash.slice(0, 16)}...`}
                   </div>
                 )}
               </div>

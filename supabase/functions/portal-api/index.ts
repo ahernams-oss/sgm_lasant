@@ -362,10 +362,9 @@ Deno.serve(async (req) => {
       if (cred.tipo_acesso !== "funcionario") return json({ error: "Acesso negado." }, 403);
       const id = String(body.id || "");
       const senha = String(body.senha || "");
-      const imagem = String(body.assinatura || "");
+      const aceite = body.aceite === true;
       if (!id) return json({ error: "Holerite não informado." }, 400);
-      if (!imagem.startsWith("data:image/")) return json({ error: "Assinatura inválida." }, 400);
-      if (imagem.length > 400_000) return json({ error: "Assinatura muito grande." }, 400);
+      if (!aceite) return json({ error: "É necessário aceitar a declaração para assinar." }, 400);
       if (!bcrypt.compareSync(senha, cred.senha_hash)) {
         await log(cred.cpf, cred.id, "assinar-holerite", false, { id }, req);
         return json({ error: "Senha incorreta." }, 401);
@@ -377,12 +376,12 @@ Deno.serve(async (req) => {
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
       const dispositivo = req.headers.get("user-agent") || "";
       const assinadoEm = new Date().toISOString();
-      const buf = new TextEncoder().encode(`${id}|${cred.cpf}|${assinadoEm}|${ip}`);
+      const buf = new TextEncoder().encode(`${id}|${cred.cpf}|${cred.funcionario_id}|${assinadoEm}|${ip}|${dispositivo}`);
       const digest = await crypto.subtle.digest("SHA-256", buf);
-      const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase().slice(0, 32);
+      const hash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
       const { error: upErr } = await sb.from("portal_holerites").update({
         assinado_em: assinadoEm,
-        assinatura_imagem: imagem,
+        assinatura_imagem: null,
         assinatura_ip: ip,
         assinatura_dispositivo: dispositivo.slice(0, 300),
         assinatura_hash: hash,
