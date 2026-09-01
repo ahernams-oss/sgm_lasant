@@ -413,10 +413,21 @@ export default function HoleritesProcessados() {
                         <TableCell className="text-right">{money(r.total_descontos)}</TableCell>
                         <TableCell className="text-right font-semibold">{money(r.valor_liquido)}</TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={r.publicado ? "default" : "secondary"}>
-                            {r.publicado ? "Publicado" : "Em conferência"}
-                          </Badge>
+                          <div className="flex flex-col items-center gap-1">
+                            <Badge variant={r.publicado ? "default" : "secondary"}>
+                              {r.publicado ? "Publicado" : "Em conferência"}
+                            </Badge>
+                            {assinaturaDe(r)?.assinado_em && (
+                              <Badge
+                                variant="outline"
+                                title={`Assinado em ${new Date(assinaturaDe(r)!.assinado_em!).toLocaleString("pt-BR")}${assinaturaDe(r)?.assinatura_hash ? ` — Código ${assinaturaDe(r)!.assinatura_hash}` : ""}`}
+                              >
+                                Assinado
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
+
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                           <Button
