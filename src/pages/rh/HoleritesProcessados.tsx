@@ -65,6 +65,42 @@ export default function HoleritesProcessados() {
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(20);
   const [processando, setProcessando] = useState<string | null>(null);
+  const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [lote, setLote] = useState<{ feito: number; total: number } | null>(null);
+
+  const alternarSelecao = (id: string, on: boolean) =>
+    setSelecionados((prev) => (on ? [...new Set([...prev, id])] : prev.filter((x) => x !== id)));
+
+  const executarLote = async (acao: "publicar" | "despublicar") => {
+    const alvos = registros.filter(
+      (r) => selecionados.includes(r.id) && (acao === "publicar" ? !r.publicado && r.funcionario_id : r.publicado)
+    );
+    if (!alvos.length) {
+      toast.error(acao === "publicar" ? "Nenhum item pendente e vinculado selecionado." : "Nenhum item publicado selecionado.");
+      return;
+    }
+    setLote({ feito: 0, total: alvos.length });
+    let ok = 0, falhas = 0;
+    for (let i = 0; i < alvos.length; i += 4) {
+      const bloco = alvos.slice(i, i + 4);
+      await Promise.all(
+        bloco.map(async (r) => {
+          const { data, error } = await supabase.functions.invoke("publicar-holerite-item", {
+            body: { item_id: r.id, acao },
+          });
+          const err = error?.message || (data as any)?.error;
+          if (err) { falhas++; return; }
+          ok++;
+          setRegistros((prev) => prev.map((x) => (x.id === r.id ? { ...x, publicado: acao === "publicar" } : x)));
+        })
+      );
+      setLote({ feito: Math.min(i + 4, alvos.length), total: alvos.length });
+    }
+    setLote(null);
+    setSelecionados([]);
+    toast.success(`${ok} holerite(s) ${acao === "publicar" ? "publicados" : "despublicados"}${falhas ? ` — ${falhas} falha(s)` : ""}.`);
+  };
+
 
   const alternarPublicacao = async (r: Registro) => {
     const acao = r.publicado ? "despublicar" : "publicar";
