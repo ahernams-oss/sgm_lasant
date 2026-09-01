@@ -3,10 +3,12 @@ import PortalLayout from "@/components/portal/PortalLayout";
 import { portalCall } from "@/lib/portalClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Printer, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Download, Printer, Loader2, PenLine, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import AssinaturaHoleriteDialog from "@/components/portal/AssinaturaHoleriteDialog";
 
-interface H { id: string; tipo: string; competencia_mes: number; competencia_ano: number; descricao?: string; disponibilizado_em: string; }
+interface H { id: string; tipo: string; competencia_mes: number; competencia_ano: number; descricao?: string; disponibilizado_em: string; assinado_em?: string | null; assinatura_hash?: string | null; }
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const TIPO_LABEL: Record<string,string> = { folha: "Holerite Mensal", "13o": "13º Salário", ferias: "Férias", rescisao: "Rescisão", outros: "Outros" };
 
@@ -14,6 +16,8 @@ export default function PortalHolerites() {
   const [list, setList] = useState<H[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [assinar, setAssinar] = useState<H | null>(null);
+
 
   useEffect(() => {
     portalCall<{ holerites: H[] }>("list-holerites")
