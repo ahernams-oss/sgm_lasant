@@ -6,7 +6,8 @@ import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
 
 import type * as XLSXTypes from "xlsx";
-const getXLSX = async () => await import("xlsx");
+let _xlsxCache: typeof XLSXTypes | null = null;
+const getXLSX = async () => { if (!_xlsxCache) _xlsxCache = await import("xlsx"); return _xlsxCache; };
 
 /** Colunas da planilha modelo (mesma ordem na exportação e na importação). */
 const COLUNAS = [
@@ -84,11 +85,11 @@ const norm = (v: unknown) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-const toDate = async (v: unknown): Promise<string> => {
+const toDate = (v: unknown): string => {
   if (v === undefined || v === null || v === "") return "";
   if (v instanceof Date) return v.toISOString().slice(0, 10);
   if (typeof v === "number") {
-    const d = (await getXLSX()).SSF.parse_date_code(v);
+    const d = _xlsxCache!.SSF.parse_date_code(v);
     if (!d) return "";
     return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
   }
