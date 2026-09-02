@@ -67,10 +67,17 @@ serve(async (req) => {
       .maybeSingle();
     if (!func) return json({ error: "Funcionário não encontrado" }, 404);
 
+    const normDate = (v: unknown) => {
+      const s = String(v || "").trim();
+      if (!s) return "";
+      const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+      return s.slice(0, 10);
+    };
     const cpfInput = onlyDigits(String(body?.cpf || ""));
-    const dobInput = String(body?.dataNascimento || "").trim();
+    const dobInput = normDate(body?.dataNascimento);
     const cpfOk = cpfInput && cpfInput === onlyDigits(func.cpf || "");
-    const dobOk = dobInput && dobInput === (func.data_nascimento || "");
+    const dobOk = dobInput && dobInput === normDate(func.data_nascimento);
     if (!cpfOk || !dobOk) {
       return json({ error: "CPF ou data de nascimento não conferem" }, 401);
     }
