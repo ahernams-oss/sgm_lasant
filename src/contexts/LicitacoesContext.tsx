@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 // ============ TYPES ============
 
@@ -241,14 +242,15 @@ const QK_DOC = ["licitacoes_documentos"] as const;
 const QK_ANA = ["licitacoes_analises"] as const;
 
 export function LicitacoesProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Licitacoes");
   const qc = useQueryClient();
   const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
   const results = useQueries({
-    queries: [
+    queries: ([
       { queryKey: QK_LIC, queryFn: async () => (await fetchAll("licitacoes", "created_at")).map(rowToLicitacao), ...opts },
       { queryKey: QK_DOC, queryFn: async () => (await fetchAll("licitacoes_documentos", "created_at")).map(rowToDocumento), ...opts },
       { queryKey: QK_ANA, queryFn: async () => (await fetchAll("licitacoes_analises", "created_at")).map(rowToAnalise), ...opts },
-    ],
+    ]).map((q: any) => ({ ...q, enabled: __active })),
   });
   const licitacoes = (results[0].data as Licitacao[]) ?? [];
   const documentos = (results[1].data as DocumentoLicitacao[]) ?? [];
@@ -335,6 +337,7 @@ export function LicitacoesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useLicitacoes() {
+  useActivateProvider("Licitacoes");
   const ctx = useContext(LicitacoesContext);
   if (!ctx) throw new Error("useLicitacoes must be used within LicitacoesProvider");
   return ctx;

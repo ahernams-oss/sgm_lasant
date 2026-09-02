@@ -141,10 +141,10 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   });
 
   const convQueries = useQueries({
-    queries: [
+    queries: ([
       { queryKey: [...QK_CONV, "raw"], queryFn: () => fetchAll("comunicacao_conversas", "created_at"), ...opts },
       { queryKey: ["comunicacao_participantes"], queryFn: () => fetchAll("comunicacao_participantes", "created_at"), ...opts },
-    ],
+    ]).map((q: any) => ({ ...q, enabled: __active })),
   });
   const convData = (convQueries[0].data as any[]) ?? [];
   const partData = (convQueries[1].data as any[]) ?? [];
@@ -161,10 +161,10 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   })).reverse();
 
   const avisoQueries = useQueries({
-    queries: [
+    queries: ([
       { queryKey: [...QK_AVISOS, "raw"], queryFn: () => fetchAll("comunicacao_avisos", "created_at"), ...opts },
       { queryKey: ["comunicacao_avisos_leitura"], queryFn: () => fetchAll("comunicacao_avisos_leitura", "lido_em"), ...opts },
-    ],
+    ]).map((q: any) => ({ ...q, enabled: __active })),
   });
   const avData = (avisoQueries[0].data as any[]) ?? [];
   const leitData = (avisoQueries[1].data as any[]) ?? [];

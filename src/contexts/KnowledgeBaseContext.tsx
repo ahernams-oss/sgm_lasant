@@ -3,6 +3,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface KbAnexo {
   nome: string;
@@ -122,15 +123,16 @@ const QK_FAQ = ["kb_faq"] as const;
 const QK_VIN = ["kb_artigo_equipamentos"] as const;
 
 export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("KnowledgeBase");
   const qc = useQueryClient();
   const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
   const results = useQueries({
-    queries: [
+    queries: ([
       { queryKey: QK_CAT, queryFn: () => fetchAll("kb_categorias", "ordem"), ...opts },
       { queryKey: QK_ART, queryFn: async () => (await fetchAll("kb_artigos", "updated_at")).map(rowToArtigo).reverse(), ...opts },
       { queryKey: QK_FAQ, queryFn: async () => (await fetchAll("kb_faq", "ordem")).map(rowToFaq), ...opts },
       { queryKey: QK_VIN, queryFn: () => fetchAll("kb_artigo_equipamentos", "created_at"), ...opts },
-    ],
+    ]).map((q: any) => ({ ...q, enabled: __active })),
   });
   const categorias = (results[0].data as KbCategoria[]) ?? [];
   const artigos = (results[1].data as KbArtigo[]) ?? [];
@@ -253,6 +255,7 @@ export function KnowledgeBaseProvider({ children }: { children: ReactNode }) {
 }
 
 export function useKnowledgeBase() {
+  useActivateProvider("KnowledgeBase");
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useKnowledgeBase must be used within KnowledgeBaseProvider");
   return ctx;
