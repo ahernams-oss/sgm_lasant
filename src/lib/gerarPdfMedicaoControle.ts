@@ -198,7 +198,7 @@ function renderPagina(
   doc.text(`NF ${faturamento.numeroNf || "—"}`, pw - 14, doc.internal.pageSize.getHeight() - 6, { align: "right" });
 }
 
-export async function gerarPdfMedicaoControle({ cliente, contrato, faturamento, ordens, empresaNome }: Params): jsPDF {
+export async function gerarPdfMedicaoControle({ cliente, contrato, faturamento, ordens, empresaNome }: Params): Promise<jsPDF> {
   const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
 
   const ini = faturamento.periodoInicio || "";

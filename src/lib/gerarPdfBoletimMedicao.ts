@@ -78,7 +78,7 @@ function montarBlocos(boletim: BoletimMedicao): Bloco[] {
 }
 
 
-async function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw: number): number {
+async function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw: number): Promise<number> {
   const faturado = bloco.linhas.reduce((s, l) => s + (l.valor || 0), 0);
   const contrato = bloco.valorContrato || 0;
   const pct = (v: number) => (contrato > 0 ? (v / contrato) * 100 : 0);

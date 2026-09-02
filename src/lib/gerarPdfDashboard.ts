@@ -69,7 +69,7 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
   return y + 3;
 }
 
-export async function gerarPdfDashboard(data: DashboardReportData): jsPDF {
+export async function gerarPdfDashboard(data: DashboardReportData): Promise<jsPDF> {
   const { requisicoes, dateFrom, dateTo, empresa, funcionarios, exames, processos, lancamentos } = data;
   const doc = new (await getJsPDF())();
 

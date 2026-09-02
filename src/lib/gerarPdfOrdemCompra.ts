@@ -316,7 +316,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 }
 
 // sync fallback (no logo)
-export async function gerarPdfOrdemCompra(data: OrdemCompraData): jsPDF {
+export async function gerarPdfOrdemCompra(data: OrdemCompraData): Promise<jsPDF> {
   // kept for backward compat but callers should migrate to async
   const { pedido, empresa, fornecedor, autorizadoPor } = data;
   const doc = new (await getJsPDF())();

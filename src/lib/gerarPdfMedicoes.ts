@@ -7,7 +7,7 @@ const getAutoTable = async () => (await import("jspdf-autotable")).default;
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export async function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: string): jsPDF {
+export async function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: string): Promise<jsPDF> {
   const doc = new (await getJsPDF())({ orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
 
