@@ -253,7 +253,7 @@ export function downloadPdfDashboardSSOS(data: DashboardSSOSReport) {
 }
 
 // =================== Excel ===================
-export async function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSXTypes.WorkBook {
+export async function gerarExcelDashboardSSOS(data: DashboardSSOSReport): Promise<XLSXTypes.WorkBook> {
   const wb = (await getXLSX()).utils.book_new();
   const empresaLabel = data.empresa?.nomeFantasia || data.empresa?.razaoSocial || "SGM Lasant";
 

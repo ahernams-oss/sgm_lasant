@@ -6,7 +6,7 @@ const getXLSX = async () => await import("xlsx");
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export async function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string): XLSXTypes.WorkBook {
+export async function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string): Promise<XLSXTypes.WorkBook> {
   const wb = (await getXLSX()).utils.book_new();
 
   // Resumo sheet

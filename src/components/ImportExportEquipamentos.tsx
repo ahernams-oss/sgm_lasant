@@ -84,11 +84,11 @@ const norm = (v: unknown) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-const toDate = (v: unknown): string => {
+const toDate = async (v: unknown): Promise<string> => {
   if (v === undefined || v === null || v === "") return "";
   if (v instanceof Date) return v.toISOString().slice(0, 10);
   if (typeof v === "number") {
-    const d = XLSXTypes.SSF.parse_date_code(v);
+    const d = (await getXLSX()).SSF.parse_date_code(v);
     if (!d) return "";
     return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
   }
