@@ -597,7 +597,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     });
 
     // Detalhamento dos itens por cotação
-    convitesFiltrados.forEach(async (c) => {
+    for (const c of convitesFiltrados) {
       const itens = parseItens(c.itens);
       if (itens.length === 0) return;
       doc.addPage();
@@ -623,7 +623,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
         alternateRowStyles: { fillColor: [245, 247, 250] },
         columnStyles: { 0: { cellWidth: 12, halign: "center" }, 2: { halign: "center", cellWidth: 20 }, 3: { halign: "center", cellWidth: 24 } },
       });
-    });
+    }
 
     doc.save(`cotacoes_${session.nome.replace(/\s+/g, "_")}.pdf`);
   };

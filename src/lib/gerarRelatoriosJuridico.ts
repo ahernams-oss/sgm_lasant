@@ -96,9 +96,9 @@ async function baseExcel(r: ReportInput) {
   ws["!cols"] = r.colunas.map(() => ({ wch: 22 }));
   if (r.totais && r.totais.length) {
     (await getXLSX()).utils.sheet_add_aoa(ws, [[]], { origin: -1 });
-    r.totais.forEach(async (t) => {
+    for (const t of r.totais) {
       (await getXLSX()).utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
-    });
+    }
   }
   (await getXLSX()).utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
   (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);

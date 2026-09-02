@@ -80,7 +80,7 @@ export async function gerarPdfPmocGeral(data: PmocReportData): Promise<jsPDF> {
 
   // Resumo OS por status
   const statusOS: Record<string, number> = {};
-  data.ordensServico.forEach(async o => { statusOS[o.status] = (statusOS[o.status] || 0) + 1; });
+  data.ordensServico.forEach(o => { statusOS[o.status] = (statusOS[o.status] || 0) + 1; });
   y = await tabelaResumo(doc, y, "Ordens de Serviço por Status", ["Status", "Quantidade"],
     Object.entries(statusOS).map(([s, c]) => [s, c.toString()]));
 
@@ -280,7 +280,7 @@ export async function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhad
   });
 
   if (detalhado) {
-    ordensServico.forEach(async o => {
+    for (const o of ordensServico) {
       doc.addPage();
       header(doc, `OS Nº ${o.numero}`, `${o.equipamentoNome || "-"} | ${o.status}`);
       doc.setTextColor(30, 30, 30);
@@ -346,7 +346,7 @@ export async function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhad
         const linhas = doc.splitTextToSize(o.observacoes, 180);
         doc.text(linhas, 14, yy);
       }
-    });
+    }
   }
 
   footer(doc);
@@ -449,7 +449,7 @@ export async function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[])
   });
 
   // Detalhar checklist por rotina
-  biblioteca.forEach(async b => {
+  for (const b of biblioteca) {
     if (!b.checklistItens?.length) return;
     doc.addPage();
     header(doc, `Rotina: ${b.titulo}`, `${b.tipoEquipamento || "-"} | ${b.tipoAtividade} | v${b.versao}`);
@@ -465,7 +465,7 @@ export async function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[])
       headStyles: { fillColor: [80, 80, 80], textColor: [255, 255, 255] },
       margin: { left: 14, right: 14 },
     });
-  });
+  }
 
   footer(doc);
   return doc;

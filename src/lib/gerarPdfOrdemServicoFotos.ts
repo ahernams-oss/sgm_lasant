@@ -248,7 +248,7 @@ async function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     return;
   }
 
-  grupos.forEach(async (g: any) => {
+  for (const g of grupos) {
     const tipoGrupo = (g.tipo || "unidade") as string;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
     const tipoDe = (l: any): string => (l?.tipo || tipoGrupo) as string;
@@ -319,7 +319,7 @@ async function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
       margin: { left: ml, right: mr },
     });
     y = (doc as any).lastAutoTable.finalY + 5;
-  });
+  }
 }
 
 async function finalizar(doc: jsPDF, opts: RenderOSOptions, sufixo: string) {

@@ -211,14 +211,14 @@ export async function gerarPdfBoletimMedicao(
 
   // ===== BLOCOS =====
   const blocos = montarBlocos(boletim);
-  blocos.forEach(async (b) => {
+  for (const b of blocos) {
     const alturaEstimada = (b.linhas.length + 5) * 6 + 12;
     if (y + alturaEstimada > ph - 20) {
       doc.addPage();
       y = 14;
     }
     y = await desenharBloco(doc, b, y, ml, cw);
-  });
+  }
 
   if (boletim.observacoes) {
     if (y + 20 > ph - 20) { doc.addPage(); y = 14; }
