@@ -244,5 +244,5 @@ export function imprimirHolerite(dados: HoleriteDados | HoleriteDados[], empresa
 }
 
 export function baixarHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite, nome = "holerite.pdf") {
-  gerarPdfHolerite(dados, empresa).save(nome);
+  (await gerarPdfHolerite(dados, empresa)).save(nome);
 }

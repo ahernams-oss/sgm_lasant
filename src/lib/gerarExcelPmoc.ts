@@ -138,13 +138,13 @@ export async function downloadExcelPmoc(data: PmocExcelData) {
   let nome: string;
   const ts = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   if (data.tipo === "cliente") {
-    wb = gerarExcelPmocCliente(data);
+    wb = await gerarExcelPmocCliente(data);
     nome = `PMOC_Cliente_${(data.filtroCliente || "todos").replace(/\s+/g, "_")}_${ts}.xlsx`;
   } else if (data.tipo === "conformidade") {
-    wb = gerarExcelPmocConformidade(data);
+    wb = await gerarExcelPmocConformidade(data);
     nome = `PMOC_Conformidade_${ts}.xlsx`;
   } else {
-    wb = gerarExcelPmocGeral(data);
+    wb = await gerarExcelPmocGeral(data);
     nome = `PMOC_Relatorio_Geral_${ts}.xlsx`;
   }
   (await getXLSX()).writeFile(wb, nome);

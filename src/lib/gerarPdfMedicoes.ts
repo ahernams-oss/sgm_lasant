@@ -114,6 +114,6 @@ export async function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?:
 }
 
 export function downloadPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: string) {
-  const doc = gerarPdfMedicoes(medicoes, filterLabel);
+  const doc = await gerarPdfMedicoes(medicoes, filterLabel);
   doc.save(`Relatorio_Medicoes_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`);
 }

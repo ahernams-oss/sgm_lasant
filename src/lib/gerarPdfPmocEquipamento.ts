@@ -159,7 +159,7 @@ export async function gerarPdfPmocInformacoes(params: {
   await drawHeader(doc, pw, logo, "PMOC — Ficha do Equipamento", equipNome);
 
   let y = 34;
-  y = infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
+  y = await infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
@@ -204,7 +204,7 @@ export async function gerarPdfPmocManutencoesFotos(params: {
   await drawHeader(doc, pw, logo, "PMOC — Manutenções Executadas (com fotos)", equipNome);
 
   let y = 34;
-  y = infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
+  y = await infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
 
   const realizadas = execucoes
     .filter((e) => e.status === "Confirmada" || e.status === "Pendente")
@@ -351,7 +351,7 @@ export async function gerarPdfPmocHistoricoAtividades(params: {
   await drawHeader(doc, pw, logo, "PMOC — Histórico de Atividades do Equipamento", equipNome);
 
   let y = 34;
-  y = infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
+  y = await infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
 
   const ordenadas = [...execucoes].sort(
     (a, b) => new Date(b.data_execucao).getTime() - new Date(a.data_execucao).getTime()

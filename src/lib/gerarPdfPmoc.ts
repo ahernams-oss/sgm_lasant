@@ -75,19 +75,19 @@ export async function gerarPdfPmocGeral(data: PmocReportData): Promise<jsPDF> {
   // Resumo status planos
   const statusPlanos: Record<string, number> = {};
   data.planos.forEach(p => { statusPlanos[p.status] = (statusPlanos[p.status] || 0) + 1; });
-  y = tabelaResumo(doc, y, "Planos por Status", ["Status", "Quantidade"],
+  y = await tabelaResumo(doc, y, "Planos por Status", ["Status", "Quantidade"],
     Object.entries(statusPlanos).map(([s, c]) => [s, c.toString()]));
 
   // Resumo OS por status
   const statusOS: Record<string, number> = {};
   data.ordensServico.forEach(o => { statusOS[o.status] = (statusOS[o.status] || 0) + 1; });
-  y = tabelaResumo(doc, y, "Ordens de Serviço por Status", ["Status", "Quantidade"],
+  y = await tabelaResumo(doc, y, "Ordens de Serviço por Status", ["Status", "Quantidade"],
     Object.entries(statusOS).map(([s, c]) => [s, c.toString()]));
 
   // Atividades por tipo
   const tipoAtiv: Record<string, number> = {};
   data.atividades.forEach(a => { tipoAtiv[a.tipo] = (tipoAtiv[a.tipo] || 0) + 1; });
-  y = tabelaResumo(doc, y, "Atividades por Tipo", ["Tipo", "Quantidade"],
+  y = await tabelaResumo(doc, y, "Atividades por Tipo", ["Tipo", "Quantidade"],
     Object.entries(tipoAtiv).map(([s, c]) => [s, c.toString()]));
 
   // Lista de planos
@@ -132,7 +132,7 @@ export async function gerarPdfPmocCliente(data: PmocReportData): Promise<jsPDF> 
   // KPIs
   const exec = atividadesFiltradas.filter(a => a.ultimaExecucao).length;
   const pct = atividadesFiltradas.length > 0 ? Math.round((exec / atividadesFiltradas.length) * 100) : 0;
-  y = tabelaResumo(doc, y, "Resumo", ["Indicador", "Valor"], [
+  y = await tabelaResumo(doc, y, "Resumo", ["Indicador", "Valor"], [
     ["Planos", planosFiltrados.length.toString()],
     ["Atividades Programadas", atividadesFiltradas.length.toString()],
     ["Atividades Executadas", exec.toString()],
@@ -183,7 +183,7 @@ export async function gerarPdfPmocConformidade(data: PmocReportData): Promise<js
     return [p.titulo, p.clienteNome, ativs.length.toString(), ex.toString(),
       ativs.length > 0 ? `${Math.round((ex / ativs.length) * 100)}%` : "0%"];
   });
-  y = tabelaResumo(doc, y, "Conformidade por Plano",
+  y = await tabelaResumo(doc, y, "Conformidade por Plano",
     ["Plano", "Cliente", "Atividades", "Executadas", "% Conformidade"], porPlano);
 
   // Inconformidades
@@ -218,13 +218,13 @@ export function downloadPdfPmoc(data: PmocReportData) {
   let nome: string;
   const ts = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   if (data.tipo === "cliente") {
-    doc = gerarPdfPmocCliente(data);
+    doc = await gerarPdfPmocCliente(data);
     nome = `PMOC_Cliente_${(data.filtroCliente || "todos").replace(/\s+/g, "_")}_${ts}.pdf`;
   } else if (data.tipo === "conformidade") {
-    doc = gerarPdfPmocConformidade(data);
+    doc = await gerarPdfPmocConformidade(data);
     nome = `PMOC_Conformidade_${ts}.pdf`;
   } else {
-    doc = gerarPdfPmocGeral(data);
+    doc = await gerarPdfPmocGeral(data);
     nome = `PMOC_Relatorio_Geral_${ts}.pdf`;
   }
   doc.save(nome);
@@ -361,7 +361,7 @@ export async function gerarPdfPmocQualidadeAr(pontos: PmocQualidadeArPonto[], me
   doc.setTextColor(30, 30, 30);
   let y = 46;
 
-  y = tabelaResumo(doc, y, "Pontos de Monitoramento",
+  y = await tabelaResumo(doc, y, "Pontos de Monitoramento",
     ["Descrição", "Ambiente", "Tipo", "Periodicidade", "Status"],
     pontos.map(p => [p.descricao, p.ambiente || "-", p.tipoAmbiente || "-", p.periodicidadeColeta, p.status])
   );
@@ -406,7 +406,7 @@ export async function gerarPdfPmocInconformidades(inconformidades: PmocInconform
   // Por gravidade
   const porGrav: Record<string, number> = {};
   inconformidades.forEach(i => { porGrav[i.gravidade] = (porGrav[i.gravidade] || 0) + 1; });
-  y = tabelaResumo(doc, y, "Por Gravidade", ["Gravidade", "Qtd"],
+  y = await tabelaResumo(doc, y, "Por Gravidade", ["Gravidade", "Qtd"],
     Object.entries(porGrav).map(([g, c]) => [g, c.toString()]));
 
   (await getAutoTable())(doc, {
@@ -474,12 +474,12 @@ export async function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[])
 // ====================== Helpers de download ======================
 const ts = () => new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
 export const downloadPdfPmocPlanos = (planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string) =>
-  gerarPdfPmocPlanos(planos, atividades, filtroCliente).save(`PMOC_Planos_${ts()}.pdf`);
+  (await gerarPdfPmocPlanos(planos, atividades, filtroCliente)).save(`PMOC_Planos_${ts()}.pdf`);
 export const downloadPdfPmocOS = (os: PmocOrdemServico[], detalhado = true) =>
-  gerarPdfPmocOS(os, detalhado).save(`PMOC_OS_${ts()}.pdf`);
+  (await gerarPdfPmocOS(os, detalhado)).save(`PMOC_OS_${ts()}.pdf`);
 export const downloadPdfPmocQualidadeAr = (pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]) =>
-  gerarPdfPmocQualidadeAr(pontos, medicoes).save(`PMOC_QualidadeAr_${ts()}.pdf`);
+  (await gerarPdfPmocQualidadeAr(pontos, medicoes)).save(`PMOC_QualidadeAr_${ts()}.pdf`);
 export const downloadPdfPmocInconformidades = (inc: PmocInconformidade[]) =>
-  gerarPdfPmocInconformidades(inc).save(`PMOC_Inconformidades_${ts()}.pdf`);
+  (await gerarPdfPmocInconformidades(inc)).save(`PMOC_Inconformidades_${ts()}.pdf`);
 export const downloadPdfPmocBiblioteca = (bib: PmocBibliotecaRotina[]) =>
-  gerarPdfPmocBiblioteca(bib).save(`PMOC_Biblioteca_${ts()}.pdf`);
+  (await gerarPdfPmocBiblioteca(bib)).save(`PMOC_Biblioteca_${ts()}.pdf`);

@@ -247,7 +247,7 @@ export async function gerarPdfDashboardSSOS(data: DashboardSSOSReport): Promise<
 }
 
 export function downloadPdfDashboardSSOS(data: DashboardSSOSReport) {
-  const doc = gerarPdfDashboardSSOS(data);
+  const doc = await gerarPdfDashboardSSOS(data);
   const dt = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   doc.save(`Dashboard_SS_OS_${dt}.pdf`);
 }

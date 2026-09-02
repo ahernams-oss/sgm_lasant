@@ -61,7 +61,7 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
 
   const handleGerarRelatorio = (f: Faturamento) => {
     if (!cliente || !contrato) { toast.error("Dados do contrato indisponíveis."); return; }
-    const doc = gerarPdfMedicaoControle({
+    const doc = await gerarPdfMedicaoControle({
       cliente, contrato, faturamento: f, ordens,
       empresaNome: empresa?.razaoSocial || empresa?.nomeFantasia || "",
     });

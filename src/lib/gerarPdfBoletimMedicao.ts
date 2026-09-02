@@ -217,7 +217,7 @@ export async function gerarPdfBoletimMedicao(
       doc.addPage();
       y = 14;
     }
-    y = desenharBloco(doc, b, y, ml, cw);
+    y = await desenharBloco(doc, b, y, ml, cw);
   });
 
   if (boletim.observacoes) {

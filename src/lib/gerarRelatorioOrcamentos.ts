@@ -302,6 +302,6 @@ export async function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData)
 }
 
 export function downloadRelatorioOrcamentosPDF(data: RelatorioOrcamentosData, filename = "relatorio-orcamentos.pdf") {
-  const doc = gerarRelatorioOrcamentosPDF(data);
+  const doc = await gerarRelatorioOrcamentosPDF(data);
   doc.save(filename);
 }
