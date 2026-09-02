@@ -27,6 +27,10 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
+          if (id.includes("web-ifc")) return "vendor-bim";
+          if (id.includes("three")) return "vendor-three";
+          if (id.includes("pdfjs-dist") || id.includes("react-pdf")) return "vendor-pdfviewer";
+          if (id.includes("exceljs")) return "vendor-exceljs";
           if (id.includes("jspdf") || id.includes("jspdf-autotable")) return "vendor-pdf";
           if (id.includes("xlsx")) return "vendor-excel";
           if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
