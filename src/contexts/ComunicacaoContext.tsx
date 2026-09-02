@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface Conversa {
   id: string;
@@ -127,21 +128,23 @@ const mapNotif = (n: any): Notificacao => ({
 });
 
 export function ComunicacaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Comunicacao");
   const qc = useQueryClient();
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
 
   const { data: grupos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_GRUPOS,
     queryFn: async () => (await fetchAll("comunicacao_grupos", "created_at")).reverse().map(mapGrupo),
     ...opts,
   });
 
   const convQueries = useQueries({
-    queries: [
+    queries: gateQueries([
       { queryKey: [...QK_CONV, "raw"], queryFn: () => fetchAll("comunicacao_conversas", "created_at"), ...opts },
       { queryKey: ["comunicacao_participantes"], queryFn: () => fetchAll("comunicacao_participantes", "created_at"), ...opts },
-    ],
+    ], __active),
   });
   const convData = (convQueries[0].data as any[]) ?? [];
   const partData = (convQueries[1].data as any[]) ?? [];
@@ -158,10 +161,10 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   })).reverse();
 
   const avisoQueries = useQueries({
-    queries: [
+    queries: gateQueries([
       { queryKey: [...QK_AVISOS, "raw"], queryFn: () => fetchAll("comunicacao_avisos", "created_at"), ...opts },
       { queryKey: ["comunicacao_avisos_leitura"], queryFn: () => fetchAll("comunicacao_avisos_leitura", "lido_em"), ...opts },
-    ],
+    ], __active),
   });
   const avData = (avisoQueries[0].data as any[]) ?? [];
   const leitData = (avisoQueries[1].data as any[]) ?? [];
@@ -183,6 +186,7 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   }));
 
   const { data: notificacoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_NOTIF,
     queryFn: async () => (await fetchAll("comunicacao_notificacoes", "created_at")).reverse().map(mapNotif),
     ...opts,
@@ -268,6 +272,7 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useComunicacao() {
+  useActivateProvider("Comunicacao");
   const ctx = useContext(ComunicacaoContext);
   if (!ctx) throw new Error("useComunicacao must be used within ComunicacaoProvider");
   return ctx;

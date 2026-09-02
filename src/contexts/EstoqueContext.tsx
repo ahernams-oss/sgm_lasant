@@ -1,6 +1,7 @@
 import { createContext, useContext, useCallback, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface MovimentacaoEstoque {
   id: string;
@@ -107,14 +108,17 @@ const rowToInv = (r: any): Inventario => ({
 });
 
 export function EstoqueProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Estoque");
   const qc = useQueryClient();
 
   const { data: movimentacoes = [], refetch: refetchMov } = useQuery({
+    enabled: __active,
     queryKey: QK_MOV,
     queryFn: async () => (await fetchAll("estoque_movimentacoes", "created_at")).map(rowToMov),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
   });
   const { data: inventarios = [], refetch: refetchInv } = useQuery({
+    enabled: __active,
     queryKey: QK_INV,
     queryFn: async () => (await fetchAll("estoque_inventarios", "created_at")).map(rowToInv),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -329,6 +333,7 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
 }
 
 export function useEstoque() {
+  useActivateProvider("Estoque");
   const ctx = useContext(EstoqueContext);
   if (!ctx) throw new Error("useEstoque must be used within EstoqueProvider");
   return ctx;

@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface EpiCatalogo {
   id: string;
@@ -40,9 +41,11 @@ const toRow = (e: Omit<EpiCatalogo, "id">) => ({
 const QK = ["epis_catalogo"] as const;
 
 export function EpisCatalogoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("EpisCatalogo");
   const queryClient = useQueryClient();
 
   const { data: epis = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("epis_catalogo", "descricao");
@@ -81,6 +84,7 @@ export function EpisCatalogoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useEpisCatalogo() {
+  useActivateProvider("EpisCatalogo");
   const ctx = useContext(EpisCatalogoContext);
   if (!ctx) throw new Error("useEpisCatalogo must be used within EpisCatalogoProvider");
   return ctx;

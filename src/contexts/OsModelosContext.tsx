@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface OsModelo {
   id: string;
@@ -23,8 +24,10 @@ const rowTo = (r: any): OsModelo => ({
 });
 
 export function OsModelosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("OsModelos");
   const qc = useQueryClient();
   const { data: modelos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("os_modelos", "nome")).map(rowTo),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -52,6 +55,7 @@ export function OsModelosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useOsModelos() {
+  useActivateProvider("OsModelos");
   const ctx = useContext(OsModelosContext);
   if (!ctx) throw new Error("useOsModelos must be used within OsModelosProvider");
   return ctx;

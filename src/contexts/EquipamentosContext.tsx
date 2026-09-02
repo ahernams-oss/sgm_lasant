@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Equipamento {
   id: string;
@@ -101,8 +102,10 @@ const equipamentoToRow = (e: Partial<EquipamentoInput>) => ({
 });
 
 export function EquipamentosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Equipamentos");
   const qc = useQueryClient();
   const { data: equipamentos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("equipamentos")).map(rowToEquipamento),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -132,6 +135,7 @@ export function EquipamentosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useEquipamentos() {
+  useActivateProvider("Equipamentos");
   const ctx = useContext(EquipamentosContext);
   if (!ctx) throw new Error("useEquipamentos must be used within EquipamentosProvider");
   return ctx;

@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type PapelPcAssinatura = "aprovador";
 
@@ -41,9 +42,11 @@ export const usePcAssinaturas = () => useContext(PcAssinaturasContext);
 const QK = ["pc_assinaturas"] as const;
 
 export function PcAssinaturasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("PcAssinaturas");
   const qc = useQueryClient();
 
   const { data: assinaturas = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const { data } = await supabase.from("pc_assinaturas").select("*").order("signed_at");

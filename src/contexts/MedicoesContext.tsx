@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ItemServico {
   id: string;
@@ -60,8 +61,10 @@ const MedicoesContext = createContext<MedicoesContextType | undefined>(undefined
 const QK = ["medicoes_servicos"] as const;
 
 export function MedicoesProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Medicoes");
   const qc = useQueryClient();
   const { data: medicoes = [], isLoading: loading } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("medicoes_servicos");
@@ -87,6 +90,7 @@ export function MedicoesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useMedicoes() {
+  useActivateProvider("Medicoes");
   const ctx = useContext(MedicoesContext);
   if (!ctx) throw new Error("useMedicoes deve ser usado dentro de MedicoesProvider");
   return ctx;

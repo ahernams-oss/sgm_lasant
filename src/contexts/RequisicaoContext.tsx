@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface StatusHistorico { status: string; dataHora: string; usuario?: string; observacao?: string; }
 
@@ -81,8 +82,10 @@ const reqToRow = (r: Requisicao) => ({
 const QK = ["requisicoes_pessoal"] as const;
 
 export function RequisicaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Requisicao");
   const qc = useQueryClient();
   const { data: requisicoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("requisicoes", "created_at")).map(rowToReq),
     staleTime: 5 * 60 * 1000,
@@ -152,6 +155,7 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useRequisicoes() {
+  useActivateProvider("Requisicao");
   const ctx = useContext(RequisicaoContext);
   if (!ctx) throw new Error("useRequisicoes must be used within RequisicaoProvider");
   return ctx;

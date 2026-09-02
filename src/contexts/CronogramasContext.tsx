@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface CronogramaPeriodo { rotulo: string; inicio: string; fim: string; }
 
@@ -44,8 +45,10 @@ export const useCronogramas = () => useContext(CronogramasContext);
 const QK = ["cronogramas"] as const;
 
 export function CronogramasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Cronogramas");
   const qc = useQueryClient();
   const { data: cronogramas = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("cronogramas", "created_at");

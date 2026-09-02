@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 // ============ TYPES ============
 
@@ -361,6 +362,7 @@ const QK_DOCS = ["pregao_documentos_exigidos"] as const;
 const QK_PARTS = ["pregao_participantes"] as const;
 
 export function PregaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Pregao");
   const qc = useQueryClient();
   const [lances, setLances] = useState<PregaoLance[]>([]);
   const [mensagens, setMensagens] = useState<PregaoMensagem[]>([]);
@@ -369,12 +371,12 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
 
   const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
   const results = useQueries({
-    queries: [
+    queries: gateQueries([
       { queryKey: QK_PREGOES, queryFn: async () => (await fetchAll("pregoes", "created_at")).map(rowToPregao), ...opts },
       { queryKey: QK_ITENS, queryFn: async () => (await fetchAll("pregao_itens", "ordem")).map(rowToItem), ...opts },
       { queryKey: QK_DOCS, queryFn: async () => (await fetchAll("pregao_documentos_exigidos", "ordem")).map(rowToDoc), ...opts },
       { queryKey: QK_PARTS, queryFn: async () => (await fetchAll("pregao_participantes", "created_at")).map(rowToPart), ...opts },
-    ],
+    ], __active),
   });
   const pregoes = (results[0].data as Pregao[]) ?? [];
   const itens = (results[1].data as PregaoItem[]) ?? [];
@@ -751,6 +753,7 @@ export function PregaoProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePregao() {
+  useActivateProvider("Pregao");
   const ctx = useContext(PregaoContext);
   if (!ctx) throw new Error("usePregao must be used within PregaoProvider");
   return ctx;

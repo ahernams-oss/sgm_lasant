@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type TipoTransporte = "Ônibus" | "Trem" | "Metrô" | "VLT" | "Barca" | "Catamarã";
 export const tiposTransporte: TipoTransporte[] = ["Ônibus", "Trem", "Metrô", "VLT", "Barca", "Catamarã"];
@@ -166,9 +167,11 @@ const FuncionariosContext = createContext<FuncionariosContextType | undefined>(u
 const QK = ["funcionarios"] as const;
 
 export function FuncionariosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Funcionarios");
   const queryClient = useQueryClient();
 
   const { data: funcionarios = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const { data, error } = await (supabase as any).from("funcionarios").select("*").order("nome");
@@ -210,6 +213,7 @@ export function FuncionariosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useFuncionarios() {
+  useActivateProvider("Funcionarios");
   const ctx = useContext(FuncionariosContext);
   if (!ctx) throw new Error("useFuncionarios must be used within FuncionariosProvider");
   return ctx;

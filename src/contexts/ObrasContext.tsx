@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Obra {
   id: string;
@@ -42,8 +43,10 @@ export const useObras = () => useContext(ObrasContext);
 const QK = ["obras"] as const;
 
 export function ObrasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Obras");
   const qc = useQueryClient();
   const { data: obras = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("obras", "nome")) as Obra[],
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,

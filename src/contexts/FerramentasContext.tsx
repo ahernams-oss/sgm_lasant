@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface Ferramenta {
   id: string; codigo: string; descricao: string; marca: string; modelo: string;
@@ -116,10 +117,11 @@ const QK_E = ["ferramentas_emprestimos"] as const;
 const QK_H = ["ferramentas_historico"] as const;
 
 export function FerramentasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Ferramentas");
   const qc = useQueryClient();
 
   const results = useQueries({
-    queries: [
+    queries: gateQueries([
       {
         queryKey: QK_F,
         queryFn: async () => {
@@ -156,7 +158,7 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
         },
         staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
       },
-    ],
+    ], __active),
   });
 
   const ferramentas = (results[0].data as Ferramenta[]) || [];
@@ -313,6 +315,7 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
 }
 
 export function useFerramentas() {
+  useActivateProvider("Ferramentas");
   const ctx = useContext(FerramentasContext);
   if (!ctx) throw new Error("useFerramentas must be used within FerramentasProvider");
   return ctx;

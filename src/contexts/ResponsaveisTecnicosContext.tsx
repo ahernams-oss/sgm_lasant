@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ResponsavelTecnico {
   id: string;
@@ -31,8 +32,10 @@ export const useResponsaveisTecnicos = () => useContext(ResponsaveisTecnicosCont
 const QK = ["responsaveis_tecnicos"] as const;
 
 export function ResponsaveisTecnicosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("ResponsaveisTecnicos");
   const qc = useQueryClient();
   const { data: responsaveis = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("responsaveis_tecnicos", "nome")) as ResponsavelTecnico[],
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,

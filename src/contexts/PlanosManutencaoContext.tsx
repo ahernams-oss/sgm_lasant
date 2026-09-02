@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface ChecklistItem { id: string; descricao: string; obrigatorio?: boolean; }
 
@@ -55,13 +56,14 @@ const QK_A = ["plano_manutencao_atividades"] as const;
 const QK_E = ["plano_manutencao_execucoes"] as const;
 
 export function PlanosManutencaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("PlanosManutencao");
   const qc = useQueryClient();
   const results = useQueries({
-    queries: [
+    queries: gateQueries([
       { queryKey: QK_P, queryFn: async () => (await fetchAll("planos_manutencao")) as PlanoManutencao[], staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_A, queryFn: async () => (await fetchAll("plano_manutencao_atividades")) as PlanoAtividade[], staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_E, queryFn: async () => (await fetchAll("plano_manutencao_execucoes")) as PlanoExecucao[], staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
-    ],
+    ], __active),
   });
   const planos = results[0].data ?? [];
   const atividades = results[1].data ?? [];

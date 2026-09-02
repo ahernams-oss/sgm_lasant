@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface NrCatalogo {
   id: string;
@@ -66,9 +67,11 @@ const toRow = (n: Omit<NrCatalogo, "id">) => ({
 const QK = ["nrs_catalogo"] as const;
 
 export function NrsCatalogoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("NrsCatalogo");
   const queryClient = useQueryClient();
 
   const { data: nrs = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("nrs_catalogo", "codigo");
@@ -106,6 +109,7 @@ export function NrsCatalogoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useNrsCatalogo() {
+  useActivateProvider("NrsCatalogo");
   const ctx = useContext(NrsCatalogoContext);
   if (!ctx) throw new Error("useNrsCatalogo must be used within NrsCatalogoProvider");
   return ctx;

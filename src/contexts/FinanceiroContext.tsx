@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada";
 export type StatusReceber = "aberta" | "recebida" | "parcial" | "cancelada";
@@ -156,10 +157,11 @@ const QK_LN = ["fin_lancamentos"] as const;
 const QK_OFX = ["fin_movimentos_ofx"] as const;
 
 export function FinanceiroProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Financeiro");
   const qc = useQueryClient();
 
   const results = useQueries({
-    queries: [
+    queries: gateQueries([
       { queryKey: QK_CB, queryFn: async () => fetchAll("fin_contas_bancarias", "nome"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_PC, queryFn: async () => fetchAll("fin_plano_contas", "codigo"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_CC, queryFn: async () => fetchAll("fin_centros_custo", "nome"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
@@ -167,7 +169,7 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
       { queryKey: QK_CR, queryFn: async () => fetchAll("fin_contas_receber", "data_vencimento"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_LN, queryFn: async () => fetchAll("fin_lancamentos", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_OFX, queryFn: async () => fetchAll("fin_movimentos_ofx", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
-    ],
+    ], __active),
   });
 
   const contasBancarias = (results[0].data as ContaBancaria[]) || [];
@@ -241,6 +243,7 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
 }
 
 export function useFinanceiro() {
+  useActivateProvider("Financeiro");
   const ctx = useContext(FinanceiroContext);
   if (!ctx) throw new Error("useFinanceiro deve ser usado dentro de FinanceiroProvider");
   return ctx;

@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface MaterialServico {
   id: string; codigo: string; descricao: string; tipo: "Material" | "Serviço";
@@ -27,8 +28,10 @@ const rowToMaterial = (r: any): MaterialServico => ({
 });
 
 export function MateriaisServicosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("MateriaisServicos");
   const qc = useQueryClient();
   const { data: materiais = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("materiais_servicos", "codigo")).map(rowToMaterial),
     staleTime: 5 * 60 * 1000,
@@ -73,6 +76,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
 }
 
 export function useMateriaisServicos() {
+  useActivateProvider("MateriaisServicos");
   const ctx = useContext(MateriaisServicosContext);
   if (!ctx) throw new Error("useMateriaisServicos must be used within MateriaisServicosProvider");
   return ctx;

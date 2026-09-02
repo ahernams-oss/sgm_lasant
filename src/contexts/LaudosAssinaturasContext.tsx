@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface LaudoAssinatura {
   id: string;
@@ -46,8 +47,10 @@ export const useLaudosAssinaturas = () => useContext(LaudosAssinaturasContext);
 const QK = ["laudos_assinaturas"] as const;
 
 export function LaudosAssinaturasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("LaudosAssinaturas");
   const qc = useQueryClient();
   const { data: assinaturas = [], refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () =>
       (await fetchAll("equipamentos_laudos_assinaturas" as any, "signed_at")) as LaudoAssinatura[],

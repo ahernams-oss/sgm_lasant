@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type PapelOsAssinatura = "fiscal" | "fiscal_2" | "fiscal_3" | "solicitante";
 
@@ -35,8 +36,10 @@ export const useOsAssinaturas = () => useContext(OsAssinaturasContext);
 const QK = ["os_assinaturas"] as const;
 
 export function OsAssinaturasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("OsAssinaturas");
   const qc = useQueryClient();
   const { data: assinaturas = [], refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("os_assinaturas", "signed_at")) as OsAssinatura[],
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,

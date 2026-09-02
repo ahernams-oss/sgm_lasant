@@ -4,6 +4,7 @@ import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useEstoque } from "@/contexts/EstoqueContext";
 import { fetchAll, insertRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ItemRecebimento {
   itemId: string; descricao: string; quantidadePedida: number;
@@ -48,12 +49,14 @@ const recebimentoToRow = (r: Recebimento) => ({
 });
 
 export function RecebimentoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Recebimento");
   const qc = useQueryClient();
   const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
   const { requisicoes, updateStatus: updateReqStatus } = useRequisicaoCompras();
   const { registrarEntradaRecebimento } = useEstoque();
 
   const { data: recebimentos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("recebimentos", "created_at")).map(rowToRecebimento),
     staleTime: 5 * 60 * 1000,
@@ -148,6 +151,7 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useRecebimento() {
+  useActivateProvider("Recebimento");
   const ctx = useContext(RecebimentoContext);
   if (!ctx) throw new Error("useRecebimento must be used within RecebimentoProvider");
   return ctx;

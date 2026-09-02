@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface MaterialOS {
   id: string; codigo: string; descricao: string;
@@ -124,8 +125,10 @@ const rowToOrdem = (r: any): OrdemServico => ({
 });
 
 export function OrdensServicoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("OrdensServico");
   const qc = useQueryClient();
   const { data: ordens = [], isLoading: loading } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("ordens_servico", "numero")).map(rowToOrdem),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -160,6 +163,7 @@ export function OrdensServicoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useOrdensServico() {
+  useActivateProvider("OrdensServico");
   const ctx = useContext(OrdensServicoContext);
   const warnedRef = useRef(false);
 

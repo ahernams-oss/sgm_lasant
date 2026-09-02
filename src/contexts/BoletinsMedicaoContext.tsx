@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface BoletimMedicaoItem {
   id: string;
@@ -55,8 +56,10 @@ export const useBoletinsMedicao = () => useContext(BoletinsMedicaoContext);
 const QK = ["boletins_medicao"] as const;
 
 export function BoletinsMedicaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("BoletinsMedicao");
   const qc = useQueryClient();
   const { data: boletins = [], isLoading: loading } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("boletins_medicao", "created_at");

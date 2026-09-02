@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 // ---- Interfaces ----
 export interface PmocPlano {
@@ -205,13 +206,14 @@ const TABLES = [
 ];
 
 export function PmocProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Pmoc");
   const qc = useQueryClient();
   const results = useQueries({
-    queries: TABLES.map(t => ({
+    queries: gateQueries(TABLES.map(t => ({
       queryKey: t.key,
       queryFn: async () => (await fetchAll(t.table, t.order)).map(t.mapper as (r: any) => any),
       staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
-    })) as any,
+    })) as any, __active) as any,
   });
   const [planos, atividades, ordensServico, responsaveisTecnicos, pontosQA, medicoesQA, inconformidades, biblioteca] =
     results.map(r => (r.data ?? []) as any[]);

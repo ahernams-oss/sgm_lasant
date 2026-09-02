@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface RdoEfetivoItem { funcao: string; quantidade: number; horas: number; }
 export interface RdoEquipamentoItem { descricao: string; quantidade: number; horas: number; }
@@ -37,8 +38,10 @@ export const useRdos = () => useContext(RdosContext);
 const QK = ["rdos"] as const;
 
 export function RdosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Rdos");
   const qc = useQueryClient();
   const { data: rdos = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("rdos", "data_rdo");

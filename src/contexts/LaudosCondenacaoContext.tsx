@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface FotoMarcador {
   n: number;
@@ -111,8 +112,10 @@ const rowToLaudo = (r: any): LaudoCondenacao => ({
 });
 
 export function LaudosCondenacaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("LaudosCondenacao");
   const qc = useQueryClient();
   const { data: laudos = [], isLoading: loading } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("equipamentos_laudos_condenacao")).map(rowToLaudo),
     staleTime: 5 * 60 * 1000,
@@ -160,6 +163,7 @@ export function LaudosCondenacaoProvider({ children }: { children: ReactNode }) 
 }
 
 export function useLaudosCondenacao() {
+  useActivateProvider("LaudosCondenacao");
   const ctx = useContext(LaudosCtx);
   if (!ctx) throw new Error("useLaudosCondenacao must be used within LaudosCondenacaoProvider");
   return ctx;

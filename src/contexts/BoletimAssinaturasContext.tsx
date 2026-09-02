@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type PapelBoletimAssinatura = "responsavel" | "fiscalizacao" | "gestor";
 
@@ -35,8 +36,10 @@ export const useBoletimAssinaturas = () => useContext(BoletimAssinaturasContext)
 const QK = ["boletim_assinaturas"] as const;
 
 export function BoletimAssinaturasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("BoletimAssinaturas");
   const qc = useQueryClient();
   const { data: assinaturas = [], refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("boletim_assinaturas", "signed_at")) as BoletimAssinatura[],
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,

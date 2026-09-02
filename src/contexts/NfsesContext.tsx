@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type NfseStatus = "rascunho" | "processando" | "emitida" | "rejeitada" | "cancelada";
 
@@ -83,9 +84,11 @@ const QK_NFS = ["nfses_emitidas"] as const;
 const QK_CFG = ["nfse_config"] as const;
 
 export function NfsesProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Nfses");
   const qc = useQueryClient();
 
   const { data: nfses = [], isLoading: loadingNfses } = useQuery({
+    enabled: __active,
     queryKey: QK_NFS,
     queryFn: async () => {
       const list = await fetchAll("nfses_emitidas", "created_at");
@@ -97,6 +100,7 @@ export function NfsesProvider({ children }: { children: ReactNode }) {
   });
 
   const { data: config = null } = useQuery({
+    enabled: __active,
     queryKey: QK_CFG,
     queryFn: async () => {
       const cfgs = await fetchAll("nfse_config", "created_at");
@@ -149,6 +153,7 @@ export function NfsesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useNfses() {
+  useActivateProvider("Nfses");
   const ctx = useContext(NfsesContext);
   if (!ctx) throw new Error("useNfses deve ser usado dentro de NfsesProvider");
   return ctx;

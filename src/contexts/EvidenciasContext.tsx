@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Evidencia {
   id: string; numero: number; titulo: string; descricao: string;
@@ -28,8 +29,10 @@ export const useEvidencias = () => useContext(EvidenciasContext);
 const QK = ["evidencias"] as const;
 
 export function EvidenciasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Evidencias");
   const qc = useQueryClient();
   const { data: evidencias = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("evidencias")) as Evidencia[],
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
