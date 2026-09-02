@@ -13,10 +13,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeftRight, Eye, Plus, Trash2, FileSpreadsheet, FileText } from "lucide-react";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 type TipoSaldo = "maoDeObraMensal" | "maoDeObraAnual" | "maoDeObraContratual" | "valorVariavel";
 
@@ -217,7 +220,7 @@ export default function TransferenciasSaldoContrato() {
     loadHistorico();
   };
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
     if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
     const rows = historico.map(h => ({
       Data: new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR"),
@@ -235,23 +238,23 @@ export default function TransferenciasSaldoContrato() {
       Usuário: h.usuario_nome ?? "",
       "Registrado em": new Date(h.created_at).toLocaleString("pt-BR"),
     }));
-    const ws = XLSX.utils.json_to_sheet(rows);
+    const ws = (await getXLSX()).utils.json_to_sheet(rows);
     ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length + 2, 16) }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Transferências");
-    XLSX.writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`);
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "Transferências");
+    (await getXLSX()).writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`);
     toast.success("Excel gerado.");
   };
 
   const exportarPDF = async () => {
     if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
     await addHeader(doc, {
       title: "Transferências de Saldo entre Contratos",
       subtitle: `Total: ${historico.length} registro(s)`,
     });
     const totalValor = historico.reduce((s, h) => s + Number(h.valor || 0), 0);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 40,
       head: [["Data", "Tipo", "Origem", "Destino", "Valor", "Saldo Origem", "Saldo Destino", "Motivo", "Usuário"]],
       body: historico.map(h => [

@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 interface FerramentaInfo {
   codigo: string;
   descricao: string;
@@ -19,8 +21,8 @@ interface TermoData {
   dataVinculo: string;
 }
 
-export function downloadPdfTermoResponsabilidade(data: TermoData) {
-  const doc = new jsPDF();
+export async function downloadPdfTermoResponsabilidade(data: TermoData) {
+  const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
 
@@ -88,7 +90,7 @@ export function downloadPdfTermoResponsabilidade(data: TermoData) {
     f.valorAquisicao ? `R$ ${f.valorAquisicao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-",
   ]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Código", "Descrição", "Marca", "Modelo", "Nº Série", "Patrimônio", "Estado", "Valor"]],
     body: bodyRows,

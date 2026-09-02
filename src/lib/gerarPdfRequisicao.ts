@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Requisicao } from "@/contexts/RequisicaoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 const BORDER_COLOR: [number, number, number] = [180, 180, 180];
@@ -39,7 +41,7 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
 }
 
 export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;
@@ -87,7 +89,7 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   let y = headerH + 10;
 
   // ===== HELPER: Section with bordered table =====
-  const addSection = (title: string, rows: [string, string][]) => {
+  const addSection = async (title: string, rows: [string, string][]) => {
     const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
     if (filteredRows.length === 0) return;
 
@@ -103,7 +105,7 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
     doc.text(title, ml, y);
     y += 4;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [],
       body: filteredRows,
@@ -246,7 +248,7 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
     doc.text("Histórico de Status", ml, y);
     y += 4;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Status", "Data/Hora", "Usuário", "Justificativa"]],
       body: req.historicoStatus.map((h) => [

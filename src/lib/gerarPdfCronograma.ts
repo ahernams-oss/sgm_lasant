@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { Cronograma } from "@/contexts/CronogramasContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const BORDER: [number, number, number] = [60, 60, 60];
 
@@ -29,7 +31,7 @@ const fmtPct = (n: number) => `${(Number(n) || 0).toFixed(2)}%`;
 export type CronogramaModelo = "completo" | "fisico" | "financeiro" | "resumo";
 
 export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empresa, modelo: CronogramaModelo = "completo") {
-  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4", orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 10, mr = 10;
   let y = 10;
@@ -48,7 +50,7 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
   y += 18;
 
   // INFO
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.3 },
@@ -109,7 +111,7 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     doc.text("CRONOGRAMA FÍSICO (% de avanço)", ml, y);
     y += 2;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head,
       body: bodyFisico,
@@ -167,7 +169,7 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     doc.text("CRONOGRAMA FINANCEIRO (R$)", ml, y);
     y += 2;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head,
       body: bodyFinanceiro,
@@ -214,7 +216,7 @@ export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empre
     doc.setFontSize(9);
     doc.text("RESUMO EXECUTIVO", ml, y);
     y += 2;
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["#", "Atividade", "Físico Prev.", "Físico Real.", "Desvio", "Financ. Prev.", "Financ. Real."]],
       body: resumoBody,

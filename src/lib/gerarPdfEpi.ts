@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Funcionario } from "@/contexts/FuncionariosContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface EpiPdfOptions {
   cargoNome?: string;
@@ -257,7 +259,7 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
     logoSeg = await loadImage("/seguranca_trabalho.jpg");
   } catch { /* skip */ }
 
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
@@ -281,7 +283,7 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
     epiRows.push(["", "", "", "", ""]);
   }
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 10, right: 10 },
     head: [["Quant.", "E.P.I", "CA", "Data", "Assinatura do Empregado"]],

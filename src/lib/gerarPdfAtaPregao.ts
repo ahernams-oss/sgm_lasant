@@ -1,9 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import type { Pregao, PregaoItem, PregaoParticipante, PregaoLance } from "@/contexts/PregaoContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const BLUE = { r: 30, g: 58, b: 107 };
 const BORDER = { r: 180, g: 195, b: 215 };
@@ -37,7 +39,7 @@ interface AtaData {
 
 export async function gerarPdfAtaPregao(data: AtaData): Promise<jsPDF> {
   const { pregao, itens, participantes, lances, empresa } = data;
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;
@@ -78,7 +80,7 @@ export async function gerarPdfAtaPregao(data: AtaData): Promise<jsPDF> {
     ["Início da disputa", pregao.dataInicioDisputa ? format(new Date(pregao.dataInicioDisputa), "dd/MM/yyyy HH:mm") : "—"],
     ["Encerramento", pregao.dataEncerramentoDisputa ? format(new Date(pregao.dataEncerramentoDisputa), "dd/MM/yyyy HH:mm") : "—"],
   ];
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     body: meta,
     theme: "grid",
@@ -97,7 +99,7 @@ export async function gerarPdfAtaPregao(data: AtaData): Promise<jsPDF> {
   doc.setTextColor(0, 0, 0);
   y += 6;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Apelido", "Fornecedor", "CNPJ", "Status"]],
     body: participantes.map(p => [p.apelido, p.fornecedorNome, p.fornecedorCnpj, p.status]),
@@ -121,7 +123,7 @@ export async function gerarPdfAtaPregao(data: AtaData): Promise<jsPDF> {
     const lancesItem = lances.filter(l => l.itemId === item.id && !l.cancelado).sort((a, b) => a.valor - b.valor);
     const venc = item.vencedorParticipanteId ? participantes.find(p => p.id === item.vencedorParticipanteId) : null;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       body: [
         ["Quantidade", `${item.quantidade} ${item.unidade}`],
@@ -138,7 +140,7 @@ export async function gerarPdfAtaPregao(data: AtaData): Promise<jsPDF> {
     y = (doc as any).lastAutoTable.finalY + 2;
 
     if (lancesItem.length) {
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["#", "Licitante", "Fornecedor", "Data/Hora", "Valor"]],
         body: lancesItem.map((l, i) => {

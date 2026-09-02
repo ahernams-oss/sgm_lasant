@@ -1,14 +1,16 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Funcionario } from "@/contexts/FuncionariosContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface PdfOptions {
   cargoNome?: string;
   clienteNome?: string;
 }
 
-export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
-  const doc = new jsPDF();
+export async function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
+  const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // Header
@@ -27,7 +29,7 @@ export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
   doc.setTextColor(30, 30, 30);
   let y = 44;
 
-  const addSection = (title: string, rows: [string, string][]) => {
+  const addSection = async (title: string, rows: [string, string][]) => {
     const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
     if (filteredRows.length === 0) return;
 
@@ -40,7 +42,7 @@ export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
     doc.text(title, 16, y + 2);
     y += 10;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
       head: [],
@@ -140,7 +142,7 @@ export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
     doc.text("Passagens", 16, y + 2);
     y += 10;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
       head: [["Tipo Transporte", "Itinerário", "Valor", "Qtd", "Total"]],
@@ -176,7 +178,7 @@ export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
     doc.text("Dependentes", 16, y + 2);
     y += 10;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
       head: [["Nome", "CPF", "Data Nasc.", "Parentesco", "Anexos"]],

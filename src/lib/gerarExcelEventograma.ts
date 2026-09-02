@@ -1,5 +1,7 @@
-import * as XLSX from "xlsx";
 import type { Eventograma } from "@/contexts/EventogramasContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const fmtDate = (s?: string) => {
   if (!s) return "";
@@ -7,8 +9,8 @@ const fmtDate = (s?: string) => {
   return d && m && y ? `${d}/${m}/${y}` : s;
 };
 
-export function gerarExcelEventograma(ev: Eventograma) {
-  const wb = XLSX.utils.book_new();
+export async function gerarExcelEventograma(ev: Eventograma) {
+  const wb = (await getXLSX()).utils.book_new();
 
   const cabec = [
     ["EVENTOGRAMA"],
@@ -31,7 +33,7 @@ export function gerarExcelEventograma(ev: Eventograma) {
     e.criterio_medicao, e.status, fmtDate(e.data_realizada), e.observacao,
   ]);
 
-  const ws = XLSX.utils.aoa_to_sheet([...cabec, head, ...rows]);
-  XLSX.utils.book_append_sheet(wb, ws, "Eventograma");
-  XLSX.writeFile(wb, `eventograma-${ev.numero}.xlsx`);
+  const ws = (await getXLSX()).utils.aoa_to_sheet([...cabec, head, ...rows]);
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Eventograma");
+  (await getXLSX()).writeFile(wb, `eventograma-${ev.numero}.xlsx`);
 }

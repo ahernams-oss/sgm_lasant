@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { MedicaoServico } from "@/contexts/MedicoesContext";
 import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -9,7 +11,7 @@ const fmt = (v: number) =>
 const fmtPerc = (v: number) => `${v.toFixed(2)}%`;
 
 export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsPDF> {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
 
   await addHeader(doc, {
@@ -68,7 +70,7 @@ export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsP
   y += 3;
 
   if (med.itens && med.itens.length > 0) {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Item", "Unidade", "Qtd Contratada", "Valor Unitário", "Valor Total"]],
       body: med.itens.map((item) => [
@@ -104,7 +106,7 @@ export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsP
   y += 3;
 
   if (med.medicoes && med.medicoes.length > 0) {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["#", "Data", "Tipo", "Valor", "%", "Status", "Observação"]],
       body: med.medicoes.map((l) => [

@@ -1,11 +1,13 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { PedidoCompra } from "@/contexts/PedidoCompraContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import type { PcAssinatura } from "@/contexts/PcAssinaturasContext";
 import { format } from "date-fns";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface OrdemCompraData {
   pedido: PedidoCompra;
@@ -81,7 +83,7 @@ function fieldRow(
 // ── main generator (async for logo) ─────────────────────
 export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<jsPDF> {
   const { pedido, empresa, fornecedor, autorizadoPor, assinatura } = data;
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;
@@ -205,7 +207,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
     fmt(item.valorTotal),
   ]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["#", "DESCRIÇÃO", "UN", "QTD", "VALOR UNIT.", "VALOR TOTAL"]],
     body: tableBody,
@@ -314,10 +316,10 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 }
 
 // sync fallback (no logo)
-export function gerarPdfOrdemCompra(data: OrdemCompraData): jsPDF {
+export async function gerarPdfOrdemCompra(data: OrdemCompraData): Promise<jsPDF> {
   // kept for backward compat but callers should migrate to async
   const { pedido, empresa, fornecedor, autorizadoPor } = data;
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   // call async version result is not awaited here – use downloadPdfOrdemCompra instead
   // This is a simplified sync version
   return doc;

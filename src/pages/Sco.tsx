@@ -17,7 +17,9 @@ import {
 import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissao } from "@/hooks/usePermissao";
-import * as XLSX from "xlsx";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 export default function Sco() {
   const { scos, addSco, updateSco, deleteSco } = useSco();
@@ -38,16 +40,16 @@ export default function Sco() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+  const downloadTemplate = async () => {
+    const ws = (await getXLSX()).utils.aoa_to_sheet([
       ["Código", "Descrição", "Unidade", "Tipo (SCO/SINAPI/EMOP)"],
       ["EXEMPLO001", "Descrição do item de exemplo", "un", "SCO"],
       ["EXEMPLO002", "Outro item de exemplo", "m²", "SINAPI"],
     ]);
     ws["!cols"] = [{ wch: 16 }, { wch: 40 }, { wch: 10 }, { wch: 22 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo SCO");
-    XLSX.writeFile(wb, "modelo_sco.xlsx");
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo SCO");
+    (await getXLSX()).writeFile(wb, "modelo_sco.xlsx");
     toast({ title: "Modelo baixado com sucesso" });
   };
 
@@ -81,11 +83,11 @@ export default function Sco() {
       };
       reader.readAsText(file);
     } else {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const wb = XLSX.read(data, { type: "array" });
+        const wb = (await getXLSX()).read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const rows: string[][] = (await getXLSX()).utils.sheet_to_json(ws, { header: 1 });
         let imported = 0;
         for (let i = 0; i < rows.length; i++) {
           const cols = rows[i];

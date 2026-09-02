@@ -1,8 +1,5 @@
 import { useMemo, useState } from "react";
 import { FileText, FileSpreadsheet } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +9,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { PlanoManutencao, PlanoAtividade, PlanoExecucao } from "@/contexts/PlanosManutencaoContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 type TipoRelatorio = "planos" | "atividades" | "execucoes" | "conformidade" | "checklists" | "vencimentos";
 
@@ -242,14 +245,14 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
     };
   };
 
-  const exportar = (formato: "pdf" | "excel") => {
+  const exportar = async (formato: "pdf" | "excel") => {
     const { titulo, columns, rows, orientation } = buildData();
     if (rows.length === 0) { toast.error("Nenhum dado para exportar com os filtros selecionados."); return; }
 
     if (formato === "pdf") {
-      const doc = new jsPDF({ orientation });
+      const doc = new (await getJsPDF())({ orientation });
       addHeader(doc, titulo, `Total: ${rows.length} registro(s)`, filtrosLabel);
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: 34,
         head: [columns],
         body: rows,
@@ -266,11 +269,11 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
         columns.forEach((c, i) => { o[c] = r[i] || ""; });
         return o;
       });
-      const ws = XLSX.utils.json_to_sheet(data);
+      const ws = (await getXLSX()).utils.json_to_sheet(data);
       ws["!cols"] = columns.map(() => ({ wch: 20 }));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
-      XLSX.writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+      const wb = (await getXLSX()).utils.book_new();
+      (await getXLSX()).utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
+      (await getXLSX()).writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
       toast.success("Excel gerado!");
     }
     onOpenChange(false);

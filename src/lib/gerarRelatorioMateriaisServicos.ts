@@ -1,8 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { MaterialServico } from "@/contexts/MateriaisServicosContext";
 import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 interface ExportData {
   materiais: MaterialServico[];
@@ -10,7 +13,7 @@ interface ExportData {
 }
 
 export async function gerarPdfMateriaisServicos({ materiais, getCatNome }: ExportData) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
 
   const totalMat = materiais.filter(m => m.tipo === "Material").length;
@@ -23,7 +26,7 @@ export async function gerarPdfMateriaisServicos({ materiais, getCatNome }: Expor
   });
 
   // Table
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 44,
     head: [["Código", "Descrição", "Tipo", "Unidade", "Categoria"]],
     body: materiais.map(m => [
@@ -49,7 +52,7 @@ export async function gerarPdfMateriaisServicos({ materiais, getCatNome }: Expor
   doc.save("materiais_servicos.pdf");
 }
 
-export function gerarExcelMateriaisServicos({ materiais, getCatNome }: ExportData) {
+export async function gerarExcelMateriaisServicos({ materiais, getCatNome }: ExportData) {
   const data = materiais.map(m => ({
     "Código": m.codigo,
     "Descrição": m.descricao,
@@ -58,7 +61,7 @@ export function gerarExcelMateriaisServicos({ materiais, getCatNome }: ExportDat
     "Categoria": getCatNome(m.categoriaId),
   }));
 
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = (await getXLSX()).utils.json_to_sheet(data);
 
   // Column widths
   ws["!cols"] = [
@@ -69,7 +72,7 @@ export function gerarExcelMateriaisServicos({ materiais, getCatNome }: ExportDat
     { wch: 40 },
   ];
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Materiais e Serviços");
-  XLSX.writeFile(wb, "materiais_servicos.xlsx");
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Materiais e Serviços");
+  (await getXLSX()).writeFile(wb, "materiais_servicos.xlsx");
 }

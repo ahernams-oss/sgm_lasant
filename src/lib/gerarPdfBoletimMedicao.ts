@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { BoletimMedicao, BoletimMedicaoFrente } from "@/contexts/BoletinsMedicaoContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK: [number, number, number] = [30, 30, 30];
 
@@ -76,7 +78,7 @@ function montarBlocos(boletim: BoletimMedicao): Bloco[] {
 }
 
 
-function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw: number): number {
+async function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw: number): Promise<number> {
   const faturado = bloco.linhas.reduce((s, l) => s + (l.valor || 0), 0);
   const contrato = bloco.valorContrato || 0;
   const pct = (v: number) => (contrato > 0 ? (v / contrato) * 100 : 0);
@@ -105,7 +107,7 @@ function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw:
     { content: fmtPct(pct(saldo)), styles: { fontStyle: "bold" } },
   ]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY,
     margin: { left: ml, right: ml },
     tableWidth: cw,
@@ -148,7 +150,7 @@ export async function gerarPdfBoletimMedicao(
   empresa?: Empresa,
   assinaturas: AssinaturaBoletimPdf[] = [],
 ) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;
@@ -209,14 +211,14 @@ export async function gerarPdfBoletimMedicao(
 
   // ===== BLOCOS =====
   const blocos = montarBlocos(boletim);
-  blocos.forEach((b) => {
+  for (const b of blocos) {
     const alturaEstimada = (b.linhas.length + 5) * 6 + 12;
     if (y + alturaEstimada > ph - 20) {
       doc.addPage();
       y = 14;
     }
-    y = desenharBloco(doc, b, y, ml, cw);
-  });
+    y = await desenharBloco(doc, b, y, ml, cw);
+  }
 
   if (boletim.observacoes) {
     if (y + 20 > ph - 20) { doc.addPage(); y = 14; }

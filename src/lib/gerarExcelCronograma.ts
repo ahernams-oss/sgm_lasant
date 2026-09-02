@@ -1,8 +1,10 @@
-import * as XLSX from "xlsx";
 import type { Cronograma } from "@/contexts/CronogramasContext";
 
-export function gerarExcelCronograma(cronograma: Cronograma) {
-  const wb = XLSX.utils.book_new();
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
+
+export async function gerarExcelCronograma(cronograma: Cronograma) {
+  const wb = (await getXLSX()).utils.book_new();
   const periodos = cronograma.periodos || [];
   const atividades = cronograma.atividades || [];
 
@@ -20,8 +22,8 @@ export function gerarExcelCronograma(cronograma: Cronograma) {
     ["Valor Total", Number(cronograma.valor_total || 0)],
     ["Observações", cronograma.observacoes || ""],
   ];
-  const wsResumo = XLSX.utils.aoa_to_sheet(resumo);
-  XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+  const wsResumo = (await getXLSX()).utils.aoa_to_sheet(resumo);
+  (await getXLSX()).utils.book_append_sheet(wb, wsResumo, "Resumo");
 
   // ===== Aba Físico =====
   const headFis = ["#", "Atividade", "Tipo", ...periodos.map(p => p.rotulo), "Total"];
@@ -41,8 +43,8 @@ export function gerarExcelCronograma(cronograma: Cronograma) {
     real.push(tr);
     bodyFis.push(prev, real);
   });
-  const wsFis = XLSX.utils.aoa_to_sheet(bodyFis);
-  XLSX.utils.book_append_sheet(wb, wsFis, "Físico (%)");
+  const wsFis = (await getXLSX()).utils.aoa_to_sheet(bodyFis);
+  (await getXLSX()).utils.book_append_sheet(wb, wsFis, "Físico (%)");
 
   // ===== Aba Financeiro =====
   const headFin = ["#", "Atividade", "Tipo", ...periodos.map(p => p.rotulo), "Total"];
@@ -74,8 +76,8 @@ export function gerarExcelCronograma(cronograma: Cronograma) {
   periodos.forEach(p => { totalP.push(tPrevPer[p.rotulo]); totalR.push(tRealPer[p.rotulo]); });
   totalP.push(tgPrev); totalR.push(tgReal);
   bodyFin.push(totalP, totalR);
-  const wsFin = XLSX.utils.aoa_to_sheet(bodyFin);
-  XLSX.utils.book_append_sheet(wb, wsFin, "Financeiro (R$)");
+  const wsFin = (await getXLSX()).utils.aoa_to_sheet(bodyFin);
+  (await getXLSX()).utils.book_append_sheet(wb, wsFin, "Financeiro (R$)");
 
-  XLSX.writeFile(wb, `Cronograma_${cronograma.numero}_${(cronograma.cliente_nome || "").replace(/\s+/g, "_")}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Cronograma_${cronograma.numero}_${(cronograma.cliente_nome || "").replace(/\s+/g, "_")}.xlsx`);
 }

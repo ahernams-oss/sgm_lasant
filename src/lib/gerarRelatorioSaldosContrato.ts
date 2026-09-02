@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const parseBR = (v?: string | number | null): number => {
   if (v == null || v === "") return 0;
@@ -183,7 +186,7 @@ async function fetchDataUrl(url: string): Promise<{ dataUrl: string; ext: string
 export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: string) {
   const { cliente, contrato } = input;
   const rows = montarLinhasSaldos(input);
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -238,7 +241,7 @@ export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: 
     fmtBRL(r.saldoVariavel),
   ]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 36,
     head: [HEADERS],
     body,
@@ -285,10 +288,10 @@ export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: 
   doc.save(fname);
 }
 
-export function gerarExcelSaldosContrato(input: SaldoReportInput) {
+export async function gerarExcelSaldosContrato(input: SaldoReportInput) {
   const { cliente, contrato } = input;
   const rows = montarLinhasSaldos(input);
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
 
   const aoa: (string | number)[][] = [];
   aoa.push([`Relatório de Saldos por Contrato${contrato.numero ? ` — Contrato ${contrato.numero}` : ""}`]);
@@ -320,7 +323,7 @@ export function gerarExcelSaldosContrato(input: SaldoReportInput) {
   );
   aoa.push(["TOTAL", "", ...totals]);
 
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const ws = (await getXLSX()).utils.aoa_to_sheet(aoa);
   ws["!cols"] = [{ wch: 10 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
 
   // Format numeric cells as currency
@@ -329,12 +332,12 @@ export function gerarExcelSaldosContrato(input: SaldoReportInput) {
   for (let i = 0; i < totalRows; i++) {
     const rowIdx = startDataRow + i;
     for (let col = 2; col <= 8; col++) {
-      const addr = XLSX.utils.encode_cell({ r: rowIdx - 1, c: col });
+      const addr = (await getXLSX()).utils.encode_cell({ r: rowIdx - 1, c: col });
       if (ws[addr]) ws[addr].z = 'R$ #,##0.00;[Red]-R$ #,##0.00';
     }
   }
 
-  XLSX.utils.book_append_sheet(wb, ws, "Saldos");
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Saldos");
   const fname = `saldos_${(cliente.nome || "cliente").replace(/\s+/g, "_").toLowerCase()}_${contrato.numero || "contrato"}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  (await getXLSX()).writeFile(wb, fname);
 }

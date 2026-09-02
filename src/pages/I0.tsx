@@ -18,7 +18,9 @@ import {
 import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissao } from "@/hooks/usePermissao";
-import * as XLSX from "xlsx";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const meses = [
   { value: 1, label: "Janeiro" }, { value: 2, label: "Fevereiro" },
@@ -126,11 +128,11 @@ export default function I0Page() {
       };
       reader.readAsText(file);
     } else {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const wb = XLSX.read(data, { type: "array" });
+        const wb = (await getXLSX()).read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const rows: string[][] = (await getXLSX()).utils.sheet_to_json(ws, { header: 1 });
         processRows(rows);
       };
       reader.readAsArrayBuffer(file);
@@ -142,16 +144,16 @@ export default function I0Page() {
 
   const mesLabel = (m: number) => meses.find((x) => x.value === m)?.label ?? String(m);
 
-  const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+  const downloadTemplate = async () => {
+    const ws = (await getXLSX()).utils.aoa_to_sheet([
       ["Mês (1-12)", "Ano", "Código SCO", "Valor"],
       [1, currentYear, "EXEMPLO001", 100.50],
       [2, currentYear, "EXEMPLO002", 250.75],
     ]);
     ws["!cols"] = [{ wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 12 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo I0");
-    XLSX.writeFile(wb, "modelo_i0.xlsx");
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo I0");
+    (await getXLSX()).writeFile(wb, "modelo_i0.xlsx");
     toast({ title: "Modelo baixado com sucesso" });
   };
 

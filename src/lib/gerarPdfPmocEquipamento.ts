@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Equipamento } from "@/contexts/EquipamentosContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface AtividadeLike {
   id: string;
@@ -102,7 +104,7 @@ export function rodape(doc: jsPDF) {
   }
 }
 
-function infoEquipamentoBlock(doc: jsPDF, pw: number, equip: Equipamento | null, planoTitulo: string | undefined, startY: number): number {
+async function infoEquipamentoBlock(doc: jsPDF, pw: number, equip: Equipamento | null, planoTitulo: string | undefined, startY: number): Promise<number> {
   const margin = 10;
   let y = startY;
   doc.setFont("helvetica", "bold");
@@ -123,7 +125,7 @@ function infoEquipamentoBlock(doc: jsPDF, pw: number, equip: Equipamento | null,
     ["Situação", equip?.situacao || "—"],
   ];
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: margin, right: margin },
     body: linhas,
@@ -152,12 +154,12 @@ export async function gerarPdfPmocInformacoes(params: {
 }) {
   const { equip, equipNome, planoTitulo, atividades } = params;
   const logo = await getLogo();
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   await drawHeader(doc, pw, logo, "PMOC — Ficha do Equipamento", equipNome);
 
   let y = 34;
-  y = infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
+  y = await infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
@@ -165,7 +167,7 @@ export async function gerarPdfPmocInformacoes(params: {
   doc.text("Atividades Planejadas", 10, y);
   y += 3;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y + 2,
     margin: { left: 10, right: 10 },
     head: [["Atividade", "Tipo", "Periodicidade", "Última Execução", "Próxima Execução"]],
@@ -196,13 +198,13 @@ export async function gerarPdfPmocManutencoesFotos(params: {
 }) {
   const { equip, equipNome, planoTitulo, execucoes } = params;
   const logo = await getLogo();
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   await drawHeader(doc, pw, logo, "PMOC — Manutenções Executadas (com fotos)", equipNome);
 
   let y = 34;
-  y = infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
+  y = await infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
 
   const realizadas = execucoes
     .filter((e) => e.status === "Confirmada" || e.status === "Pendente")
@@ -249,7 +251,7 @@ export async function gerarPdfPmocManutencoesFotos(params: {
       ["Confirmado por", ex.confirmado_por || "—"],
       ["Confirmado em", fmtDateTime(ex.data_confirmacao)],
     ];
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 10, right: 10 },
       body: meta,
@@ -344,18 +346,18 @@ export async function gerarPdfPmocHistoricoAtividades(params: {
 }) {
   const { equip, equipNome, planoTitulo, execucoes } = params;
   const logo = await getLogo();
-  const doc = new jsPDF({ orientation: "l" });
+  const doc = new (await getJsPDF())({ orientation: "l" });
   const pw = doc.internal.pageSize.getWidth();
   await drawHeader(doc, pw, logo, "PMOC — Histórico de Atividades do Equipamento", equipNome);
 
   let y = 34;
-  y = infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
+  y = await infoEquipamentoBlock(doc, pw, equip, planoTitulo, y);
 
   const ordenadas = [...execucoes].sort(
     (a, b) => new Date(b.data_execucao).getTime() - new Date(a.data_execucao).getTime()
   );
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 10, right: 10 },
     head: [["Atividade", "Periodicidade", "Executada em", "Próxima", "Status", "Registrado por", "Confirmado por", "Observações"]],

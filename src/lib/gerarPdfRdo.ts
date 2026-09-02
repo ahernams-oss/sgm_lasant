@@ -1,9 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { Rdo } from "@/contexts/RdosContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
 import type { Cliente } from "@/contexts/ClientesContext";
 import type { RdoAssinatura } from "@/contexts/RdoAssinaturasContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
@@ -38,7 +40,7 @@ export interface RenderRdoOptions {
 }
 
 export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], incluirImagens = false }: RenderRdoOptions) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const cw = pw - ml - mr;
@@ -85,7 +87,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
   y += 30;
 
   // ===== INFO =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -109,7 +111,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
   y = (doc as any).lastAutoTable.finalY + 3;
 
   // ===== CLIMA =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     head: [["Turno", "Clima", "Condição de Trabalho"]],
@@ -126,7 +128,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
   y = (doc as any).lastAutoTable.finalY + 3;
 
   // ===== EFETIVO =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     head: [[{ content: "EFETIVO (Mão de Obra)", colSpan: 3, styles: { halign: "center", fillColor: [220, 220, 220] } }], ["Função", "Quantidade", "Horas"]],
@@ -141,7 +143,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
   y = (doc as any).lastAutoTable.finalY + 3;
 
   // ===== EQUIPAMENTOS =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     head: [[{ content: "EQUIPAMENTOS", colSpan: 3, styles: { halign: "center", fillColor: [220, 220, 220] } }], ["Descrição", "Quantidade", "Horas"]],
@@ -156,7 +158,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
   y = (doc as any).lastAutoTable.finalY + 3;
 
   // ===== ATIVIDADES =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     head: [[{ content: "ATIVIDADES EXECUTADAS", colSpan: 3, styles: { halign: "center", fillColor: [220, 220, 220] } }], ["Descrição", "% Avanço", "Observação"]],
@@ -171,7 +173,7 @@ export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], inc
   y = (doc as any).lastAutoTable.finalY + 3;
 
   // ===== OCORRÊNCIAS / OBSERVAÇÕES =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     body: [

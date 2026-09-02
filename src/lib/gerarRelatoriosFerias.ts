@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 export interface FeriasReportRow {
   funcionario_nome: string;
@@ -51,7 +54,7 @@ export interface FiltrosPdfFerias {
 }
 
 export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob"; filtros?: FiltrosPdfFerias }) {
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
   await addHeader(doc, {
     title: "Relatório de Mapa de Férias",
     subtitle: `Total: ${rows.length} registro(s) · CLT Art. 134 — concessão em até 12 meses`,
@@ -98,7 +101,7 @@ export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: 
     : "Sem registros no recorte.";
   doc.text(intervaloTxt, 46, y);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y + 5,
     head: [["Funcionário", "Cliente", "Cargo", "Período Aquisitivo", "Limite", "Situação", "Gozo", "Dias", "Status", "Cobertura do posto"]],
     body: rows.map((r) => [
@@ -143,7 +146,7 @@ export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: 
 }
 
 export async function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
   await addHeader(doc, {
     title: "Escala Sugerida de Férias",
     subtitle: `Total: ${escala.length} registro(s)`,
@@ -155,7 +158,7 @@ export async function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { o
     14, 42,
   );
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 48,
     head: [["Funcionário", "Cliente", "Cargo", "Limite", "Dias p/ limite", "Janela sugerida", "Dias", "Substituto / Ação"]],
     body: escala.map((e) => [
@@ -185,8 +188,8 @@ export async function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { o
   doc.save("escala-sugerida-ferias.pdf");
 }
 
-export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
-  const wb = XLSX.utils.book_new();
+export async function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
+  const wb = (await getXLSX()).utils.book_new();
 
   const mapa = rows.map((r) => ({
     "Funcionário": r.funcionario_nome,
@@ -205,13 +208,13 @@ export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRo
     "Status": r.status,
     "Cobertura do Posto": cobertura(r),
   }));
-  const ws = XLSX.utils.json_to_sheet(mapa);
+  const ws = (await getXLSX()).utils.json_to_sheet(mapa);
   ws["!cols"] = [
     { wch: 32 }, { wch: 26 }, { wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 16 },
     { wch: 14 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 13 },
     { wch: 14 }, { wch: 14 }, { wch: 45 },
   ];
-  XLSX.utils.book_append_sheet(wb, ws, "Mapa de Férias");
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Mapa de Férias");
 
   const escalaRows = escala.map((e) => ({
     "Funcionário": e.funcionario_nome,
@@ -224,14 +227,14 @@ export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRo
     "Dias": e.dias_direito ?? 30,
     "Substituto / Ação": e.precisaTemporario ? "Sem cobertura — abrir RP temporária" : e.substitutoEscolhido,
   }));
-  const ws2 = XLSX.utils.json_to_sheet(
+  const ws2 = (await getXLSX()).utils.json_to_sheet(
     escalaRows.length ? escalaRows : [{ "Funcionário": "Nenhum período em fase crítica (≤ 60 dias)" }],
   );
   ws2["!cols"] = [
     { wch: 32 }, { wch: 26 }, { wch: 22 }, { wch: 16 }, { wch: 14 },
     { wch: 16 }, { wch: 16 }, { wch: 8 }, { wch: 45 },
   ];
-  XLSX.utils.book_append_sheet(wb, ws2, "Escala Sugerida");
+  (await getXLSX()).utils.book_append_sheet(wb, ws2, "Escala Sugerida");
 
   const resumo = [
     { Indicador: "Total de períodos", Valor: rows.length },
@@ -240,13 +243,13 @@ export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRo
     { Indicador: "Atenção (31-60 dias)", Valor: rows.filter((r) => r.diasParaVencer > 30 && r.diasParaVencer <= 60).length },
     { Indicador: "Sem cobertura interna", Valor: rows.filter((r) => r.precisaTemporario).length },
   ];
-  const ws3 = XLSX.utils.json_to_sheet(resumo);
+  const ws3 = (await getXLSX()).utils.json_to_sheet(resumo);
   ws3["!cols"] = [{ wch: 30 }, { wch: 12 }];
-  XLSX.utils.book_append_sheet(wb, ws3, "Resumo");
+  (await getXLSX()).utils.book_append_sheet(wb, ws3, "Resumo");
 
   if (opts?.output === "blob") {
-    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const buf = (await getXLSX()).write(wb, { bookType: "xlsx", type: "array" });
     return new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   }
-  XLSX.writeFile(wb, "relatorio-mapa-ferias.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-mapa-ferias.xlsx");
 }

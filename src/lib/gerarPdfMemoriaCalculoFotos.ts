@@ -1,8 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Orcamento } from "@/contexts/OrcamentosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 const BORDER_COLOR: [number, number, number] = [180, 180, 180];
@@ -113,7 +115,7 @@ async function renderMemoriaFotos(doc: jsPDF, orc: Orcamento, empresa?: Empresa)
   y += 8;
 
   doc.setTextColor(30, 30, 30);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "plain",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -166,7 +168,7 @@ async function renderMemoriaFotos(doc: jsPDF, orc: Orcamento, empresa?: Empresa)
     if (y > ph - 50) { doc.addPage(); y = 20; }
 
     // Título do grupo
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       body: [[{
         content: `${g.item ? g.item + " - " : ""}${g.titulo || "SEM TÍTULO"}`,
@@ -218,7 +220,7 @@ async function renderMemoriaFotos(doc: jsPDF, orc: Orcamento, empresa?: Empresa)
         { content: nf(calcLinha(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } },
       ]);
 
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head,
         body,
@@ -261,7 +263,7 @@ async function renderMemoriaFotos(doc: jsPDF, orc: Orcamento, empresa?: Empresa)
       if (y > ph - 40) { doc.addPage(); y = 20; }
     }
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       body: [[
         { content: "TOTAL:", styles: { halign: "right", fontStyle: "bold", fillColor: [245, 247, 252] } },
@@ -297,14 +299,14 @@ function aplicarRodapeFotos(doc: jsPDF, empresa?: Empresa) {
 }
 
 export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empresa) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   await renderMemoriaFotos(doc, orc, empresa);
   aplicarRodapeFotos(doc, empresa);
   doc.save(`Memoria_Calculo_Fotos_Orcamento_${orc.numero}.pdf`);
 }
 
 export async function gerarPdfMemoriaCalculoFotosLote(orcs: Orcamento[], empresa?: Empresa) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   for (let i = 0; i < orcs.length; i++) {
     if (i > 0) doc.addPage();
     await renderMemoriaFotos(doc, orcs[i], empresa);

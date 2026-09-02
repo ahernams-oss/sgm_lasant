@@ -1,9 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { supabase } from "@/integrations/supabase/client";
 import { renderOS, addContinuationHeaders, type RenderOSOptions } from "@/lib/gerarPdfOrdemServico";
 import { renderOrdemServicoEducacao } from "@/lib/gerarPdfOrdemServicoEducacao";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK = [60, 60, 60] as const;
 const BORDER: [number, number, number] = [60, 60, 60];
@@ -94,7 +96,7 @@ async function renderCabecalhoFotos(doc: jsPDF, { os, empresa, cliente }: Render
 
   y += 30;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], valign: "middle" },
@@ -148,7 +150,7 @@ async function renderFotos(doc: jsPDF, opts: RenderOSOptions, startY: number) {
   let y = startY;
 
   if (fotos.length === 0) {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       styles: { fontSize: 8, cellPadding: 3, lineColor: BORDER, lineWidth: 0.3, textColor: [120, 120, 120], halign: "center" },
@@ -224,7 +226,7 @@ function calcLinhaMem(tipo: string, l: any): number {
 
 
 /** Renderiza a memória de cálculo (grupos) em tabelas. */
-function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
+async function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   let y = startY;
@@ -236,7 +238,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
   y += 5;
 
   if (!grupos.length) {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       styles: { fontSize: 8, cellPadding: 3, lineColor: BORDER, lineWidth: 0.3, textColor: [120, 120, 120], halign: "center" },
@@ -246,7 +248,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     return;
   }
 
-  grupos.forEach((g: any) => {
+  for (const g of grupos) {
     const tipoGrupo = (g.tipo || "unidade") as string;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
     const tipoDe = (l: any): string => (l?.tipo || tipoGrupo) as string;
@@ -304,7 +306,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     body.push([{ content: "TOTAL", colSpan: nCols - 1, styles: { halign: "right", fontStyle: "bold" } } as any, nf2(total)]);
 
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       head: [[{ content: `${g.item ? `${g.item} - ` : ""}${g.titulo || "SEM TÍTULO"}`, colSpan: nCols, styles: { halign: "left", fillColor: [235, 235, 235], textColor: [30, 30, 30] } } as any], ...head],
@@ -317,7 +319,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
       margin: { left: ml, right: mr },
     });
     y = (doc as any).lastAutoTable.finalY + 5;
-  });
+  }
 }
 
 async function finalizar(doc: jsPDF, opts: RenderOSOptions, sufixo: string) {
@@ -340,7 +342,7 @@ async function renderBase(doc: jsPDF, opts: RenderOSOptions) {
 }
 
 export async function gerarPdfOrdemServicoComFotos(opts: RenderOSOptions) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   await renderBase(doc, opts);
   doc.addPage();
   const y = await renderCabecalhoFotos(doc, opts);
@@ -351,7 +353,7 @@ export async function gerarPdfOrdemServicoComFotos(opts: RenderOSOptions) {
 export async function gerarPdfOrdemServicoFotosMemoria(
   opts: RenderOSOptions & { memoriaCalculo?: any[] }
 ) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   await renderBase(doc, opts);
 
   doc.addPage();
@@ -395,7 +397,7 @@ async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: n
   y += 5;
 
   if (!grupos.length) {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       styles: { fontSize: 8, cellPadding: 3, lineColor: BORDER, lineWidth: 0.3, textColor: [120, 120, 120], halign: "center" },
@@ -427,7 +429,7 @@ async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: n
 
     if (y > ph - 50) { doc.addPage(); y = 20; }
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       body: [[{
@@ -477,7 +479,7 @@ async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: n
         { content: nf2(calcLinhaMem(tipo, l)), styles: { fontStyle: "bold", fillColor: [248, 248, 248] } } as any,
       ]);
 
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         theme: "grid",
         head,
@@ -522,7 +524,7 @@ async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: n
     }
 
     const total = linhas.reduce((s, l) => s + calcLinhaMem(tipoDe(l), l), 0);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       body: [[
@@ -541,7 +543,7 @@ async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: n
 export async function gerarPdfOrdemServicoFotosMemoriaFotos(
   opts: RenderOSOptions & { memoriaCalculo?: any[] }
 ) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   await renderBase(doc, opts);
 
   doc.addPage();
@@ -570,7 +572,7 @@ async function finalizarLote(doc: jsPDF, lista: LoteOpts[], sufixo: string) {
 /** Lote: OS + relatório fotográfico. */
 export async function gerarPdfOrdemServicoComFotosLote(lista: LoteOpts[]) {
   if (!lista.length) return;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     await renderBase(doc, lista[i]);
@@ -584,7 +586,7 @@ export async function gerarPdfOrdemServicoComFotosLote(lista: LoteOpts[]) {
 /** Lote: OS + fotos + memória de cálculo. */
 export async function gerarPdfOrdemServicoFotosMemoriaLote(lista: LoteOpts[]) {
   if (!lista.length) return;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     await renderBase(doc, lista[i]);
@@ -601,7 +603,7 @@ export async function gerarPdfOrdemServicoFotosMemoriaLote(lista: LoteOpts[]) {
 /** Lote: OS + fotos + memória de cálculo com fotos por sub-item. */
 export async function gerarPdfOrdemServicoFotosMemoriaFotosLote(lista: LoteOpts[]) {
   if (!lista.length) return;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     await renderBase(doc, lista[i]);

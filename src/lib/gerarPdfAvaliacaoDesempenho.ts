@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { AvaliacaoDesempenho, QUESITOS_AVALIACAO } from "@/contexts/AvaliacoesDesempenhoContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const PONTUACAO_MAXIMA = QUESITOS_AVALIACAO.length * 10;
 
@@ -12,8 +14,8 @@ interface Opts {
   empresa?: { razaoSocial?: string; cnpj?: string; logoUrl?: string };
 }
 
-export function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts = {}) {
-  const doc = new jsPDF();
+export async function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts = {}) {
+  const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -32,7 +34,7 @@ export function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts =
   doc.setTextColor(30, 30, 30);
   let y = 42;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 14, right: 14 },
     head: [],
@@ -51,7 +53,7 @@ export function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts =
   });
   y = (doc as any).lastAutoTable.finalY + 6;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 14, right: 14 },
     head: [["Quesito", "Descrição", "Nota"]],
@@ -71,7 +73,7 @@ export function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts =
   });
   y = (doc as any).lastAutoTable.finalY + 6;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 14, right: 14 },
     head: [],
@@ -115,11 +117,11 @@ export function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts =
   doc.save(`avaliacao-desempenho-${(opts.funcionarioNome || "func").replace(/\s+/g, "_")}.pdf`);
 }
 
-export function gerarPdfAvaliacoesLista(
+export async function gerarPdfAvaliacoesLista(
   avaliacoes: AvaliacaoDesempenho[],
   funcMap: Record<string, string>,
 ) {
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -134,7 +136,7 @@ export function gerarPdfAvaliacoesLista(
 
   doc.setTextColor(30, 30, 30);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 30,
     margin: { left: 14, right: 14 },
     head: [["Funcionário", "Data", "Período", "Avaliador", "Pontuação", "Média"]],

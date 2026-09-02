@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { LocalCliente, Pavimento, Setor } from "@/contexts/ClientesContext";
 import { Badge } from "@/components/ui/badge";
 import { Layers } from "lucide-react";
-import * as XLSX from "xlsx";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA",
@@ -178,11 +180,11 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     };
 
     if (isExcel) {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
-          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const wb = (await getXLSX()).read(e.target?.result, { type: "array" });
           const ws = wb.Sheets[wb.SheetNames[0]];
-          const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          const rows: string[][] = (await getXLSX()).utils.sheet_to_json(ws, { header: 1 });
           const names = parseNames(rows.flat());
           if (names.length === 0) { toast.error("Nenhum setor encontrado no arquivo."); return; }
           const newSetores: Setor[] = names.map((n) => ({ id: crypto.randomUUID(), descricao: n, ativo: true }));
@@ -205,8 +207,8 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     }
   };
 
-  const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+  const downloadTemplate = async () => {
+    const ws = (await getXLSX()).utils.aoa_to_sheet([
       ["Setor"],
       ["Recepção"],
       ["Sala 101"],
@@ -215,9 +217,9 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
       ["Banheiro"],
     ]);
     ws["!cols"] = [{ wch: 30 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo Setores");
-    XLSX.writeFile(wb, "modelo_setores.xlsx");
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo Setores");
+    (await getXLSX()).writeFile(wb, "modelo_setores.xlsx");
     toast.success("Modelo de importação baixado!");
   };
 

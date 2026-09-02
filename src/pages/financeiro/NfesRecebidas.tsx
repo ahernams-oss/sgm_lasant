@@ -19,7 +19,9 @@ import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useFinanceiro, formatBRL as fmtBRL } from "@/contexts/FinanceiroContext";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 interface Nfe {
   id: string;
@@ -86,8 +88,8 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
   return `${numero || "—"}${serie ? ` / ${serie}` : ""}`;
 };
 
-const exportarExcel = (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
-  const wb = XLSX.utils.book_new();
+const exportarExcel = async (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
+  const wb = (await getXLSX()).utils.book_new();
   const fmtDate = (s: string | null) => {
     if (!s) return "";
     const d = new Date(s);
@@ -107,12 +109,12 @@ const exportarExcel = (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
       "Motivo Rejeição": n.motivo_rejeicao || "",
       Chave: n.chave,
     }));
-    const ws = XLSX.utils.json_to_sheet(dados);
+    const ws = (await getXLSX()).utils.json_to_sheet(dados);
     ws["!cols"] = [
       { wch: 14 }, { wch: 16 }, { wch: 35 }, { wch: 20 }, { wch: 16 },
       { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 35 }, { wch: 50 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, "NFe");
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "NFe");
   } else {
     const dados = (rows as Nfse[]).map(n => ({
       Emissão: fmtDate(n.data_emissao),
@@ -130,15 +132,15 @@ const exportarExcel = (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
       "Motivo Rejeição": n.motivo_rejeicao || "",
       Chave: n.chave,
     }));
-    const ws = XLSX.utils.json_to_sheet(dados);
+    const ws = (await getXLSX()).utils.json_to_sheet(dados);
     ws["!cols"] = [
       { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 35 }, { wch: 20 },
       { wch: 40 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 },
       { wch: 12 }, { wch: 12 }, { wch: 35 }, { wch: 50 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, "NFSe");
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "NFSe");
   }
-  XLSX.writeFile(wb, `${tipo === "nfe" ? "nfes-recebidas" : "nfses-tomadas"}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${tipo === "nfe" ? "nfes-recebidas" : "nfses-tomadas"}_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast.success("Excel gerado com sucesso.");
 };
 

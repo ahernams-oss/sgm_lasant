@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { addHeader } from "@/lib/gerarRelatorioEstoque";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 export interface FinReport {
   titulo: string;
@@ -14,7 +17,7 @@ export interface FinReport {
 
 export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" | "landscape") {
   const orient = orientacao || (r.colunas.length > 6 ? "landscape" : "portrait");
-  const doc = new jsPDF({ orientation: orient });
+  const doc = new (await getJsPDF())({ orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
   // Cabeçalho padrão LASANT
@@ -26,7 +29,7 @@ export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" |
   doc.setFontSize(9);
   doc.text(`Total de registros: ${r.linhas.length}`, 14, startY - 3);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY,
     head: [r.colunas],
     body: r.linhas.map((row) => row.map((c) => (c == null ? "" : String(c)))),
@@ -61,21 +64,21 @@ export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" |
   doc.save(`${r.titulo.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-export function gerarExcelFinanceiro(r: FinReport) {
-  const wb = XLSX.utils.book_new();
+export async function gerarExcelFinanceiro(r: FinReport) {
+  const wb = (await getXLSX()).utils.book_new();
   const data = r.linhas.map((row) => {
     const o: Record<string, any> = {};
     r.colunas.forEach((c, i) => { o[c] = row[i] ?? ""; });
     return o;
   });
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = (await getXLSX()).utils.json_to_sheet(data);
   ws["!cols"] = r.colunas.map(() => ({ wch: 20 }));
   if (r.totais && r.totais.length) {
-    XLSX.utils.sheet_add_aoa(ws, [[]], { origin: -1 });
-    r.totais.forEach((t) => {
-      XLSX.utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
-    });
+    (await getXLSX()).utils.sheet_add_aoa(ws, [[]], { origin: -1 });
+    for (const t of r.totais) {
+      (await getXLSX()).utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
+    }
   }
-  XLSX.utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
-  XLSX.writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
+  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
 }

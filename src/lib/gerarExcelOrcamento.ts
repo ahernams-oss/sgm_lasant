@@ -1,6 +1,8 @@
-import ExcelJS from "exceljs";
 import { Orcamento } from "@/contexts/OrcamentosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type ExcelJSTypes from "exceljs";
+const getExcelJS = async () => (await import("exceljs")).default;
 
 
 const SEM_FAMILIA = "SEM FAMÍLIA";
@@ -56,7 +58,7 @@ async function fetchLogoBuffer(url: string): Promise<{ buffer: ArrayBuffer; ext:
 }
 
 export async function gerarExcelOrcamento(orc: Orcamento, empresa?: Empresa) {
-  const wb = new ExcelJS.Workbook();
+  const wb = new (await getExcelJS()).Workbook();
   const ws = wb.addWorksheet("Orçamento");
 
   ws.columns = [

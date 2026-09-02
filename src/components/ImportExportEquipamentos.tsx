@@ -1,10 +1,13 @@
 import { useRef, useState } from "react";
-import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
 import { useEquipamentos } from "@/contexts/EquipamentosContext";
 import { useClientes } from "@/contexts/ClientesContext";
+
+import type * as XLSXTypes from "xlsx";
+let _xlsxCache: typeof XLSXTypes | null = null;
+const getXLSX = async () => { if (!_xlsxCache) _xlsxCache = await import("xlsx"); return _xlsxCache; };
 
 /** Colunas da planilha modelo (mesma ordem na exportação e na importação). */
 const COLUNAS = [
@@ -86,7 +89,7 @@ const toDate = (v: unknown): string => {
   if (v === undefined || v === null || v === "") return "";
   if (v instanceof Date) return v.toISOString().slice(0, 10);
   if (typeof v === "number") {
-    const d = XLSX.SSF.parse_date_code(v);
+    const d = _xlsxCache!.SSF.parse_date_code(v);
     if (!d) return "";
     return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
   }
@@ -104,12 +107,12 @@ const toNumber = (v: unknown): number => {
   return isNaN(n) ? 0 : n;
 };
 
-function baixarPlanilha(nome: string, aoa: (string | number)[][]) {
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
+async function baixarPlanilha(nome: string, aoa: (string | number)[][]) {
+  const ws = (await getXLSX()).utils.aoa_to_sheet(aoa);
   ws["!cols"] = (aoa[0] || []).map(() => ({ wch: 22 }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Equipamentos");
-  XLSX.writeFile(wb, nome);
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Equipamentos");
+  (await getXLSX()).writeFile(wb, nome);
 }
 
 export default function ImportExportEquipamentos() {
@@ -169,9 +172,9 @@ export default function ImportExportEquipamentos() {
     setImportando(true);
     try {
       const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: "array" });
+      const wb = (await getXLSX()).read(buf, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+      const rows = (await getXLSX()).utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
 
       let ok = 0;
       const erros: string[] = [];

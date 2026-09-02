@@ -1,9 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { CotacaoCompras } from "@/contexts/CotacaoComprasContext";
 import { RequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { format } from "date-fns";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface FornecedorInfo {
   id: string;
@@ -79,7 +81,7 @@ function fieldRow(
 
 async function gerarPdfPedidoCotacao(data: PedidoCotacaoData): Promise<jsPDF> {
   const { cotacao, requisicao, empresa, fornecedor } = data;
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;
@@ -166,7 +168,7 @@ async function gerarPdfPedidoCotacao(data: PedidoCotacaoData): Promise<jsPDF> {
       "", // Preço total (para preencher)
     ]);
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["#", "DESCRIÇÃO", "UN", "QTD", "ESPECIFICAÇÃO", "PREÇO UNIT. (R$)", "PREÇO TOTAL (R$)"]],
       body,

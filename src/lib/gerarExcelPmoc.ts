@@ -1,5 +1,7 @@
-import * as XLSX from "xlsx";
 import type { PmocPlano, PmocAtividade, PmocOrdemServico, PmocInconformidade } from "@/contexts/PmocContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 interface PmocExcelData {
   planos: PmocPlano[];
@@ -10,8 +12,8 @@ interface PmocExcelData {
   tipo: "geral" | "cliente" | "conformidade";
 }
 
-function autoWidth(ws: XLSX.WorkSheet) {
-  const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 }) as string[][];
+async function autoWidth(ws: XLSXTypes.WorkSheet) {
+  const data = (await getXLSX()).utils.sheet_to_json<string[]>(ws, { header: 1 }) as string[][];
   const cols: { wch: number }[] = [];
   data.forEach(row => {
     row.forEach((cell, i) => {
@@ -22,8 +24,8 @@ function autoWidth(ws: XLSX.WorkSheet) {
   ws["!cols"] = cols;
 }
 
-export function gerarExcelPmocGeral(data: PmocExcelData) {
-  const wb = XLSX.utils.book_new();
+export async function gerarExcelPmocGeral(data: PmocExcelData) {
+  const wb = (await getXLSX()).utils.book_new();
 
   // Planos
   const planosRows = data.planos.map(p => ({
@@ -32,9 +34,9 @@ export function gerarExcelPmocGeral(data: PmocExcelData) {
     "Vigência Fim": p.vigenciaFim, "Revisão": p.revisao,
     "Status": p.status, "Resp. Técnico": p.responsavelTecnicoNome,
   }));
-  const wsPlanos = XLSX.utils.json_to_sheet(planosRows);
+  const wsPlanos = (await getXLSX()).utils.json_to_sheet(planosRows);
   autoWidth(wsPlanos);
-  XLSX.utils.book_append_sheet(wb, wsPlanos, "Planos");
+  (await getXLSX()).utils.book_append_sheet(wb, wsPlanos, "Planos");
 
   // Atividades
   const atividadesRows = data.atividades.map(a => ({
@@ -42,9 +44,9 @@ export function gerarExcelPmocGeral(data: PmocExcelData) {
     "Periodicidade": a.periodicidade, "Prioridade": a.prioridade,
     "Última Execução": a.ultimaExecucao, "Próxima Execução": a.proximaExecucao,
   }));
-  const wsAtiv = XLSX.utils.json_to_sheet(atividadesRows);
+  const wsAtiv = (await getXLSX()).utils.json_to_sheet(atividadesRows);
   autoWidth(wsAtiv);
-  XLSX.utils.book_append_sheet(wb, wsAtiv, "Atividades");
+  (await getXLSX()).utils.book_append_sheet(wb, wsAtiv, "Atividades");
 
   // Ordens de Serviço
   const osRows = data.ordensServico.map(o => ({
@@ -53,9 +55,9 @@ export function gerarExcelPmocGeral(data: PmocExcelData) {
     "Abertura": o.dataAbertura, "Prazo": o.dataPrazo, "Conclusão": o.dataConclusao,
     "Técnico": o.tecnicoResponsavel,
   }));
-  const wsOS = XLSX.utils.json_to_sheet(osRows);
+  const wsOS = (await getXLSX()).utils.json_to_sheet(osRows);
   autoWidth(wsOS);
-  XLSX.utils.book_append_sheet(wb, wsOS, "Ordens de Serviço");
+  (await getXLSX()).utils.book_append_sheet(wb, wsOS, "Ordens de Serviço");
 
   // Inconformidades
   if (data.inconformidades.length > 0) {
@@ -64,9 +66,9 @@ export function gerarExcelPmocGeral(data: PmocExcelData) {
       "Gravidade": i.gravidade, "Responsável": i.responsavel,
       "Status": i.status, "Prazo": i.prazo, "Causa Provável": i.causaProvavel,
     }));
-    const wsInc = XLSX.utils.json_to_sheet(incRows);
+    const wsInc = (await getXLSX()).utils.json_to_sheet(incRows);
     autoWidth(wsInc);
-    XLSX.utils.book_append_sheet(wb, wsInc, "Inconformidades");
+    (await getXLSX()).utils.book_append_sheet(wb, wsInc, "Inconformidades");
   }
 
   // Resumo
@@ -81,9 +83,9 @@ export function gerarExcelPmocGeral(data: PmocExcelData) {
     { "Indicador": "Ordens de Serviço", "Valor": data.ordensServico.length },
     { "Indicador": "Inconformidades", "Valor": data.inconformidades.length },
   ];
-  const wsResumo = XLSX.utils.json_to_sheet(resumoRows);
+  const wsResumo = (await getXLSX()).utils.json_to_sheet(resumoRows);
   autoWidth(wsResumo);
-  XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+  (await getXLSX()).utils.book_append_sheet(wb, wsResumo, "Resumo");
 
   return wb;
 }
@@ -101,8 +103,8 @@ export function gerarExcelPmocCliente(data: PmocExcelData) {
   });
 }
 
-export function gerarExcelPmocConformidade(data: PmocExcelData) {
-  const wb = XLSX.utils.book_new();
+export async function gerarExcelPmocConformidade(data: PmocExcelData) {
+  const wb = (await getXLSX()).utils.book_new();
 
   const confRows = data.planos.map(p => {
     const ativs = data.atividades.filter(a => a.planoId === p.id);
@@ -113,9 +115,9 @@ export function gerarExcelPmocConformidade(data: PmocExcelData) {
       "% Conformidade": ativs.length > 0 ? `${Math.round((ex / ativs.length) * 100)}%` : "0%",
     };
   });
-  const wsConf = XLSX.utils.json_to_sheet(confRows);
+  const wsConf = (await getXLSX()).utils.json_to_sheet(confRows);
   autoWidth(wsConf);
-  XLSX.utils.book_append_sheet(wb, wsConf, "Conformidade");
+  (await getXLSX()).utils.book_append_sheet(wb, wsConf, "Conformidade");
 
   if (data.inconformidades.length > 0) {
     const incRows = data.inconformidades.map(i => ({
@@ -123,27 +125,27 @@ export function gerarExcelPmocConformidade(data: PmocExcelData) {
       "Gravidade": i.gravidade, "Responsável": i.responsavel,
       "Status": i.status, "Prazo": i.prazo,
     }));
-    const wsInc = XLSX.utils.json_to_sheet(incRows);
+    const wsInc = (await getXLSX()).utils.json_to_sheet(incRows);
     autoWidth(wsInc);
-    XLSX.utils.book_append_sheet(wb, wsInc, "Inconformidades");
+    (await getXLSX()).utils.book_append_sheet(wb, wsInc, "Inconformidades");
   }
 
   return wb;
 }
 
-export function downloadExcelPmoc(data: PmocExcelData) {
-  let wb: XLSX.WorkBook;
+export async function downloadExcelPmoc(data: PmocExcelData) {
+  let wb: XLSXTypes.WorkBook;
   let nome: string;
   const ts = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   if (data.tipo === "cliente") {
-    wb = gerarExcelPmocCliente(data);
+    wb = await gerarExcelPmocCliente(data);
     nome = `PMOC_Cliente_${(data.filtroCliente || "todos").replace(/\s+/g, "_")}_${ts}.xlsx`;
   } else if (data.tipo === "conformidade") {
-    wb = gerarExcelPmocConformidade(data);
+    wb = await gerarExcelPmocConformidade(data);
     nome = `PMOC_Conformidade_${ts}.xlsx`;
   } else {
-    wb = gerarExcelPmocGeral(data);
+    wb = await gerarExcelPmocGeral(data);
     nome = `PMOC_Relatorio_Geral_${ts}.xlsx`;
   }
-  XLSX.writeFile(wb, nome);
+  (await getXLSX()).writeFile(wb, nome);
 }

@@ -1,8 +1,5 @@
 import { useMemo, useState } from "react";
 import { FileText, FileSpreadsheet } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,6 +8,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Cliente } from "@/contexts/ClientesContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 type TipoEntidade = "Cliente" | "Fornecedor";
 
@@ -83,9 +86,9 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
 
   const titulo = `Relatório de ${tipo === "Cliente" ? "Clientes" : "Fornecedores"}`;
 
-  const handlePdf = () => {
+  const handlePdf = async () => {
     if (!validar()) return;
-    const doc = new jsPDF({ orientation: campos.length > 5 ? "landscape" : "portrait" });
+    const doc = new (await getJsPDF())({ orientation: campos.length > 5 ? "landscape" : "portrait" });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 28, "F");
@@ -98,7 +101,7 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
     doc.text(`Escopo: ${escopo === "selecionados" ? "Selecionados" : escopo === "filtrados" ? "Filtrados" : "Todos"}`, 14, 22);
     doc.setTextColor(30, 30, 30);
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 34,
       head: [campos.map(c => c.label)],
       body: dados.map(d => campos.map(c => c.get(d))),
@@ -119,18 +122,18 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
     onOpenChange(false);
   };
 
-  const handleExcel = () => {
+  const handleExcel = async () => {
     if (!validar()) return;
     const linhas = dados.map(d => {
       const obj: Record<string, string> = {};
       campos.forEach(c => { obj[c.label] = c.get(d); });
       return obj;
     });
-    const ws = XLSX.utils.json_to_sheet(linhas);
+    const ws = (await getXLSX()).utils.json_to_sheet(linhas);
     ws["!cols"] = campos.map(c => ({ wch: c.width || 20 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
-    XLSX.writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
+    (await getXLSX()).writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
     toast.success("Excel gerado!");
     onOpenChange(false);
   };

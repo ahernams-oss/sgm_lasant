@@ -157,7 +157,7 @@ export async function enviarRelatorioFeriasAgora(
 
   const { rows, escala } = await montarDadosFerias();
   const pdf = (await gerarPdfFerias(rows, { output: "blob" })) as Blob;
-  const xlsx = gerarExcelFerias(rows, escala, { output: "blob" }) as Blob;
+  const xlsx = await gerarExcelFerias(rows, escala, { output: "blob" }) as Blob;
 
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const pasta = `mapa-ferias/${stamp}`;

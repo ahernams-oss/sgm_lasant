@@ -26,8 +26,10 @@ import PaginationControls, { paginate } from "@/components/PaginationControls";
 import DashboardFilters, { type DashboardFiltersState, loadDashboardFilters } from "@/components/DashboardFilters";
 import RelatoriosComprasDialog from "@/components/compras/RelatoriosComprasDialog";
 import { useConfirmacoesValores } from "@/hooks/useConfirmacoesValores";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const STATUS_COLORS: Record<string, string> = {
   "Enviada": "hsl(210, 70%, 55%)",
@@ -330,8 +332,8 @@ export default function DashboardCompras() {
   }, [pedidosFiltrados, materiais]);
 
   // PDF Export
-  const exportPdf = () => {
-    const doc = new jsPDF();
+  const exportPdf = async () => {
+    const doc = new (await getJsPDF())();
     const pw = doc.internal.pageSize.getWidth();
     const DARK_BLUE: [number, number, number] = [30, 58, 107];
 
@@ -355,7 +357,7 @@ export default function DashboardCompras() {
     // Resumo
     doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
     doc.text("Resumo Geral", 14, y); y += 3;
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Indicador", "Valor"]],
       body: [
@@ -379,7 +381,7 @@ export default function DashboardCompras() {
     // Status
     doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
     doc.text("Distribuição por Status", 14, y); y += 3;
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Status", "Quantidade", "Percentual"]],
       body: statusData.map(s => [s.name, String(s.value), `${((s.value / totalReqs) * 100).toFixed(1)}%`]),
@@ -392,7 +394,7 @@ export default function DashboardCompras() {
       if (y > 230) { doc.addPage(); y = 20; }
       doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
       doc.text("Requisições por Centro de Custo", 14, y); y += 3;
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["Centro de Custo", "Quantidade", "Percentual"]],
         body: centroCustoData.map(c => [c.name, String(c.value), `${((c.value / totalReqs) * 100).toFixed(1)}%`]),
@@ -406,7 +408,7 @@ export default function DashboardCompras() {
       if (y > 230) { doc.addPage(); y = 20; }
       doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
       doc.text("Distribuição por Urgência", 14, y); y += 3;
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["Urgência", "Quantidade", "Percentual"]],
         body: urgenciaData.map(u => [u.name, String(u.value), `${((u.value / totalReqs) * 100).toFixed(1)}%`]),
@@ -420,7 +422,7 @@ export default function DashboardCompras() {
       if (y > 230) { doc.addPage(); y = 20; }
       doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
       doc.text("Top Solicitantes", 14, y); y += 3;
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["Solicitante", "Requisições"]],
         body: solicitanteData.map(s => [s.name, String(s.value)]),
@@ -434,7 +436,7 @@ export default function DashboardCompras() {
       if (y > 220) { doc.addPage(); y = 20; }
       doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
       doc.text("Processos Reprovados", 14, y); y += 3;
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["Nº", "Data", "Solicitante", "Centro de Custo", "Motivo"]],
         body: reprovadaList.map(r => {
@@ -451,7 +453,7 @@ export default function DashboardCompras() {
       if (y > 220) { doc.addPage(); y = 20; }
       doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK_BLUE);
       doc.text("Pedidos Pendentes de Entrega", 14, y); y += 3;
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["Nº", "Data", "Status", "Solicitante", "Centro de Custo", "Itens", "Urgência"]],
         body: pendentesEntrega.map(r => [

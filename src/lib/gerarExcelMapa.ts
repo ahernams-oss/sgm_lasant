@@ -1,8 +1,10 @@
-import * as XLSX from "xlsx";
 import { Lancamento, TipoFalta, TipoAdvertencia } from "@/contexts/LancamentosContext";
 import { Funcionario } from "@/contexts/FuncionariosContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
@@ -28,7 +30,7 @@ const formatData = (d: string) => {
   catch { return d; }
 };
 
-export function exportarExcelMapa(params: ExcelMapaParams) {
+export async function exportarExcelMapa(params: ExcelMapaParams) {
   const { lancamentos, funcionarios, cargos, clientes, filterMes } = params;
 
   const getFuncNome = (id: string) => funcionarios.find((f) => f.id === id)?.nome ?? "—";
@@ -41,7 +43,7 @@ export function exportarExcelMapa(params: ExcelMapaParams) {
     return func?.clienteId ? (clientes.find((c) => c.id === func.clienteId)?.nome ?? "—") : "—";
   };
 
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
 
   // Faltas sheet
   const faltas = lancamentos.filter((l) => l.tipo === "falta").sort((a, b) => a.data.localeCompare(b.data));
@@ -53,9 +55,9 @@ export function exportarExcelMapa(params: ExcelMapaParams) {
     "Tipo": TIPO_FALTA_LABELS[l.tipoFalta || "injustificada"],
     "Observação": l.observacao || "",
   }));
-  const wsFaltas = XLSX.utils.json_to_sheet(faltasData.length > 0 ? faltasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Observação": "" }]);
+  const wsFaltas = (await getXLSX()).utils.json_to_sheet(faltasData.length > 0 ? faltasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Observação": "" }]);
   wsFaltas["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 40 }];
-  XLSX.utils.book_append_sheet(wb, wsFaltas, "Faltas");
+  (await getXLSX()).utils.book_append_sheet(wb, wsFaltas, "Faltas");
 
   // Horas extras sheet
   const horas = lancamentos.filter((l) => l.tipo === "hora_extra").sort((a, b) => a.data.localeCompare(b.data));
@@ -68,9 +70,9 @@ export function exportarExcelMapa(params: ExcelMapaParams) {
     "Percentual (%)": l.percentual || 50,
     "Observação": l.observacao || "",
   }));
-  const wsHoras = XLSX.utils.json_to_sheet(horasData.length > 0 ? horasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Horas": "", "Percentual (%)": "", "Observação": "" }]);
+  const wsHoras = (await getXLSX()).utils.json_to_sheet(horasData.length > 0 ? horasData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Horas": "", "Percentual (%)": "", "Observação": "" }]);
   wsHoras["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 14 }, { wch: 40 }];
-  XLSX.utils.book_append_sheet(wb, wsHoras, "Horas Extras");
+  (await getXLSX()).utils.book_append_sheet(wb, wsHoras, "Horas Extras");
 
   // Advertências sheet
   const advs = lancamentos.filter((l) => l.tipo === "advertencia").sort((a, b) => a.data.localeCompare(b.data));
@@ -83,10 +85,10 @@ export function exportarExcelMapa(params: ExcelMapaParams) {
     "Motivo": l.motivo || "",
     "Observação": l.observacao || "",
   }));
-  const wsAdvs = XLSX.utils.json_to_sheet(advsData.length > 0 ? advsData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Motivo": "", "Observação": "" }]);
+  const wsAdvs = (await getXLSX()).utils.json_to_sheet(advsData.length > 0 ? advsData : [{ "Data": "", "Funcionário": "", "Cargo": "", "Cliente": "", "Tipo": "", "Motivo": "", "Observação": "" }]);
   wsAdvs["!cols"] = [{ wch: 12 }, { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 40 }, { wch: 40 }];
-  XLSX.utils.book_append_sheet(wb, wsAdvs, "Advertências");
+  (await getXLSX()).utils.book_append_sheet(wb, wsAdvs, "Advertências");
 
   const mesLabel = filterMes.replace("-", "_");
-  XLSX.writeFile(wb, `Mapa_Funcionarios_${mesLabel}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Mapa_Funcionarios_${mesLabel}.xlsx`);
 }

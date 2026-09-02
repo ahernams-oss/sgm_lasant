@@ -1,9 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Lancamento, TipoFalta, TipoAdvertencia } from "@/contexts/LancamentosContext";
 import { Funcionario } from "@/contexts/FuncionariosContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const TIPO_FALTA_LABELS: Record<TipoFalta, string> = {
   justificada: "Justificada",
@@ -39,9 +41,9 @@ const formatMes = (mes: string) => {
   } catch { return mes; }
 };
 
-export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
+export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const { lancamentos, funcionarios, cargos, clientes, filterMes, filterCliente, filterFuncionario } = params;
-  const doc = new jsPDF("landscape");
+  const doc = new (await getJsPDF())("landscape");
   const pageWidth = doc.internal.pageSize.getWidth();
 
   const getFuncNome = (id: string) => funcionarios.find((f) => f.id === id)?.nome ?? "—";
@@ -97,7 +99,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const funcComAdv = new Set(advertencias.map((l) => l.funcionarioId)).size;
 
   // Summary table
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 14, right: 14 },
     head: [["Resumo do Período", "", "", ""]],
@@ -120,7 +122,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     doc.text("Registro de Faltas", 16, y + 2);
     y += 10;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
       head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Observação"]],
@@ -151,7 +153,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     doc.text("Registro de Horas Extras", 16, y + 2);
     y += 10;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
       head: [["Data", "Funcionário", "Cargo", "Cliente", "Horas", "Percentual", "Observação"]],
@@ -182,7 +184,7 @@ export function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     doc.text("Registro de Advertências", 16, y + 2);
     y += 10;
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
       head: [["Data", "Funcionário", "Cargo", "Cliente", "Tipo", "Motivo", "Observação"]],

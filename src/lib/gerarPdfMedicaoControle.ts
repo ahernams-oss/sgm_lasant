@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { Cliente, Contrato, Faturamento } from "@/contexts/ClientesContext";
 import type { OrdemServico } from "@/contexts/OrdensServicoContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtDate = (s?: string) => s ? new Date(s + "T00:00:00").toLocaleDateString("pt-BR") : "";
@@ -53,7 +55,7 @@ const PADRAO: Array<[string, string]> = [
   ["PCI", "PCI - PROTEÇÃO CONTRA INCÊNDIO"],
 ];
 
-function renderPagina(
+async function renderPagina(
   doc: jsPDF,
   titulo: string,
   cliente: Cliente,
@@ -85,7 +87,7 @@ function renderPagina(
 
   // Bloco Processo / Contrato / Período
   let y = 50;
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     margin: { left: 8, right: 8 },
@@ -146,7 +148,7 @@ function renderPagina(
     totalQtd += g.qtd; totalValor += g.valor;
   }
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     margin: { left: 8, right: 8 },
@@ -196,8 +198,8 @@ function renderPagina(
   doc.text(`NF ${faturamento.numeroNf || "—"}`, pw - 14, doc.internal.pageSize.getHeight() - 6, { align: "right" });
 }
 
-export function gerarPdfMedicaoControle({ cliente, contrato, faturamento, ordens, empresaNome }: Params): jsPDF {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+export async function gerarPdfMedicaoControle({ cliente, contrato, faturamento, ordens, empresaNome }: Params): Promise<jsPDF> {
+  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
 
   const ini = faturamento.periodoInicio || "";
   const fim = faturamento.periodoFim || "";

@@ -1,11 +1,13 @@
-import * as XLSX from "xlsx";
 import { AvaliacaoDesempenho, QUESITOS_AVALIACAO } from "@/contexts/AvaliacoesDesempenhoContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const PONTUACAO_MAXIMA = QUESITOS_AVALIACAO.length * 10;
 const fmtData = (d: string) =>
   d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "";
 
-export function gerarExcelAvaliacoesDesempenho(
+export async function gerarExcelAvaliacoesDesempenho(
   avaliacoes: AvaliacaoDesempenho[],
   funcMap: Record<string, string>,
 ) {
@@ -26,7 +28,7 @@ export function gerarExcelAvaliacoesDesempenho(
     return base;
   });
 
-  const ws = XLSX.utils.json_to_sheet(rows);
+  const ws = (await getXLSX()).utils.json_to_sheet(rows);
   const cols: any[] = [
     { wch: 30 }, { wch: 16 }, { wch: 20 }, { wch: 25 },
     ...QUESITOS_AVALIACAO.map(() => ({ wch: 18 })),
@@ -34,7 +36,7 @@ export function gerarExcelAvaliacoesDesempenho(
   ];
   ws["!cols"] = cols;
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
-  XLSX.writeFile(wb, "relatorio-avaliacoes-desempenho.xlsx");
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Avaliações");
+  (await getXLSX()).writeFile(wb, "relatorio-avaliacoes-desempenho.xlsx");
 }

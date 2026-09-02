@@ -1,5 +1,7 @@
-import jsPDF from "jspdf";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
 export interface HoleriteDados {
   competenciaMes?: number | null;
   competenciaAno?: number | null;
@@ -224,9 +226,9 @@ function desenharHolerite(doc: jsPDF, d: HoleriteDados, empresa?: EmpresaHolerit
 }
 
 
-export function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
+export async function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
   const lista = Array.isArray(dados) ? dados : [dados];
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   lista.forEach((d, i) => {
     if (i > 0) doc.addPage();
     desenharHolerite(doc, d, empresa, 15);
@@ -234,13 +236,13 @@ export function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa
   return doc;
 }
 
-export function imprimirHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
-  const doc = gerarPdfHolerite(dados, empresa);
+export async function imprimirHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
+  const doc = await gerarPdfHolerite(dados, empresa);
   const url = doc.output("bloburl") as unknown as string;
   const win = window.open(url, "_blank");
   if (win) win.onload = () => win.print();
 }
 
-export function baixarHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite, nome = "holerite.pdf") {
-  gerarPdfHolerite(dados, empresa).save(nome);
+export async function baixarHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite, nome = "holerite.pdf") {
+  (await gerarPdfHolerite(dados, empresa)).save(nome);
 }

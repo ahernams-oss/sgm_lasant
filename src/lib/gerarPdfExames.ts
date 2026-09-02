@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 interface ExameData {
   funcionario_nome: string;
   tipo_exame: string;
@@ -27,8 +29,8 @@ const formatDate = (d: string | null) => {
   return d.split("-").reverse().join("/");
 };
 
-export function gerarPdfExames(exames: ExameData[]) {
-  const doc = new jsPDF({ orientation: "landscape" });
+export async function gerarPdfExames(exames: ExameData[]) {
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // Header
@@ -58,7 +60,7 @@ export function gerarPdfExames(exames: ExameData[]) {
   y += 6;
 
   // Table
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Funcionário", "Tipo", "Realização", "Vencimento", "Status", "Resultado", "Clínica", "Observações"]],
     body: exames.map((e) => [

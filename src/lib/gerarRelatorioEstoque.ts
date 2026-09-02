@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 
 export interface ReportHeader {
@@ -115,9 +118,9 @@ export async function gerarPdfEstoque(
   filters?: string,
   logoUrl?: string
 ) {
-  const doc = new jsPDF({ orientation: columns.length > 6 ? "landscape" : "portrait" });
+  const doc = new (await getJsPDF())({ orientation: columns.length > 6 ? "landscape" : "portrait" });
   await addHeader(doc, { title, subtitle: `Total: ${rows.length} registros`, filters }, logoUrl);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: filters ? 44 : 38,
     head: [columns],
     body: rows,
@@ -129,7 +132,7 @@ export async function gerarPdfEstoque(
   doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-export function gerarExcelEstoque(title: string, columns: string[], rows: string[][], filters?: string) {
+export async function gerarExcelEstoque(title: string, columns: string[], rows: string[][], filters?: string) {
   const aoa: (string | number)[][] = [];
   aoa.push([title.toUpperCase()]);
   aoa.push([`Gerado em: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`]);
@@ -139,11 +142,11 @@ export function gerarExcelEstoque(title: string, columns: string[], rows: string
   aoa.push(columns);
   rows.forEach((r) => aoa.push(r));
 
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const ws = (await getXLSX()).utils.aoa_to_sheet(aoa);
   ws["!cols"] = columns.map(() => ({ wch: 20 }));
   const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: Math.max(0, columns.length - 1) } };
   ws["!merges"] = [merge];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, title.substring(0, 31));
-  XLSX.writeFile(wb, `${title.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, title.substring(0, 31));
+  (await getXLSX()).writeFile(wb, `${title.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
 }

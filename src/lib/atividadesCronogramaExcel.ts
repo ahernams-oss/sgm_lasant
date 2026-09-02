@@ -1,5 +1,7 @@
-import * as XLSX from "xlsx";
 import type { CronogramaAtividade } from "@/contexts/CronogramasContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const HEAD = ["Descrição", "Unidade", "Quantidade", "Valor Total", "Modo Financeiro"];
 
@@ -17,21 +19,21 @@ const parseModo = (v: any): "distribuido" | "manual" => {
 };
 
 /** Baixa a planilha modelo para importação de atividades. */
-export function baixarModeloAtividades() {
-  const ws = XLSX.utils.aoa_to_sheet([
+export async function baixarModeloAtividades() {
+  const ws = (await getXLSX()).utils.aoa_to_sheet([
     HEAD,
     ["Recomposição de piso", "m²", 300, 2500, "Distribuído"],
     ["Instalação de divisória", "m", 500, 65000, "Manual"],
   ]);
   ws["!cols"] = [{ wch: 45 }, { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 18 }];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Atividades");
-  XLSX.writeFile(wb, "Modelo_Atividades_Cronograma.xlsx");
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Atividades");
+  (await getXLSX()).writeFile(wb, "Modelo_Atividades_Cronograma.xlsx");
 }
 
 /** Exporta as atividades atuais do cronograma para Excel. */
-export function exportarAtividadesExcel(atividades: CronogramaAtividade[], nome = "Atividades_Cronograma") {
-  const ws = XLSX.utils.aoa_to_sheet([
+export async function exportarAtividadesExcel(atividades: CronogramaAtividade[], nome = "Atividades_Cronograma") {
+  const ws = (await getXLSX()).utils.aoa_to_sheet([
     HEAD,
     ...atividades.map((a) => [
       a.descricao || "",
@@ -42,17 +44,17 @@ export function exportarAtividadesExcel(atividades: CronogramaAtividade[], nome 
     ]),
   ]);
   ws["!cols"] = [{ wch: 45 }, { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 18 }];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Atividades");
-  XLSX.writeFile(wb, `${nome}.xlsx`);
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Atividades");
+  (await getXLSX()).writeFile(wb, `${nome}.xlsx`);
 }
 
 /** Lê um arquivo Excel e devolve as atividades importadas. */
 export async function importarAtividadesExcel(file: File, ordemInicial = 1): Promise<CronogramaAtividade[]> {
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
+  const wb = (await getXLSX()).read(buf, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<any>(ws, { defval: "" });
+  const rows = (await getXLSX()).utils.sheet_to_json<any>(ws, { defval: "" });
   const out: CronogramaAtividade[] = [];
   rows.forEach((r) => {
     const key = (name: string) =>

@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Requisicao } from "@/contexts/RequisicaoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface DashboardReportData {
   requisicoes: Requisicao[];
@@ -67,9 +69,9 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
   return y + 3;
 }
 
-export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
+export async function gerarPdfDashboard(data: DashboardReportData): Promise<jsPDF> {
   const { requisicoes, dateFrom, dateTo, empresa, funcionarios, exames, processos, lancamentos } = data;
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
 
   addHeader(doc, empresa);
 
@@ -90,7 +92,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
   const statusCounts: Record<string, number> = {};
   requisicoes.forEach((r) => { statusCounts[r.status] = (statusCounts[r.status] || 0) + 1; });
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Status", "Quantidade", "Percentual"]],
     body: Object.entries(statusCounts).map(([status, count]) => [
@@ -110,7 +112,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
 
   y = checkPageBreak(doc, y, clienteSorted.length * 10 + 20);
   y = sectionTitle(doc, "Solicitações por Cliente/Unidade", y);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Cliente/Unidade", "Quantidade", "Percentual"]],
     body: clienteSorted.map(([name, count]) => [
@@ -130,7 +132,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
 
   y = checkPageBreak(doc, y, cargoSorted.length * 10 + 20);
   y = sectionTitle(doc, "Solicitações por Cargo", y);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Cargo", "Quantidade", "Percentual"]],
     body: cargoSorted.map(([name, count]) => [
@@ -149,7 +151,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
     y = sectionTitle(doc, "Resumo de Funcionários", y);
     const funcStatusCounts: Record<string, number> = {};
     funcionarios.forEach((f: any) => { funcStatusCounts[f.status || "Indefinido"] = (funcStatusCounts[f.status || "Indefinido"] || 0) + 1; });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Status", "Quantidade", "Percentual"]],
       body: Object.entries(funcStatusCounts).map(([status, count]) => [
@@ -176,7 +178,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
       else if (dias <= 30) aVencer++;
       else emDia++;
     });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Situação", "Quantidade"]],
       body: [
@@ -203,7 +205,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
       totalCandidatos += cands.length;
       contratados += cands.filter((c: any) => c.contratacaoFinalizada).length;
     });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Indicador", "Valor"]],
       body: [
@@ -227,7 +229,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
     const faltasJust = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "justificada");
     const faltasInjust = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "injustificada");
     const suspensoes = lancamentos.filter((l: any) => l.tipo === "falta" && l.tipoFalta === "suspensao");
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Tipo", "Quantidade"]],
       body: [
@@ -247,7 +249,7 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
   y = checkPageBreak(doc, y, 30);
   y = sectionTitle(doc, "Lista Detalhada das Requisições", y);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["RC Nº", "Data", "Unidade", "Cargo", "Status", "Tipo Contratação"]],
     body: requisicoes.map((r) => [
@@ -265,8 +267,8 @@ export function gerarPdfDashboard(data: DashboardReportData): jsPDF {
   return doc;
 }
 
-export function downloadPdfDashboard(data: DashboardReportData) {
-  const doc = gerarPdfDashboard(data);
+export async function downloadPdfDashboard(data: DashboardReportData) {
+  const doc = await gerarPdfDashboard(data);
   const periodoLabel = data.dateFrom || data.dateTo
     ? `${(data.dateFrom || "").replace(/\//g, "-")}_${(data.dateTo || "").replace(/\//g, "-")}`
     : "completo";

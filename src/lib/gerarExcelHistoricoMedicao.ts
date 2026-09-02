@@ -1,11 +1,13 @@
-import * as XLSX from "xlsx";
 import { MedicaoServico } from "@/contexts/MedicoesContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
-  const wb = XLSX.utils.book_new();
+export async function downloadExcelHistoricoMedicao(med: MedicaoServico) {
+  const wb = (await getXLSX()).utils.book_new();
 
   // Resumo
   const resumo: any[][] = [
@@ -24,9 +26,9 @@ export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
     ["Data Pagamento", (med as any).data_pagamento || ""],
     ["Observações", med.observacoes || ""],
   ];
-  const wsResumo = XLSX.utils.aoa_to_sheet(resumo);
+  const wsResumo = (await getXLSX()).utils.aoa_to_sheet(resumo);
   wsResumo["!cols"] = [{ wch: 20 }, { wch: 30 }];
-  XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+  (await getXLSX()).utils.book_append_sheet(wb, wsResumo, "Resumo");
 
   const fornecedor = (med as any).fornecedor_nome || "";
 
@@ -42,9 +44,9 @@ export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
       item.valor_total_contratado,
     ]),
   ];
-  const wsItens = XLSX.utils.aoa_to_sheet(itensData);
+  const wsItens = (await getXLSX()).utils.aoa_to_sheet(itensData);
   wsItens["!cols"] = [{ wch: 35 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
-  XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+  (await getXLSX()).utils.book_append_sheet(wb, wsItens, "Itens");
 
   // Histórico
   const histData: any[][] = [
@@ -60,9 +62,9 @@ export function downloadExcelHistoricoMedicao(med: MedicaoServico) {
       l.observacao || "",
     ]),
   ];
-  const wsHist = XLSX.utils.aoa_to_sheet(histData);
+  const wsHist = (await getXLSX()).utils.aoa_to_sheet(histData);
   wsHist["!cols"] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 30 }];
-  XLSX.utils.book_append_sheet(wb, wsHist, "Histórico");
+  (await getXLSX()).utils.book_append_sheet(wb, wsHist, "Histórico");
 
-  XLSX.writeFile(wb, `Medicao_${med.numero}_Historico.xlsx`);
+  (await getXLSX()).writeFile(wb, `Medicao_${med.numero}_Historico.xlsx`);
 }

@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Funcionario } from "@/contexts/FuncionariosContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 interface Recebimento {
   id: string; token: string; status: string;
@@ -45,7 +47,7 @@ export async function gerarPdfEpiFacial(func: Funcionario, rec: Recebimento, opt
   try { logoLasant = await loadImage("/Logo_Lasant.png"); } catch {}
   try { logoSeg = await loadImage("/seguranca_trabalho.jpg"); } catch {}
 
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
@@ -123,7 +125,7 @@ export async function gerarPdfEpiFacial(func: Funcionario, rec: Recebimento, opt
   ]);
   if (rows.length === 0) rows.push(["", "", "", ""]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 10, right: 10 },
     head: [["Quant.", "E.P.I", "CA", "Data"]],

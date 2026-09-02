@@ -1,6 +1,8 @@
-import * as XLSX from "xlsx";
 import type { OrcamentoSco } from "@/contexts/OrcamentosScoContext";
 import { supabase } from "@/integrations/supabase/client";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 async function loadComps(codes: string[]) {
   if (!codes.length) return {} as Record<string, any[]>;
@@ -17,7 +19,7 @@ async function loadComps(codes: string[]) {
 }
 
 export async function gerarExcelOrcamentoSco(orc: OrcamentoSco) {
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
 
   // resumo
   const resumo = [
@@ -32,12 +34,12 @@ export async function gerarExcelOrcamentoSco(orc: OrcamentoSco) {
     ["Valor Total", orc.valor_total],
     ["Observações", orc.observacoes || ""],
   ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumo), "Resumo");
+  (await getXLSX()).utils.book_append_sheet(wb, (await getXLSX()).utils.aoa_to_sheet(resumo), "Resumo");
 
   // sintético
   const sint = [["Código", "Descrição", "Un", "Qtd", "Unit.", "Total"]];
   for (const i of orc.itens) sint.push([i.servico_codigo, i.descricao, i.unidade, i.quantidade, i.preco_unit, i.preco_total] as any);
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sint), "Sintético");
+  (await getXLSX()).utils.book_append_sheet(wb, (await getXLSX()).utils.aoa_to_sheet(sint), "Sintético");
 
   if (orc.tipo_analise === "analitica") {
     const grouped = await loadComps(orc.itens.map((i) => i.servico_codigo));
@@ -50,8 +52,8 @@ export async function gerarExcelOrcamentoSco(orc: OrcamentoSco) {
         ana.push([item.servico_codigo, item.descricao, item.quantidade, c.elementar_codigo, c.elementar_descricao, c.unidade, Number(c.quantidade), qtdT, c.elementar_preco, qtdT * c.elementar_preco]);
       }
     }
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ana), "Analítico");
+    (await getXLSX()).utils.book_append_sheet(wb, (await getXLSX()).utils.aoa_to_sheet(ana), "Analítico");
   }
 
-  XLSX.writeFile(wb, `Orcamento_SCO_${orc.numero}_${orc.tipo_analise}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Orcamento_SCO_${orc.numero}_${orc.tipo_analise}.xlsx`);
 }

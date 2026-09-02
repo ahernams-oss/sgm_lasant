@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Orcamento } from "@/contexts/OrcamentosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -59,7 +61,7 @@ function agruparPorFamilia(orc: Orcamento) {
 }
 
 export async function gerarPdfOrcamento(orc: Orcamento, empresa?: Empresa) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ml = 14;
   const mr = 14;
@@ -95,7 +97,7 @@ export async function gerarPdfOrcamento(orc: Orcamento, empresa?: Empresa) {
 
   // ===== Info do Orçamento =====
   doc.setTextColor(30, 30, 30);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "plain",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -163,7 +165,7 @@ export async function gerarPdfOrcamento(orc: Orcamento, empresa?: Empresa) {
       { content: fmt(orc.valorTotal), styles: { fontStyle: "bold", fillColor: [30, 58, 107], textColor: 255 } },
     ]);
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Código", "Descrição", "Unid", "Quant", "Pr. Unit.", "Pr. Total"]],
       body,
