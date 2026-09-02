@@ -113,10 +113,26 @@ export default function DevolverEpis() {
     const { data, error } = await supabase.functions.invoke("epi-devolucao-publico", {
       body: { action, token, cpf, dataNascimento: dob, ...body },
     });
-    if (error) throw new Error((data as any)?.error || error.message);
+    if (error) {
+      // Extrai a mensagem real retornada pela função (invoke não expõe o corpo em erros HTTP)
+      let msg = (data as any)?.error || error.message;
+      try {
+        const ctx = (error as any).context;
+        if (ctx && typeof ctx.json === "function") {
+          const parsed = await ctx.json();
+          if (parsed?.error) msg = parsed.error;
+        } else if (ctx && typeof ctx.text === "function") {
+          const txt = await ctx.text();
+          const parsed = JSON.parse(txt);
+          if (parsed?.error) msg = parsed.error;
+        }
+      } catch { /* mantém msg padrão */ }
+      throw new Error(msg);
+    }
     if ((data as any)?.error) throw new Error((data as any).error);
     return data as any;
   };
+
 
   const verify = async (e: React.FormEvent) => {
     e.preventDefault();
