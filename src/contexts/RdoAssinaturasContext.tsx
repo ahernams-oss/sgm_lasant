@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface RdoAssinatura {
   id: string; rdo_id: string; rdo_numero: number;
@@ -27,8 +28,10 @@ export const useRdoAssinaturas = () => useContext(RdoAssinaturasContext);
 const QK = ["rdo_assinaturas"] as const;
 
 export function RdoAssinaturasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("RdoAssinaturas");
   const qc = useQueryClient();
   const { data: assinaturas = [], refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("rdo_assinaturas", "signed_at")) as RdoAssinatura[],
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,

@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type TipoSco = "SCO" | "SINAPI" | "EMOP";
 export const tiposSco: TipoSco[] = ["SCO", "SINAPI", "EMOP"];
@@ -28,8 +29,10 @@ const scoToRow = (s: Omit<Sco, "id">) => ({
 });
 
 export function ScoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Sco");
   const qc = useQueryClient();
   const { data: scos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("scos", "cod_sco")).map(rowToSco),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -55,6 +58,7 @@ export function ScoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSco() {
+  useActivateProvider("Sco");
   const ctx = useContext(ScoContext);
   if (!ctx) throw new Error("useSco must be used within ScoProvider");
   return ctx;

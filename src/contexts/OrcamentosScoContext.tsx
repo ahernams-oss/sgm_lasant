@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ScoServico {
   codigo: string; descricao: string; unidade: string; preco: number;
@@ -55,8 +56,10 @@ const C = createContext<Ctx | undefined>(undefined);
 const QK = ["orcamentos_sco"] as const;
 
 export function OrcamentosScoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("OrcamentosSco");
   const qc = useQueryClient();
   const { data: orcamentos = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("orcamentos_sco", "numero");
@@ -150,6 +153,7 @@ export function OrcamentosScoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useOrcamentosSco() {
+  useActivateProvider("OrcamentosSco");
   const ctx = useContext(C);
   if (!ctx) throw new Error("useOrcamentosSco must be inside OrcamentosScoProvider");
   return ctx;

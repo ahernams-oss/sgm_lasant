@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ItemScoOrcamento {
   id: string; codSco: string; descricao: string; unidade: string;
@@ -59,8 +60,10 @@ const rowToOrcamento = (r: any): Orcamento => ({
 });
 
 export function OrcamentosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Orcamentos");
   const qc = useQueryClient();
   const { data: orcamentos = [], refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("orcamentos", "numero")).map(rowToOrcamento),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -84,6 +87,7 @@ export function OrcamentosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useOrcamentos() {
+  useActivateProvider("Orcamentos");
   const ctx = useContext(OrcamentosContext);
   if (!ctx) throw new Error("useOrcamentos must be used within OrcamentosProvider");
   return ctx;

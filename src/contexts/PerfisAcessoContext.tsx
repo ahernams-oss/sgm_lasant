@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, type Context } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 const PERFIS_QK = ["perfis_acesso"] as const;
 
@@ -1029,8 +1030,10 @@ const perfilToRow = (p: Omit<PerfilAcesso, "id">) => ({
 });
 
 export function PerfisAcessoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("PerfisAcesso");
   const qc = useQueryClient();
   const { data: perfis = [] } = useQuery({
+    enabled: __active,
     queryKey: PERFIS_QK,
     queryFn: async () => (await fetchAll("perfis_acesso", "nome")).map(rowToPerfil),
     staleTime: 5 * 60 * 1000,
@@ -1050,6 +1053,7 @@ export function PerfisAcessoProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePerfisAcesso() {
+  useActivateProvider("PerfisAcesso");
   const ctx = useContext(PerfisAcessoContext);
   if (!ctx) throw new Error("usePerfisAcesso must be used within PerfisAcessoProvider");
   return ctx;

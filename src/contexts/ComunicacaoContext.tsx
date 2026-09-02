@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Conversa {
   id: string;
@@ -127,11 +128,13 @@ const mapNotif = (n: any): Notificacao => ({
 });
 
 export function ComunicacaoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Comunicacao");
   const qc = useQueryClient();
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
 
   const { data: grupos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_GRUPOS,
     queryFn: async () => (await fetchAll("comunicacao_grupos", "created_at")).reverse().map(mapGrupo),
     ...opts,
@@ -183,6 +186,7 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   }));
 
   const { data: notificacoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_NOTIF,
     queryFn: async () => (await fetchAll("comunicacao_notificacoes", "created_at")).reverse().map(mapNotif),
     ...opts,
@@ -268,6 +272,7 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
 }
 
 export function useComunicacao() {
+  useActivateProvider("Comunicacao");
   const ctx = useContext(ComunicacaoContext);
   if (!ctx) throw new Error("useComunicacao must be used within ComunicacaoProvider");
   return ctx;

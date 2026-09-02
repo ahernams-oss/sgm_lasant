@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Servico {
   id: string;
@@ -24,8 +25,10 @@ const rowToServico = (r: any): Servico => ({
 });
 
 export function ServicosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Servicos");
   const qc = useQueryClient();
   const { data: servicos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("servicos", "nome")).map(rowToServico),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -54,6 +57,7 @@ export function ServicosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useServicos() {
+  useActivateProvider("Servicos");
   const ctx = useContext(ServicosContext);
   if (!ctx) throw new Error("useServicos must be used within ServicosProvider");
   return ctx;

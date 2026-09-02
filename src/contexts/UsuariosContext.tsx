@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Usuario {
   id: string; nome: string; cargoId: string; telefone: string;
@@ -39,8 +40,10 @@ const usuarioToRow = (u: Omit<Usuario, "id">) => ({
 });
 
 export function UsuariosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Usuarios");
   const qc = useQueryClient();
   const { data: usuarios = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("usuarios", "nome")).map(rowToUsuario),
     staleTime: 5 * 60 * 1000,
@@ -60,6 +63,7 @@ export function UsuariosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useUsuarios() {
+  useActivateProvider("Usuarios");
   const ctx = useContext(UsuariosContext);
   if (!ctx) throw new Error("useUsuarios must be used within UsuariosProvider");
   return ctx;

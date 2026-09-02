@@ -2,6 +2,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface HistoricoEntry {
   situacao: string;
@@ -61,8 +62,10 @@ const rowToSolicitacao = (r: any): SolicitacaoServico => ({
 });
 
 export function SolicitacoesServicosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("SolicitacoesServicos");
   const qc = useQueryClient();
   const { data: solicitacoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("solicitacoes_servicos", "numero")).map(rowToSolicitacao),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -81,6 +84,7 @@ export function SolicitacoesServicosProvider({ children }: { children: ReactNode
 }
 
 export function useSolicitacoesServicos() {
+  useActivateProvider("SolicitacoesServicos");
   const ctx = useContext(SolicitacoesServicosContext);
   if (!ctx) throw new Error("useSolicitacoesServicos must be used within SolicitacoesServicosProvider");
   return ctx;

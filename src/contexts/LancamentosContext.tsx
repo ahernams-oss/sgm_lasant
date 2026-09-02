@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type TipoLancamento = "falta" | "hora_extra" | "advertencia" | "atestado";
 export type TipoFalta = "justificada" | "injustificada" | "suspensao";
@@ -49,8 +50,10 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
 
 
 export function LancamentosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Lancamentos");
   const qc = useQueryClient();
   const { data: lancamentos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("lancamentos", "created_at")).map(rowToLancamento),
     staleTime: 5 * 60 * 1000,
@@ -83,6 +86,7 @@ export function LancamentosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useLancamentos() {
+  useActivateProvider("Lancamentos");
   const ctx = useContext(LancamentosContext);
   if (!ctx) throw new Error("useLancamentos must be used within LancamentosProvider");
   return ctx;

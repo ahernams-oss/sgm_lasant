@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado";
 
@@ -52,8 +53,10 @@ const pedidoToRow = (p: PedidoCompra) => ({
 });
 
 export function PedidoCompraProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("PedidoCompra");
   const qc = useQueryClient();
   const { data: pedidos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("pedidos_compra", "created_at")).map(rowToPedido),
     staleTime: 5 * 60 * 1000,
@@ -100,6 +103,7 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePedidoCompra() {
+  useActivateProvider("PedidoCompra");
   const ctx = useContext(PedidoCompraContext);
   if (!ctx) throw new Error("usePedidoCompra must be used within PedidoCompraProvider");
   return ctx;

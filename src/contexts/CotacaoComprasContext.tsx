@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type StatusCotacao = "Em Andamento" | "Aguardando Aprovação" | "Revisão de Confirmação" | "Finalizada" | "Cancelada";
 
@@ -57,8 +58,10 @@ const cotacaoToRow = (c: CotacaoCompras) => ({
 });
 
 export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("CotacaoCompras");
   const qc = useQueryClient();
   const { data: cotacoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("cotacoes_compras", "created_at")).map(rowToCotacao),
     staleTime: 5 * 60 * 1000,
@@ -145,6 +148,7 @@ export function CotacaoComprasProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCotacaoCompras() {
+  useActivateProvider("CotacaoCompras");
   const ctx = useContext(CotacaoComprasContext);
   if (!ctx) throw new Error("useCotacaoCompras must be used within CotacaoComprasProvider");
   return ctx;

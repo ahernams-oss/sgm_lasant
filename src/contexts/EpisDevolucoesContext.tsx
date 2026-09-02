@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface EpiDevolucao {
   id: string;
@@ -99,9 +100,11 @@ const toRow = (d: Partial<Omit<EpiDevolucao, "id" | "createdAt">>) => ({
 const QK = ["epis_devolucoes"] as const;
 
 export function EpisDevolucoesProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("EpisDevolucoes");
   const queryClient = useQueryClient();
 
   const { data: devolucoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("epis_devolucoes", "created_at");
@@ -138,6 +141,7 @@ export function EpisDevolucoesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useEpisDevolucoes() {
+  useActivateProvider("EpisDevolucoes");
   const ctx = useContext(EpisDevolucoesContext);
   if (!ctx) throw new Error("useEpisDevolucoes must be used within EpisDevolucoesProvider");
   return ctx;

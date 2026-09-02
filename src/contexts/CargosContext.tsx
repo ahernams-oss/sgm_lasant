@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface SalarioDataBase { id: string; valor: string; dataBase: string; }
 export interface AnexoCargo { id: string; nome: string; url: string; tipo: string; }
@@ -41,9 +42,11 @@ const cargoToRow = (c: Omit<Cargo, "id">) => ({
 const QK = ["cargos"] as const;
 
 export function CargosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Cargos");
   const queryClient = useQueryClient();
 
   const { data: cargos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("cargos", "nome");
@@ -82,6 +85,7 @@ export function CargosProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCargos() {
+  useActivateProvider("Cargos");
   const ctx = useContext(CargosContext);
   if (!ctx) throw new Error("useCargos must be used within CargosProvider");
   return ctx;

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ProcessoTrabalhista {
   id: string;
@@ -62,10 +63,12 @@ const Ctx = createContext<ContextType | undefined>(undefined);
 const QK = ["processos_trabalhistas"] as const;
 
 export function ProcessosTrabalhalistasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("ProcessosTrabalhistas");
   const queryClient = useQueryClient();
   const [andamentos, setAndamentos] = useState<Andamento[]>([]);
 
   const { data: processos = [], isLoading: loading } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("processos_trabalhistas", "created_at");
@@ -162,6 +165,7 @@ export function ProcessosTrabalhalistasProvider({ children }: { children: ReactN
 }
 
 export function useProcessosTrabalhistas() {
+  useActivateProvider("ProcessosTrabalhistas");
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useProcessosTrabalhistas must be used within Provider");
   return ctx;

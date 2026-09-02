@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface ContratoAditivo {
   id: string; numero: string; data: string;
@@ -50,8 +51,10 @@ export const useContratosTerceiros = () => useContext(ContratosTerceirosContext)
 const QK = ["contratos_terceiros"] as const;
 
 export function ContratosTerceirosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("ContratosTerceiros");
   const qc = useQueryClient();
   const { data: contratos = [], isLoading: loading, refetch } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("contratos_terceiros", "created_at");

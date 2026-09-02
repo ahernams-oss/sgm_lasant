@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface CategoriaServico {
   id: string;
@@ -19,8 +20,10 @@ const CategoriasServicosContext = createContext<CategoriasServicosContextType | 
 const QK = ["categorias_servicos"] as const;
 
 export function CategoriasServicosProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("CategoriasServicos");
   const qc = useQueryClient();
   const { data: categorias = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("categorias_servicos", "nome")).map((r: any) => ({
       id: r.id, nome: r.nome ?? "", descricao: r.descricao ?? "",
@@ -47,6 +50,7 @@ export function CategoriasServicosProvider({ children }: { children: ReactNode }
 }
 
 export function useCategoriasServicos() {
+  useActivateProvider("CategoriasServicos");
   const ctx = useContext(CategoriasServicosContext);
   if (!ctx) throw new Error("useCategoriasServicos must be used within CategoriasServicosProvider");
   return ctx;

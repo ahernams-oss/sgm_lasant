@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface GrupoCompras { id: string; codigo: string; nome: string; }
 export interface SubGrupoCompras { id: string; grupoId: string; codigo: string; nome: string; }
@@ -28,19 +29,23 @@ const QK_S = ["categorias_compras_subgrupos"] as const;
 const QK_C = ["categorias_compras_classes"] as const;
 
 export function CategoriasComprasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("CategoriasCompras");
   const qc = useQueryClient();
 
   const { data: grupos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_G,
     queryFn: async () => (await fetchAll("categorias_compras_grupos", "codigo")).map((r: any) => ({ id: r.id, codigo: r.codigo ?? "", nome: r.nome ?? "" })),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
   });
   const { data: subGrupos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_S,
     queryFn: async () => (await fetchAll("categorias_compras_subgrupos", "codigo")).map((r: any) => ({ id: r.id, grupoId: r.grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
   });
   const { data: classes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK_C,
     queryFn: async () => (await fetchAll("categorias_compras_classes", "codigo")).map((r: any) => ({ id: r.id, subGrupoId: r.sub_grupo_id ?? "", codigo: r.codigo ?? "", nome: r.nome ?? "" })),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
@@ -140,6 +145,7 @@ export function CategoriasComprasProvider({ children }: { children: ReactNode })
 }
 
 export function useCategoriasCompras() {
+  useActivateProvider("CategoriasCompras");
   const ctx = useContext(CategoriasComprasContext);
   if (!ctx) throw new Error("useCategoriasCompras must be used within CategoriasComprasProvider");
   return ctx;

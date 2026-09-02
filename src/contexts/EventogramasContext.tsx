@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface EventogramaEvento {
   id: string;
@@ -51,8 +52,10 @@ export const useEventogramas = () => useContext(EventogramasContext);
 const QK = ["eventogramas"] as const;
 
 export function EventogramasProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Eventogramas");
   const qc = useQueryClient();
   const { data: eventogramas = [], isLoading: loading } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("eventogramas", "created_at");

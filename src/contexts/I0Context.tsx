@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface I0 { id: string; mes: number; ano: number; codSco: string; valor: number; }
 
@@ -22,8 +23,10 @@ const rowToI0 = (r: any): I0 => ({
 });
 
 export function I0Provider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("I0");
   const qc = useQueryClient();
   const { data: items = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("i0_items")).map(rowToI0),
     staleTime: 5 * 60 * 1000,
@@ -54,6 +57,7 @@ export function I0Provider({ children }: { children: ReactNode }) {
 }
 
 export function useI0() {
+  useActivateProvider("I0");
   const ctx = useContext(I0Context);
   if (!ctx) throw new Error("useI0 must be used within I0Provider");
   return ctx;

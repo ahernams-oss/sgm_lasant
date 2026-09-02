@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface AvaliacaoDesempenho {
   id: string;
@@ -70,9 +71,11 @@ const AvaliacoesDesempenhoContext = createContext<Ctx | undefined>(undefined);
 const QK = ["avaliacoes_desempenho"] as const;
 
 export function AvaliacoesDesempenhoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("AvaliacoesDesempenho");
   const queryClient = useQueryClient();
 
   const { data: avaliacoes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("avaliacoes_desempenho", "data_avaliacao");
@@ -105,6 +108,7 @@ export function AvaliacoesDesempenhoProvider({ children }: { children: ReactNode
 }
 
 export function useAvaliacoesDesempenho() {
+  useActivateProvider("AvaliacoesDesempenho");
   const ctx = useContext(AvaliacoesDesempenhoContext);
   if (!ctx) throw new Error("useAvaliacoesDesempenho must be used within AvaliacoesDesempenhoProvider");
   return ctx;

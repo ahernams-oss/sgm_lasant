@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface Fabricante { id: string; nome: string; }
 
@@ -14,8 +15,10 @@ const FabricantesContext = createContext<FabricantesContextType | undefined>(und
 const QK = ["fabricantes"] as const;
 
 export function FabricantesProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Fabricantes");
   const qc = useQueryClient();
   const { data: fabricantes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("fabricantes", "nome")).map((r: any) => ({ id: r.id, nome: r.nome ?? "" })),
     staleTime: 5 * 60 * 1000,
@@ -35,6 +38,7 @@ export function FabricantesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useFabricantes() {
+  useActivateProvider("Fabricantes");
   const ctx = useContext(FabricantesContext);
   if (!ctx) throw new Error("useFabricantes must be used within FabricantesProvider");
   return ctx;

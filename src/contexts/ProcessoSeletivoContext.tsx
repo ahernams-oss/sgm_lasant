@@ -4,6 +4,7 @@ import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarNotificacaoRP } from "@/lib/notificacaoRP";
 import { toast } from "sonner";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 
 async function notificarEtapaCandidato(requisicaoId: string, candidatoNome: string, evento: string, detalhes?: string) {
@@ -93,9 +94,11 @@ const criandoProcessos = new Set<string>();
 const criandoIds = new Map<string, string>();
 
 export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("ProcessoSeletivo");
   const queryClient = useQueryClient();
 
   const { data: processos = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => {
       const data = await fetchAll("processos_seletivos", "created_at");
@@ -347,6 +350,7 @@ const fallbackCtx: ProcessoSeletivoContextType = {
 };
 
 export function useProcessoSeletivo() {
+  useActivateProvider("ProcessoSeletivo");
   const ctx = useContext(ProcessoSeletivoContext);
   if (!ctx) {
     console.warn("useProcessoSeletivo usado fora do ProcessoSeletivoProvider — usando fallback vazio.");

@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 
 export interface InformacaoFinanceira { id: string; banco: string; agencia: string; conta: string; chavePix: string; }
@@ -144,8 +145,10 @@ const clienteToRow = (c: Omit<Cliente, "id">) => ({
 });
 
 export function ClientesProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Clientes");
   const qc = useQueryClient();
   const { data: clientes = [] } = useQuery({
+    enabled: __active,
     queryKey: QK,
     queryFn: async () => (await fetchAll("clientes", "nome")).map(rowToCliente),
     staleTime: 5 * 60 * 1000,
@@ -211,6 +214,7 @@ export function ClientesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useClientes() {
+  useActivateProvider("Clientes");
   const ctx = useContext(ClientesContext);
   if (!ctx) throw new Error("useClientes must be used within ClientesProvider");
   return ctx;
