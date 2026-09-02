@@ -1,53 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { ReactNode } from "react";
+import { ReactNode, Suspense, lazy } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "@/components/AppLayout";
-import OAuthConsent from "@/pages/OAuthConsent";
 
-import Index from "./pages/Index.tsx";
-import Home from "./pages/Home.tsx";
-import Dashboard from "./pages/Dashboard.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import Clientes from "./pages/Clientes.tsx";
-import TransferenciasSaldoContrato from "./pages/TransferenciasSaldoContrato.tsx";
-import Fornecedores from "./pages/Fornecedores.tsx";
-import Cargos from "./pages/Cargos.tsx";
-import Funcionarios from "./pages/Funcionarios.tsx";
-import MapaFuncionarios from "./pages/MapaFuncionarios.tsx";
-import MapaPlantoes from "./pages/MapaPlantoes.tsx";
-import MapaFerias from "./pages/MapaFerias.tsx";
-import MapaUniformes from "./pages/MapaUniformes.tsx";
-import Usuarios from "./pages/Usuarios.tsx";
-import Login from "./pages/Login.tsx";
-import EsqueciSenha from "./pages/EsqueciSenha.tsx";
-import RedefinirSenha from "./pages/RedefinirSenha.tsx";
-import ProcessoSeletivo from "./pages/ProcessoSeletivo.tsx";
-import ProcessosSeletivos from "./pages/ProcessosSeletivos.tsx";
-import Sco from "./pages/Sco.tsx";
-import I0Page from "./pages/I0.tsx";
-import CategoriasCompras from "./pages/CategoriasCompras.tsx";
-import MateriaisServicos from "./pages/MateriaisServicos.tsx";
-import RequisicaoComprasPage from "./pages/RequisicaoCompras.tsx";
-import DashboardCompras from "./pages/DashboardCompras.tsx";
-import CotacaoComprasPage from "./pages/CotacaoCompras.tsx";
-import PedidoCompraPage from "./pages/PedidoCompra.tsx";
-import InteligenciaComprasPage from "./pages/InteligenciaCompras.tsx";
-import AssinarLotePcPage from "./pages/AssinarLotePc.tsx";
-import AprovarLoteCotacoesPage from "./pages/AprovarLoteCotacoes.tsx";
-import PropostaFornecedorPage from "./pages/PropostaFornecedor.tsx";
-import PortalFornecedorPage from "./pages/PortalFornecedor.tsx";
-import PregaoSalaFornecedorPage from "./pages/portal-fornecedor/PregaoSalaFornecedor.tsx";
-import RecebimentoComprasPage from "./pages/RecebimentoCompras.tsx";
-import EstoquePage from "./pages/Estoque.tsx";
-import RelatoriosEstoquePage from "./pages/RelatoriosEstoque.tsx";
-import PerfisAcessoPage from "./pages/PerfisAcesso.tsx";
-import AuditoriaPage from "./pages/Auditoria.tsx";
-import EmpresaDadosPage from "./pages/EmpresaDados.tsx";
-import BancoPrecosPage from "./pages/BancoPrecos.tsx";
-import Trust from "./pages/Trust.tsx";
 import { CargosProvider } from "@/contexts/CargosContext";
 import { RequisicaoProvider } from "@/contexts/RequisicaoContext";
 import { ClientesProvider } from "@/contexts/ClientesContext";
@@ -73,149 +31,200 @@ import { LicitacoesProvider } from "@/contexts/LicitacoesContext";
 import { MedicoesProvider } from "@/contexts/MedicoesContext";
 import { FerramentasProvider } from "@/contexts/FerramentasContext";
 import { PregaoProvider } from "@/contexts/PregaoContext";
-import PregoesPage from "./pages/pregao/Pregoes.tsx";
-import PregaoFormPage from "./pages/pregao/PregaoForm.tsx";
-import PregaoSalaPage from "./pages/pregao/PregaoSala.tsx";
-import PregaoHabilitacaoPage from "./pages/pregao/PregaoHabilitacao.tsx";
-import PregaoResultadoPage from "./pages/pregao/PregaoResultado.tsx";
-import FabricantesPage from "./pages/Fabricantes.tsx";
-import EpisPage from "./pages/EpisPage.tsx";
-import EpisCatalogoPage from "./pages/EpisCatalogo.tsx";
-import NrsCatalogoPage from "./pages/NrsCatalogo.tsx";
-import ReceberEpis from "./pages/ReceberEpis.tsx";
-import DevolverEpis from "./pages/DevolverEpis.tsx";
-import RelatorioRecebimentoEpis from "./pages/RelatorioRecebimentoEpis.tsx";
-import EpisDevolucoes from "./pages/EpisDevolucoes.tsx";
-import ProntuarioEpis from "./pages/ProntuarioEpis.tsx";
 import { EpisDevolucoesProvider } from "./contexts/EpisDevolucoesContext";
 import { EpisCatalogoProvider } from "@/contexts/EpisCatalogoContext";
 import { NrsCatalogoProvider } from "@/contexts/NrsCatalogoContext";
-import ExamesPage from "./pages/ExamesPage.tsx";
-import UnsubscribePage from "./pages/Unsubscribe.tsx";
-import PortalCandidato from "./pages/PortalCandidato.tsx";
-import SolicitacoesPortalRH from "./pages/rh/SolicitacoesPortal";
 import { PortalAuthProvider } from "@/contexts/PortalAuthContext";
-import PortalLogin from "./pages/portal/PortalLogin";
-import PortalCadastrarSenha from "./pages/portal/PortalCadastrarSenha";
-import PortalEsqueciSenha from "./pages/portal/PortalEsqueciSenha";
-import PortalFuncHome from "./pages/portal/funcionario/PortalFuncHome";
-import PortalHolerites from "./pages/portal/funcionario/PortalHolerites";
-import PortalFuncEpis from "./pages/portal/funcionario/PortalFuncEpis";
-import PortalFuncDocumentos from "./pages/portal/funcionario/PortalFuncDocumentos";
-import PortalPerfil from "./pages/portal/funcionario/PortalPerfil";
-import PortalFuncFerias from "./pages/portal/funcionario/PortalFuncFerias";
-import PortalFuncTreinamentos from "./pages/portal/funcionario/PortalFuncTreinamentos";
-import PortalFuncSolicitacoes from "./pages/portal/funcionario/PortalFuncSolicitacoes";
-import PortalFuncAvisos from "./pages/portal/funcionario/PortalFuncAvisos";
-import PortalCandHome from "./pages/portal/candidato/PortalCandHome";
-import PortalFicha from "./pages/portal/candidato/PortalFicha";
-import PortalCandDocumentos from "./pages/portal/candidato/PortalCandDocumentos";
-import PortalTermos from "./pages/portal/candidato/PortalTermos";
-import PortalAdmissional from "./pages/portal/candidato/PortalAdmissional";
-import EquipamentoPublico from "./pages/EquipamentoPublico.tsx";
-import Instalar from "./pages/Instalar.tsx";
-import OrcamentosMobile from "./pages/mobile/OrcamentosMobile.tsx";
-import InstalarOrcamentos from "./pages/mobile/InstalarOrcamentos.tsx";
 
-import LicitacoesPage from "./pages/Licitacoes.tsx";
-import MedicoesServicosPage from "./pages/MedicoesServicos.tsx";
-import DashboardMedicoesPage from "./pages/DashboardMedicoes.tsx";
-import DashboardSSOSPage from "./pages/DashboardSSOS.tsx";
-import DashboardSolicitacoesPage from "./pages/DashboardSolicitacoes.tsx";
-import FerramentasPage from "./pages/Ferramentas.tsx";
-import EvidenciasPage from "./pages/Evidencias.tsx";
-import ChecklistsPage from "./pages/Checklists.tsx";
 import { EvidenciasProvider } from "@/contexts/EvidenciasContext";
 import { ChecklistsProvider } from "@/contexts/ChecklistsContext";
-import EquipamentosPage from "./pages/Equipamentos.tsx";
 import { EquipamentosProvider } from "@/contexts/EquipamentosContext";
 import { LaudosCondenacaoProvider } from "@/contexts/LaudosCondenacaoContext";
 import { LaudosAssinaturasProvider } from "@/contexts/LaudosAssinaturasContext";
-import PmocPage from "./pages/Pmoc.tsx";
-import PmocGerenciarOperacaoPage from "./pages/PmocGerenciarOperacao.tsx";
 import { PmocProvider } from "@/contexts/PmocContext";
 import { CategoriasServicosProvider } from "@/contexts/CategoriasServicosContext";
 import { ServicosProvider } from "@/contexts/ServicosContext";
 import { OsModelosProvider } from "@/contexts/OsModelosContext";
-import CategoriasServicosPage from "./pages/CategoriasServicosPage.tsx";
-import ServicosPage from "./pages/ServicosPage.tsx";
-import OsModelosPage from "./pages/OsModelos.tsx";
-import SolicitacaoServicosPage from "@/pages/SolicitacaoServicos";
 import { SolicitacoesServicosProvider } from "@/contexts/SolicitacoesServicosContext";
-import OrdensServicoPage from "@/pages/OrdensServico";
-import AprovarLoteSS from "@/pages/AprovarLoteSS";
-import ImportarHolerites from "@/pages/ImportarHolerites";
-import HoleritesProcessados from "@/pages/rh/HoleritesProcessados";
-import Treinamentos from "@/pages/Treinamentos";
 import { OrdensServicoProvider } from "@/contexts/OrdensServicoContext";
 import { OrcamentosProvider } from "@/contexts/OrcamentosContext";
 import { ComunicacaoProvider } from "@/contexts/ComunicacaoContext";
-import ComunicacaoMensagensPage from "./pages/ComunicacaoMensagens";
-import ComunicacaoAvisosPage from "./pages/ComunicacaoAvisos";
-import ComunicacaoNotificacoesPage from "./pages/ComunicacaoNotificacoes";
-import ComunicacaoWhatsappPage from "./pages/ComunicacaoWhatsapp";
-import ComunicacaoGruposWhatsappPage from "./pages/ComunicacaoGruposWhatsapp";
-import JuridicoPage from "./pages/Juridico";
 import { ProcessosTrabalhalistasProvider } from "@/contexts/ProcessosTrabalhistas";
-import ChatDudaPage from "./pages/ChatDuda";
-import RdoPage from "./pages/Rdo.tsx";
 import { RdosProvider } from "@/contexts/RdosContext";
 import { RdoAssinaturasProvider } from "@/contexts/RdoAssinaturasContext";
 import { ObrasProvider } from "@/contexts/ObrasContext";
 import { OsAssinaturasProvider } from "@/contexts/OsAssinaturasContext";
 import { BoletimAssinaturasProvider } from "@/contexts/BoletimAssinaturasContext";
 import { PcAssinaturasProvider } from "@/contexts/PcAssinaturasContext";
-import AssinarLoteOsPage from "./pages/AssinarLoteOs.tsx";
-import ConfirmarLoteOsPage from "./pages/ConfirmarLoteOs.tsx";
-import ValidarLoteOsPage from "./pages/ValidarLoteOs.tsx";
-import FaturarLoteOsPage from "./pages/FaturarLoteOs.tsx";
-import ImprimirLoteOsPage from "./pages/ImprimirLoteOs.tsx";
-import VerificarAssinaturaPage from "./pages/VerificarAssinatura.tsx";
-import ResponsaveisTecnicosPage from "./pages/ResponsaveisTecnicos.tsx";
 import { ResponsaveisTecnicosProvider } from "@/contexts/ResponsaveisTecnicosContext";
 import { PlanosManutencaoProvider } from "@/contexts/PlanosManutencaoContext";
-import PlanoManutencaoPage from "./pages/PlanoManutencao.tsx";
 import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
-import BaseConhecimentoPage from "./pages/BaseConhecimento.tsx";
-import MonitorTV from "./pages/MonitorTV.tsx";
-import CronogramaPage from "./pages/Cronograma.tsx";
-import BimPage from "./pages/Bim.tsx";
-import ContratosTerceirosPage from "./pages/ContratosTerceiros.tsx";
 import { BimProvider } from "@/contexts/BimContext";
 import { CronogramasProvider } from "@/contexts/CronogramasContext";
-import EventogramaPage from "./pages/Eventograma.tsx";
-import BoletimMedicaoPage from "./pages/BoletimMedicao.tsx";
 import { BoletinsMedicaoProvider } from "@/contexts/BoletinsMedicaoContext";
 import { EventogramasProvider } from "@/contexts/EventogramasContext";
 import { OrcamentosScoProvider } from "@/contexts/OrcamentosScoContext";
-import OrcamentosSco from "./pages/OrcamentosSco.tsx";
-import OrcamentoScoForm from "./pages/OrcamentoScoForm.tsx";
-import ImportarCatalogoSco from "./pages/ImportarCatalogoSco.tsx";
-import CatalogoSco from "./pages/CatalogoSco.tsx";
-import AvaliacoesDesempenhoPage from "./pages/AvaliacoesDesempenho.tsx";
 import { FinanceiroProvider } from "@/contexts/FinanceiroContext";
-import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro.tsx";
-import ContasPagar from "./pages/financeiro/ContasPagar.tsx";
-import ContasReceber from "./pages/financeiro/ContasReceber.tsx";
-import ContasBancarias from "./pages/financeiro/ContasBancarias.tsx";
-import PlanoContas from "./pages/financeiro/PlanoContas.tsx";
-import CentrosCusto from "./pages/financeiro/CentrosCusto.tsx";
-import FluxoCaixa from "./pages/financeiro/FluxoCaixa.tsx";
-import Dre from "./pages/financeiro/Dre.tsx";
-import Conciliacao from "./pages/financeiro/Conciliacao.tsx";
-import Lancamentos from "./pages/financeiro/Lancamentos.tsx";
-import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros.tsx";
-import CondicoesPagamento from "./pages/financeiro/CondicoesPagamento.tsx";
-import NfesRecebidas from "./pages/financeiro/NfesRecebidas.tsx";
-import NfseEmitir from "./pages/financeiro/NfseEmitir.tsx";
-import Faturamentos from "./pages/financeiro/Faturamentos.tsx";
 import { NfsesProvider } from "@/contexts/NfsesContext";
-import RelatoriosGerenciais from "./pages/gerencial/RelatoriosGerenciais.tsx";
-import RelatoriosMultidimensional from "./pages/gerencial/RelatoriosMultidimensional.tsx";
-import DashboardMultisistemico from "./pages/gerencial/DashboardMultisistemico.tsx";
-import PainelFaturamentoClientes from "./pages/gerencial/PainelFaturamentoClientes.tsx";
-import MapaClientes from "./pages/gerencial/MapaClientes.tsx";
 import { RotaProtegida } from "@/components/RotaProtegida";
+const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
+const Index = lazy(() => import("./pages/Index.tsx"));
+const Home = lazy(() => import("./pages/Home.tsx"));
+const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const Clientes = lazy(() => import("./pages/Clientes.tsx"));
+const TransferenciasSaldoContrato = lazy(() => import("./pages/TransferenciasSaldoContrato.tsx"));
+const Fornecedores = lazy(() => import("./pages/Fornecedores.tsx"));
+const Cargos = lazy(() => import("./pages/Cargos.tsx"));
+const Funcionarios = lazy(() => import("./pages/Funcionarios.tsx"));
+const MapaFuncionarios = lazy(() => import("./pages/MapaFuncionarios.tsx"));
+const MapaPlantoes = lazy(() => import("./pages/MapaPlantoes.tsx"));
+const MapaFerias = lazy(() => import("./pages/MapaFerias.tsx"));
+const MapaUniformes = lazy(() => import("./pages/MapaUniformes.tsx"));
+const Usuarios = lazy(() => import("./pages/Usuarios.tsx"));
+const Login = lazy(() => import("./pages/Login.tsx"));
+const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha.tsx"));
+const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha.tsx"));
+const ProcessoSeletivo = lazy(() => import("./pages/ProcessoSeletivo.tsx"));
+const ProcessosSeletivos = lazy(() => import("./pages/ProcessosSeletivos.tsx"));
+const Sco = lazy(() => import("./pages/Sco.tsx"));
+const I0Page = lazy(() => import("./pages/I0.tsx"));
+const CategoriasCompras = lazy(() => import("./pages/CategoriasCompras.tsx"));
+const MateriaisServicos = lazy(() => import("./pages/MateriaisServicos.tsx"));
+const RequisicaoComprasPage = lazy(() => import("./pages/RequisicaoCompras.tsx"));
+const DashboardCompras = lazy(() => import("./pages/DashboardCompras.tsx"));
+const CotacaoComprasPage = lazy(() => import("./pages/CotacaoCompras.tsx"));
+const PedidoCompraPage = lazy(() => import("./pages/PedidoCompra.tsx"));
+const InteligenciaComprasPage = lazy(() => import("./pages/InteligenciaCompras.tsx"));
+const AssinarLotePcPage = lazy(() => import("./pages/AssinarLotePc.tsx"));
+const AprovarLoteCotacoesPage = lazy(() => import("./pages/AprovarLoteCotacoes.tsx"));
+const PropostaFornecedorPage = lazy(() => import("./pages/PropostaFornecedor.tsx"));
+const PortalFornecedorPage = lazy(() => import("./pages/PortalFornecedor.tsx"));
+const PregaoSalaFornecedorPage = lazy(() => import("./pages/portal-fornecedor/PregaoSalaFornecedor.tsx"));
+const RecebimentoComprasPage = lazy(() => import("./pages/RecebimentoCompras.tsx"));
+const EstoquePage = lazy(() => import("./pages/Estoque.tsx"));
+const RelatoriosEstoquePage = lazy(() => import("./pages/RelatoriosEstoque.tsx"));
+const PerfisAcessoPage = lazy(() => import("./pages/PerfisAcesso.tsx"));
+const AuditoriaPage = lazy(() => import("./pages/Auditoria.tsx"));
+const EmpresaDadosPage = lazy(() => import("./pages/EmpresaDados.tsx"));
+const BancoPrecosPage = lazy(() => import("./pages/BancoPrecos.tsx"));
+const Trust = lazy(() => import("./pages/Trust.tsx"));
+const PregoesPage = lazy(() => import("./pages/pregao/Pregoes.tsx"));
+const PregaoFormPage = lazy(() => import("./pages/pregao/PregaoForm.tsx"));
+const PregaoSalaPage = lazy(() => import("./pages/pregao/PregaoSala.tsx"));
+const PregaoHabilitacaoPage = lazy(() => import("./pages/pregao/PregaoHabilitacao.tsx"));
+const PregaoResultadoPage = lazy(() => import("./pages/pregao/PregaoResultado.tsx"));
+const FabricantesPage = lazy(() => import("./pages/Fabricantes.tsx"));
+const EpisPage = lazy(() => import("./pages/EpisPage.tsx"));
+const EpisCatalogoPage = lazy(() => import("./pages/EpisCatalogo.tsx"));
+const NrsCatalogoPage = lazy(() => import("./pages/NrsCatalogo.tsx"));
+const ReceberEpis = lazy(() => import("./pages/ReceberEpis.tsx"));
+const DevolverEpis = lazy(() => import("./pages/DevolverEpis.tsx"));
+const RelatorioRecebimentoEpis = lazy(() => import("./pages/RelatorioRecebimentoEpis.tsx"));
+const EpisDevolucoes = lazy(() => import("./pages/EpisDevolucoes.tsx"));
+const ProntuarioEpis = lazy(() => import("./pages/ProntuarioEpis.tsx"));
+const ExamesPage = lazy(() => import("./pages/ExamesPage.tsx"));
+const UnsubscribePage = lazy(() => import("./pages/Unsubscribe.tsx"));
+const PortalCandidato = lazy(() => import("./pages/PortalCandidato.tsx"));
+const SolicitacoesPortalRH = lazy(() => import("./pages/rh/SolicitacoesPortal"));
+const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
+const PortalCadastrarSenha = lazy(() => import("./pages/portal/PortalCadastrarSenha"));
+const PortalEsqueciSenha = lazy(() => import("./pages/portal/PortalEsqueciSenha"));
+const PortalFuncHome = lazy(() => import("./pages/portal/funcionario/PortalFuncHome"));
+const PortalHolerites = lazy(() => import("./pages/portal/funcionario/PortalHolerites"));
+const PortalFuncEpis = lazy(() => import("./pages/portal/funcionario/PortalFuncEpis"));
+const PortalFuncDocumentos = lazy(() => import("./pages/portal/funcionario/PortalFuncDocumentos"));
+const PortalPerfil = lazy(() => import("./pages/portal/funcionario/PortalPerfil"));
+const PortalFuncFerias = lazy(() => import("./pages/portal/funcionario/PortalFuncFerias"));
+const PortalFuncTreinamentos = lazy(() => import("./pages/portal/funcionario/PortalFuncTreinamentos"));
+const PortalFuncSolicitacoes = lazy(() => import("./pages/portal/funcionario/PortalFuncSolicitacoes"));
+const PortalFuncAvisos = lazy(() => import("./pages/portal/funcionario/PortalFuncAvisos"));
+const PortalCandHome = lazy(() => import("./pages/portal/candidato/PortalCandHome"));
+const PortalFicha = lazy(() => import("./pages/portal/candidato/PortalFicha"));
+const PortalCandDocumentos = lazy(() => import("./pages/portal/candidato/PortalCandDocumentos"));
+const PortalTermos = lazy(() => import("./pages/portal/candidato/PortalTermos"));
+const PortalAdmissional = lazy(() => import("./pages/portal/candidato/PortalAdmissional"));
+const EquipamentoPublico = lazy(() => import("./pages/EquipamentoPublico.tsx"));
+const Instalar = lazy(() => import("./pages/Instalar.tsx"));
+const OrcamentosMobile = lazy(() => import("./pages/mobile/OrcamentosMobile.tsx"));
+const InstalarOrcamentos = lazy(() => import("./pages/mobile/InstalarOrcamentos.tsx"));
+const LicitacoesPage = lazy(() => import("./pages/Licitacoes.tsx"));
+const MedicoesServicosPage = lazy(() => import("./pages/MedicoesServicos.tsx"));
+const DashboardMedicoesPage = lazy(() => import("./pages/DashboardMedicoes.tsx"));
+const DashboardSSOSPage = lazy(() => import("./pages/DashboardSSOS.tsx"));
+const DashboardSolicitacoesPage = lazy(() => import("./pages/DashboardSolicitacoes.tsx"));
+const FerramentasPage = lazy(() => import("./pages/Ferramentas.tsx"));
+const EvidenciasPage = lazy(() => import("./pages/Evidencias.tsx"));
+const ChecklistsPage = lazy(() => import("./pages/Checklists.tsx"));
+const EquipamentosPage = lazy(() => import("./pages/Equipamentos.tsx"));
+const PmocPage = lazy(() => import("./pages/Pmoc.tsx"));
+const PmocGerenciarOperacaoPage = lazy(() => import("./pages/PmocGerenciarOperacao.tsx"));
+const CategoriasServicosPage = lazy(() => import("./pages/CategoriasServicosPage.tsx"));
+const ServicosPage = lazy(() => import("./pages/ServicosPage.tsx"));
+const OsModelosPage = lazy(() => import("./pages/OsModelos.tsx"));
+const SolicitacaoServicosPage = lazy(() => import("@/pages/SolicitacaoServicos"));
+const OrdensServicoPage = lazy(() => import("@/pages/OrdensServico"));
+const AprovarLoteSS = lazy(() => import("@/pages/AprovarLoteSS"));
+const ImportarHolerites = lazy(() => import("@/pages/ImportarHolerites"));
+const HoleritesProcessados = lazy(() => import("@/pages/rh/HoleritesProcessados"));
+const Treinamentos = lazy(() => import("@/pages/Treinamentos"));
+const ComunicacaoMensagensPage = lazy(() => import("./pages/ComunicacaoMensagens"));
+const ComunicacaoAvisosPage = lazy(() => import("./pages/ComunicacaoAvisos"));
+const ComunicacaoNotificacoesPage = lazy(() => import("./pages/ComunicacaoNotificacoes"));
+const ComunicacaoWhatsappPage = lazy(() => import("./pages/ComunicacaoWhatsapp"));
+const ComunicacaoGruposWhatsappPage = lazy(() => import("./pages/ComunicacaoGruposWhatsapp"));
+const JuridicoPage = lazy(() => import("./pages/Juridico"));
+const ChatDudaPage = lazy(() => import("./pages/ChatDuda"));
+const RdoPage = lazy(() => import("./pages/Rdo.tsx"));
+const AssinarLoteOsPage = lazy(() => import("./pages/AssinarLoteOs.tsx"));
+const ConfirmarLoteOsPage = lazy(() => import("./pages/ConfirmarLoteOs.tsx"));
+const ValidarLoteOsPage = lazy(() => import("./pages/ValidarLoteOs.tsx"));
+const FaturarLoteOsPage = lazy(() => import("./pages/FaturarLoteOs.tsx"));
+const ImprimirLoteOsPage = lazy(() => import("./pages/ImprimirLoteOs.tsx"));
+const VerificarAssinaturaPage = lazy(() => import("./pages/VerificarAssinatura.tsx"));
+const ResponsaveisTecnicosPage = lazy(() => import("./pages/ResponsaveisTecnicos.tsx"));
+const PlanoManutencaoPage = lazy(() => import("./pages/PlanoManutencao.tsx"));
+const BaseConhecimentoPage = lazy(() => import("./pages/BaseConhecimento.tsx"));
+const MonitorTV = lazy(() => import("./pages/MonitorTV.tsx"));
+const CronogramaPage = lazy(() => import("./pages/Cronograma.tsx"));
+const BimPage = lazy(() => import("./pages/Bim.tsx"));
+const ContratosTerceirosPage = lazy(() => import("./pages/ContratosTerceiros.tsx"));
+const EventogramaPage = lazy(() => import("./pages/Eventograma.tsx"));
+const BoletimMedicaoPage = lazy(() => import("./pages/BoletimMedicao.tsx"));
+const OrcamentosSco = lazy(() => import("./pages/OrcamentosSco.tsx"));
+const OrcamentoScoForm = lazy(() => import("./pages/OrcamentoScoForm.tsx"));
+const ImportarCatalogoSco = lazy(() => import("./pages/ImportarCatalogoSco.tsx"));
+const CatalogoSco = lazy(() => import("./pages/CatalogoSco.tsx"));
+const AvaliacoesDesempenhoPage = lazy(() => import("./pages/AvaliacoesDesempenho.tsx"));
+const DashboardFinanceiro = lazy(() => import("./pages/financeiro/DashboardFinanceiro.tsx"));
+const ContasPagar = lazy(() => import("./pages/financeiro/ContasPagar.tsx"));
+const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber.tsx"));
+const ContasBancarias = lazy(() => import("./pages/financeiro/ContasBancarias.tsx"));
+const PlanoContas = lazy(() => import("./pages/financeiro/PlanoContas.tsx"));
+const CentrosCusto = lazy(() => import("./pages/financeiro/CentrosCusto.tsx"));
+const FluxoCaixa = lazy(() => import("./pages/financeiro/FluxoCaixa.tsx"));
+const Dre = lazy(() => import("./pages/financeiro/Dre.tsx"));
+const Conciliacao = lazy(() => import("./pages/financeiro/Conciliacao.tsx"));
+const Lancamentos = lazy(() => import("./pages/financeiro/Lancamentos.tsx"));
+const RelatoriosFinanceiros = lazy(() => import("./pages/financeiro/RelatoriosFinanceiros.tsx"));
+const CondicoesPagamento = lazy(() => import("./pages/financeiro/CondicoesPagamento.tsx"));
+const NfesRecebidas = lazy(() => import("./pages/financeiro/NfesRecebidas.tsx"));
+const NfseEmitir = lazy(() => import("./pages/financeiro/NfseEmitir.tsx"));
+const Faturamentos = lazy(() => import("./pages/financeiro/Faturamentos.tsx"));
+const RelatoriosGerenciais = lazy(() => import("./pages/gerencial/RelatoriosGerenciais.tsx"));
+const RelatoriosMultidimensional = lazy(() => import("./pages/gerencial/RelatoriosMultidimensional.tsx"));
+const DashboardMultisistemico = lazy(() => import("./pages/gerencial/DashboardMultisistemico.tsx"));
+const PainelFaturamentoClientes = lazy(() => import("./pages/gerencial/PainelFaturamentoClientes.tsx"));
+const MapaClientes = lazy(() => import("./pages/gerencial/MapaClientes.tsx"));
+
+function PageLoader() {
+  return (
+    <div className="flex h-[60vh] w-full items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -235,7 +244,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function ProtectedAppRoutes() {
   return (
     <AppLayout>
-      <Routes>
+      <Suspense fallback={<PageLoader />}><Routes>
         <Route path="/" element={<Home />} />
         <Route path="/trust" element={<Trust />} />
         <Route path="/requisicao-pessoal" element={<RotaProtegida perm="requisicao_colaboradores"><Index /></RotaProtegida>} />
@@ -520,7 +529,7 @@ function ProtectedAppRoutes() {
         />
 
         <Route path="*" element={<NotFound />} />
-      </Routes>
+      </Routes></Suspense>
     </AppLayout>
   );
 }
@@ -529,7 +538,7 @@ function AppRoutes() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Routes>
+    <Suspense fallback={<PageLoader />}><Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/esqueci-senha" element={<EsqueciSenha />} />
       <Route path="/redefinir-senha" element={<RedefinirSenha />} />
@@ -541,7 +550,7 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
-    </Routes>
+    </Routes></Suspense>
   );
 }
 
@@ -606,7 +615,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
+        <Suspense fallback={<PageLoader />}><Routes>
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/cotacao/proposta/:token" element={<PropostaFornecedorPage />} />
 
@@ -669,7 +678,7 @@ const App = () => (
             }
           />
           <Route path="/*" element={<AppRoutes />} />
-        </Routes>
+        </Routes></Suspense>
       </BrowserRouter>
     </TooltipProvider>
     </PortalAuthProvider>
