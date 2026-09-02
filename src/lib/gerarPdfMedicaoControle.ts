@@ -55,7 +55,7 @@ const PADRAO: Array<[string, string]> = [
   ["PCI", "PCI - PROTEÇÃO CONTRA INCÊNDIO"],
 ];
 
-function renderPagina(
+async function renderPagina(
   doc: jsPDF,
   titulo: string,
   cliente: Cliente,

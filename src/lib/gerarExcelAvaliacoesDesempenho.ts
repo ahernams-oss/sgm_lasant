@@ -7,7 +7,7 @@ const PONTUACAO_MAXIMA = QUESITOS_AVALIACAO.length * 10;
 const fmtData = (d: string) =>
   d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "";
 
-export function gerarExcelAvaliacoesDesempenho(
+exportasync function gerarExcelAvaliacoesDesempenho(
   avaliacoes: AvaliacaoDesempenho[],
   funcMap: Record<string, string>,
 ) {

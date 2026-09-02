@@ -226,7 +226,7 @@ function calcLinhaMem(tipo: string, l: any): number {
 
 
 /** Renderiza a memória de cálculo (grupos) em tabelas. */
-function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
+async function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   let y = startY;

@@ -245,7 +245,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
     };
   };
 
-  const exportar = (formato: "pdf" | "excel") => {
+  const exportar = async (formato: "pdf" | "excel") => {
     const { titulo, columns, rows, orientation } = buildData();
     if (rows.length === 0) { toast.error("Nenhum dado para exportar com os filtros selecionados."); return; }
 
