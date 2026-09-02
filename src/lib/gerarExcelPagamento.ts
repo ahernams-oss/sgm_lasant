@@ -1,7 +1,9 @@
-import * as XLSX from "xlsx";
 import type { MedicaoServico } from "@/contexts/MedicoesContext";
 import type { Cliente } from "@/contexts/ClientesContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 interface ExportRow {
   chavePix: string;
@@ -54,7 +56,7 @@ export function downloadExcelPagamento(
 ) {
   const rows = buildRows(medicoesSelecionadas, fornecedores, empresa);
 
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
 
   // Sheet 1 – Transferencias Chave PIX
   const pixData = rows.map((r) => ({
@@ -68,8 +70,8 @@ export function downloadExcelPagamento(
     "Agência de Origem": r.agenciaOrigem,
     "Conta de Origem": r.contaOrigem,
   }));
-  const ws1 = XLSX.utils.json_to_sheet(pixData);
-  XLSX.utils.book_append_sheet(wb, ws1, "Transferencias Chave PIX");
+  const ws1 = (await getXLSX()).utils.json_to_sheet(pixData);
+  (await getXLSX()).utils.book_append_sheet(wb, ws1, "Transferencias Chave PIX");
 
   // Sheet 2 – Transferencias Dados da Conta
   const contaData = rows.map((r) => {
@@ -93,11 +95,11 @@ export function downloadExcelPagamento(
       "Conta de Origem": r.contaOrigem,
     };
   });
-  const ws2 = XLSX.utils.json_to_sheet(contaData);
-  XLSX.utils.book_append_sheet(wb, ws2, "Transferencias Dados da Conta");
+  const ws2 = (await getXLSX()).utils.json_to_sheet(contaData);
+  (await getXLSX()).utils.book_append_sheet(wb, ws2, "Transferencias Dados da Conta");
 
   // Sheet 3 – Pagamentos Boletos e Tributos (empty template)
-  const ws3 = XLSX.utils.aoa_to_sheet([
+  const ws3 = (await getXLSX()).utils.aoa_to_sheet([
     [
       "Código de Barras",
       "Valor",
@@ -107,7 +109,7 @@ export function downloadExcelPagamento(
       "Conta de Origem",
     ],
   ]);
-  XLSX.utils.book_append_sheet(wb, ws3, "Pagamentos Boletos e Tributos");
+  (await getXLSX()).utils.book_append_sheet(wb, ws3, "Pagamentos Boletos e Tributos");
 
-  XLSX.writeFile(wb, "Consolidado_Pagamentos.xlsx");
+  (await getXLSX()).writeFile(wb, "Consolidado_Pagamentos.xlsx");
 }

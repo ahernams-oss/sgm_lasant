@@ -1,8 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import type { LaudoCondenacao, FotoLaudo } from "@/contexts/LaudosCondenacaoContext";
 import type { LaudoAssinatura } from "@/contexts/LaudosAssinaturasContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmtDate = (d: string) => {
   if (!d) return "";
@@ -154,7 +156,7 @@ export async function gerarPdfLaudoCondenacao(
   empresa?: EmpresaTimbrado,
   assinatura?: LaudoAssinatura,
 ) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const logo = await loadLogo(empresa?.logoUrl);
@@ -197,7 +199,7 @@ export async function gerarPdfLaudoCondenacao(
 
   // 1. Identificação
   sectionTitle("1. IDENTIFICAÇÃO DO EQUIPAMENTO");
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 1.5 },
@@ -262,7 +264,7 @@ export async function gerarPdfLaudoCondenacao(
     ? (laudo.custo_reparo / laudo.valor_novo_equivalente) * 100
     : 0;
   const viavel = pct > 0 && pct < 50 ? "economicamente viável" : "economicamente inviável";
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 1.5 },

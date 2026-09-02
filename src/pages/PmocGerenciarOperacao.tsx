@@ -25,9 +25,6 @@ import {
   Search, Wrench, CheckCircle2, ArrowLeft, CalendarClock, X,
   Clock, ShieldCheck, XCircle, FileText, FileSpreadsheet, Camera, ImagePlus, Trash2,
 } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import {
   gerarPdfPmocInformacoes,
   gerarPdfPmocManutencoesFotos,
@@ -36,6 +33,12 @@ import {
   rodape,
   getLogo,
 } from "@/lib/gerarPdfPmocEquipamento";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 
 const PERIODICIDADE_ORDEM = ["Diária", "Semanal", "Quinzenal", "Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"];
@@ -903,11 +906,11 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     const rows = buildRows();
     if (rows.length === 0) return;
     const logo = await getLogo();
-    const doc = new jsPDF({ orientation: "l" });
+    const doc = new (await getJsPDF())({ orientation: "l" });
     const pw = doc.internal.pageSize.getWidth();
     await drawHeader(doc, pw, logo, "PMOC — Histórico de Execuções", `Total: ${rows.length} registro(s)${filtrosLabel ? " | " + filtrosLabel : ""}`);
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 34,
       head: [columns],
       body: rows,
@@ -928,11 +931,11 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
       columns.forEach((c, i) => { o[c] = r[i] || ""; });
       return o;
     });
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = (await getXLSX()).utils.json_to_sheet(data);
     ws["!cols"] = columns.map(() => ({ wch: 22 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Histórico");
-    XLSX.writeFile(wb, `historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "Histórico");
+    (await getXLSX()).writeFile(wb, `historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (

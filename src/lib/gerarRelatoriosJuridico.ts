@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 const fmtBRL = (v: number) =>
   (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -25,7 +28,7 @@ interface ReportInput {
 
 function basePdf(r: ReportInput) {
   const orient = r.colunas.length > 6 ? "landscape" : "portrait";
-  const doc = new jsPDF({ orientation: orient });
+  const doc = new (await getJsPDF())({ orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -50,7 +53,7 @@ function basePdf(r: ReportInput) {
   doc.setFontSize(10);
   doc.text(`Total de registros: ${r.linhas.length}`, 14, 36);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 42,
     head: [r.colunas],
     body: r.linhas.map((row) => row.map((c) => (c == null ? "" : String(c)))),
@@ -83,22 +86,22 @@ function basePdf(r: ReportInput) {
 }
 
 function baseExcel(r: ReportInput) {
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
   const data = r.linhas.map((row) => {
     const o: Record<string, any> = {};
     r.colunas.forEach((c, i) => { o[c] = row[i] ?? ""; });
     return o;
   });
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = (await getXLSX()).utils.json_to_sheet(data);
   ws["!cols"] = r.colunas.map(() => ({ wch: 22 }));
   if (r.totais && r.totais.length) {
-    XLSX.utils.sheet_add_aoa(ws, [[]], { origin: -1 });
+    (await getXLSX()).utils.sheet_add_aoa(ws, [[]], { origin: -1 });
     r.totais.forEach((t) => {
-      XLSX.utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
+      (await getXLSX()).utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
     });
   }
-  XLSX.utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
-  XLSX.writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
+  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
 }
 
 // ===================== PROCESSOS =====================

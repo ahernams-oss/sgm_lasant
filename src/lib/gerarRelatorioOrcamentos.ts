@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 const WHITE: [number, number, number] = [255, 255, 255];
@@ -201,7 +203,7 @@ function drawKpis(doc: jsPDF, y: number, kpis: RelatorioOrcamentosData["kpis"]):
 
 // -------- Main PDF --------
 export function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData): jsPDF {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ orientation: "portrait", unit: "mm", format: "a4" });
   addHeader(doc, data.empresa);
 
   // Filters block
@@ -252,7 +254,7 @@ export function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData): jsPD
   y = Math.max(y3, y4) + 6;
 
   // Table: Category totals
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Categoria", "Qtd", "Valor Total"]],
     body: data.porCategoria.map((c) => [c.name, String(c.qtd), fmtBRL(c.valor)]),
@@ -264,7 +266,7 @@ export function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData): jsPD
   });
 
   // Table: Orçamentista totals
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: (doc as any).lastAutoTable.finalY + 4,
     head: [["Orçamentista", "Qtd", "Valor Total"]],
     body: data.porOrcamentista.map((o) => [o.name, String(o.qtd), fmtBRL(o.valor)]),
@@ -278,7 +280,7 @@ export function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData): jsPD
   // Detailed list (new page)
   doc.addPage();
   addHeader(doc, data.empresa);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 44,
     head: [["N°", "Unidade", "Data", "Categoria", "Valor", "Orçamentista", "Status"]],
     body: data.lista.map((l) => [

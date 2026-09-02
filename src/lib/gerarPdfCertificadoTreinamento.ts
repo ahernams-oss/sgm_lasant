@@ -1,5 +1,7 @@
-import jsPDF from "jspdf";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
 export interface CertificadoTreinamentoDados {
   funcionario: string;
   cpf: string;
@@ -57,7 +59,7 @@ export async function gerarPdfCertificadoTreinamento(
   dados: CertificadoTreinamentoDados,
   empresa?: EmpresaCertificado,
 ): Promise<jsPDF> {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 

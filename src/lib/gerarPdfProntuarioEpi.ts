@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 export interface ProntuarioEvento {
   data: string;
   tipo: "Entrega" | "Devolução";
@@ -51,7 +53,7 @@ async function loadImage(url: string): Promise<string | null> {
 }
 
 export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
 
   const logo = await loadImage("/Logo_Lasant.png");
@@ -88,7 +90,7 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
   doc.text("EPIs em posse do funcionário", 12, y);
   y += 2;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["EPI", "CA", "Qtd", "Entrega", "Vencimento"]],
     body: d.emAberto.length
@@ -104,7 +106,7 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
   doc.setFontSize(10);
   doc.text("Histórico contínuo (entregas e recolhimentos)", 12, y);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y + 2,
     head: [["Data", "Movimento", "EPI", "CA", "Qtd", "Detalhes"]],
     body: d.eventos.length

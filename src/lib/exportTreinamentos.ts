@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 export interface TreinamentoExportRow {
   funcionario: string;
   cpf: string;
@@ -37,7 +39,7 @@ export function exportarTreinamentosCsv(rows: TreinamentoExportRow[], contexto?:
 }
 
 export function exportarTreinamentosPdf(rows: TreinamentoExportRow[], contexto?: string) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(...DARK_BLUE);
@@ -51,7 +53,7 @@ export function exportarTreinamentosPdf(rows: TreinamentoExportRow[], contexto?:
   doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 20);
   if (contexto) doc.text(contexto, 14, 25);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 36,
     head: [HEAD],
     body: rows.map(toArray),

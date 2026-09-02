@@ -1,12 +1,14 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { MedicaoServico } from "@/contexts/MedicoesContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: string): jsPDF {
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
 
   // Header
@@ -49,7 +51,7 @@ export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: strin
   doc.text("Resumo por Status", 14, y);
   y += 3;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Status", "Qtd", "Valor Contratado", "Valor Medido"]],
     body: Object.entries(statusCounts).map(([s, v]) => [
@@ -72,7 +74,7 @@ export function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: strin
   doc.text("Lista Detalhada das Medições", 14, y);
   y += 3;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Nº", "Cliente / Obra", "Fornecedor", "Contrato", "Descrição", "Status", "Contratado", "Medido", "% Exec.", "Data Pgto"]],
     body: medicoes.map((m) => [

@@ -1,5 +1,7 @@
-import jsPDF from "jspdf";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
 export interface HoleriteDados {
   competenciaMes?: number | null;
   competenciaAno?: number | null;
@@ -226,7 +228,7 @@ function desenharHolerite(doc: jsPDF, d: HoleriteDados, empresa?: EmpresaHolerit
 
 export function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
   const lista = Array.isArray(dados) ? dados : [dados];
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   lista.forEach((d, i) => {
     if (i > 0) doc.addPage();
     desenharHolerite(doc, d, empresa, 15);

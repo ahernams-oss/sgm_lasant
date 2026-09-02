@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { BoletimMedicao, BoletimMedicaoFrente } from "@/contexts/BoletinsMedicaoContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK: [number, number, number] = [30, 30, 30];
 
@@ -105,7 +107,7 @@ function desenharBloco(doc: jsPDF, bloco: Bloco, startY: number, ml: number, cw:
     { content: fmtPct(pct(saldo)), styles: { fontStyle: "bold" } },
   ]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY,
     margin: { left: ml, right: ml },
     tableWidth: cw,
@@ -148,7 +150,7 @@ export async function gerarPdfBoletimMedicao(
   empresa?: Empresa,
   assinaturas: AssinaturaBoletimPdf[] = [],
 ) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;

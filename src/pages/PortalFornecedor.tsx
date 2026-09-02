@@ -17,11 +17,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LogOut, FileText, ShoppingCart, AlertCircle, Building2, FileDown, FileSpreadsheet, KeyRound, LayoutDashboard, Clock, CheckCircle2, Truck, XCircle, PackageCheck, ChevronDown, ChevronRight, FilterX, Gavel, ExternalLink } from "lucide-react";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import logoLasant from "@/assets/Logo_Lasant.png";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 
 const STORAGE_KEY = "fornecedorPortalLogado";
@@ -570,7 +573,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   };
 
   const exportCotacoesPdf = () => {
-    const doc = new jsPDF();
+    const doc = new (await getJsPDF())();
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 24, "F");
@@ -581,7 +584,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     doc.text(session.nome, 14, 18);
     doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 18, { align: "right" });
     doc.setTextColor(30, 30, 30);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 30,
       head: [["Cotação", "Comprador", "Recebida em", "Validade", "Status"]],
       body: convitesFiltrados.map((c) => [
@@ -606,7 +609,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       doc.setTextColor(30, 30, 30);
       doc.setFontSize(8); doc.setFont("helvetica", "normal");
       doc.text(`Comprador: ${c.comprador}    |    Status: ${statusCotacao(c)}    |    Validade: ${fmtDate(c.expires_at)}`, 14, 24);
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: 30,
         head: [["#", "Descrição", "Qtd", "Unidade"]],
         body: itens.map((it: any, i: number) => [
@@ -626,8 +629,8 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   };
 
   const exportCotacoesExcel = () => {
-    const wb = XLSX.utils.book_new();
-    const wsResumo = XLSX.utils.json_to_sheet(convitesFiltrados.map((c) => ({
+    const wb = (await getXLSX()).utils.book_new();
+    const wsResumo = (await getXLSX()).utils.json_to_sheet(convitesFiltrados.map((c) => ({
       "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
       "Comprador": c.comprador,
       "Recebida em": fmtDate(c.created_at),
@@ -636,7 +639,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       "Qtd Itens": parseItens(c.itens).length,
     })));
     wsResumo["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 10 }];
-    XLSX.utils.book_append_sheet(wb, wsResumo, "Cotações");
+    (await getXLSX()).utils.book_append_sheet(wb, wsResumo, "Cotações");
 
     const linhas: any[] = [];
     convitesFiltrados.forEach((c) => {
@@ -653,15 +656,15 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       });
     });
     if (linhas.length > 0) {
-      const wsItens = XLSX.utils.json_to_sheet(linhas);
+      const wsItens = (await getXLSX()).utils.json_to_sheet(linhas);
       wsItens["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 6 }, { wch: 40 }, { wch: 12 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+      (await getXLSX()).utils.book_append_sheet(wb, wsItens, "Itens");
     }
-    XLSX.writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`);
+    (await getXLSX()).writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`);
   };
 
   const exportPedidosPdf = () => {
-    const doc = new jsPDF({ orientation: "landscape" });
+    const doc = new (await getJsPDF())({ orientation: "landscape" });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 24, "F");
@@ -672,7 +675,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     doc.text(session.nome, 14, 18);
     doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw - 14, 18, { align: "right" });
     doc.setTextColor(30, 30, 30);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 30,
       head: [["Pedido", "Data", "Comprador", "Status", "Pagamento", "Prazo", "Local", "Valor Total"]],
       body: pedidosFiltrados.map((p) => [
@@ -690,8 +693,8 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   };
 
   const exportPedidosExcel = () => {
-    const wb = XLSX.utils.book_new();
-    const wsResumo = XLSX.utils.json_to_sheet(pedidosFiltrados.map((p) => ({
+    const wb = (await getXLSX()).utils.book_new();
+    const wsResumo = (await getXLSX()).utils.json_to_sheet(pedidosFiltrados.map((p) => ({
       "Pedido": `OC-${String(p.numero).padStart(4, "0")}`,
       "Data": fmtDate(p.data_criacao),
       "Comprador": p.comprador,
@@ -702,7 +705,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       "Valor Total": Number(p.valor_total || 0),
     })));
     wsResumo["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 20 }, { wch: 16 }, { wch: 25 }, { wch: 14 }];
-    XLSX.utils.book_append_sheet(wb, wsResumo, "Pedidos");
+    (await getXLSX()).utils.book_append_sheet(wb, wsResumo, "Pedidos");
 
     const itens: any[] = [];
     pedidosFiltrados.forEach((p) => {
@@ -720,11 +723,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       }
     });
     if (itens.length > 0) {
-      const wsItens = XLSX.utils.json_to_sheet(itens);
+      const wsItens = (await getXLSX()).utils.json_to_sheet(itens);
       wsItens["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 8 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
-      XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
+      (await getXLSX()).utils.book_append_sheet(wb, wsItens, "Itens");
     }
-    XLSX.writeFile(wb, `pedidos_${session.nome.replace(/\s+/g, "_")}.xlsx`);
+    (await getXLSX()).writeFile(wb, `pedidos_${session.nome.replace(/\s+/g, "_")}.xlsx`);
   };
 
   return (

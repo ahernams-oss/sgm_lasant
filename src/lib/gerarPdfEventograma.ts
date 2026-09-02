@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { Eventograma } from "@/contexts/EventogramasContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmtMoney = (n: number) =>
   (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -12,7 +14,7 @@ const fmtDate = (s?: string) => {
 };
 
 export async function gerarPdfEventograma(ev: Eventograma, empresa: Empresa | null) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(15, 27, 61);
@@ -36,7 +38,7 @@ export async function gerarPdfEventograma(ev: Eventograma, empresa: Empresa | nu
   y += 5;
   if (ev.descricao) { doc.text(`Descrição: ${ev.descricao}`, 10, y); y += 5; }
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y + 2,
     head: [["#", "Marco", "Descrição", "Prazo", "Data prevista", "% Contrato", "Valor", "Critério de medição", "Status", "Data realizada"]],
     body: (ev.eventos || []).map((e) => [

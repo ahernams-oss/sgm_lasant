@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 export interface KpiExportItem {
   grupo?: string;
   label: string;
@@ -46,7 +48,7 @@ export function exportarKpisCsv(titulo: string, kpis: KpiExportItem[], contexto?
 
 /** Exporta os KPIs em PDF, agrupados quando houver o campo "grupo". */
 export function exportarKpisPdf(titulo: string, kpis: KpiExportItem[], contexto?: string) {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ orientation: "portrait", unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(...DARK_BLUE);
@@ -68,7 +70,7 @@ export function exportarKpisPdf(titulo: string, kpis: KpiExportItem[], contexto?
     k.subtitle ?? "",
   ]);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 36,
     head: [[...(temGrupo ? ["Grupo"] : []), "Indicador", "Valor", "Detalhe"]],
     body,

@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search, Upload, FileText, FileSpreadsheet, Camera, X, Image, ShieldAlert, AlertTriangle } from "lucide-react";
 import { gerarPdfMateriaisServicos, gerarExcelMateriaisServicos } from "@/lib/gerarRelatorioMateriaisServicos";
-import * as XLSX from "xlsx";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
@@ -26,6 +25,9 @@ import { cn as cn2 } from "@/lib/utils";
 import VinculosScoDialog from "@/components/VinculosScoDialog";
 import { useMaterialScoVinculos } from "@/contexts/MaterialScoVinculosContext";
 import { Link2 } from "lucide-react";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const UNIDADES = ["UN", "M", "M²", "M³", "KG", "L", "CX", "PCT", "SC", "GL", "HR", "VB", "JG", "PR", "RL", "TB", "FD", "BD", "CJ", "DZ"];
 
@@ -142,9 +144,9 @@ export default function MateriaisServicosPage() {
     } else {
       reader.onload = (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const wb = XLSX.read(data, { type: "array" });
+        const wb = (await getXLSX()).read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const rows: any[][] = (await getXLSX()).utils.sheet_to_json(ws, { header: 1 });
         let count = 0;
         for (const row of rows) {
           if (String(row[0] || "").toLowerCase().includes("cod")) continue;

@@ -1,13 +1,16 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { addHeader, addFooter } from "@/lib/gerarRelatorioEstoque";
 import type { NrCatalogo } from "@/contexts/NrsCatalogoContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const fmt = (d?: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
 
 export async function gerarPdfNrs(nrs: NrCatalogo[], filtros?: string) {
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ orientation: "landscape" });
 
   await addHeader(doc, {
     title: "Relatório de Normas Regulamentadoras (NRs)",
@@ -15,7 +18,7 @@ export async function gerarPdfNrs(nrs: NrCatalogo[], filtros?: string) {
     filters: filtros,
   });
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 44,
     head: [["Cod/Nome", "Descrição", "Validade (dias)", "Publicação", "Vigência", "Revisões", "Observação"]],
     body: nrs.map((n) => [
@@ -43,7 +46,7 @@ export async function gerarPdfNrs(nrs: NrCatalogo[], filtros?: string) {
 
   const comRev = nrs.filter((n) => (n.revisoes?.length || 0) > 0);
   if (comRev.length) {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: (doc as any).lastAutoTable.finalY + 8,
       head: [["NR", "Revisão", "Publicação", "Vigência", "Observação", "Anexos"]],
       body: comRev.flatMap((n) =>
@@ -67,9 +70,9 @@ export async function gerarPdfNrs(nrs: NrCatalogo[], filtros?: string) {
 }
 
 export function gerarExcelNrs(nrs: NrCatalogo[]) {
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
 
-  const ws = XLSX.utils.json_to_sheet(
+  const ws = (await getXLSX()).utils.json_to_sheet(
     nrs.map((n) => ({
       "Cod/Nome": n.codigo,
       "Descrição": n.descricao || "",
@@ -82,7 +85,7 @@ export function gerarExcelNrs(nrs: NrCatalogo[]) {
     })),
   );
   ws["!cols"] = [{ wch: 14 }, { wch: 45 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 10 }, { wch: 40 }, { wch: 30 }];
-  XLSX.utils.book_append_sheet(wb, ws, "NRs");
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "NRs");
 
   const revRows = nrs.flatMap((n) =>
     (n.revisoes || []).map((r) => ({
@@ -95,10 +98,10 @@ export function gerarExcelNrs(nrs: NrCatalogo[]) {
     })),
   );
   if (revRows.length) {
-    const wsRev = XLSX.utils.json_to_sheet(revRows);
+    const wsRev = (await getXLSX()).utils.json_to_sheet(revRows);
     wsRev["!cols"] = [{ wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 40 }, { wch: 40 }];
-    XLSX.utils.book_append_sheet(wb, wsRev, "Revisões");
+    (await getXLSX()).utils.book_append_sheet(wb, wsRev, "Revisões");
   }
 
-  XLSX.writeFile(wb, "relatorio-nrs.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-nrs.xlsx");
 }

@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, WidthType, BorderStyle, AlignmentType } from "docx";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 export interface ReportData {
   titulo: string;
@@ -11,7 +14,7 @@ export interface ReportData {
 }
 
 export function gerarPdfDuda(report: ReportData) {
-  const doc = new jsPDF({ orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
+  const doc = new (await getJsPDF())({ orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
   const pw = doc.internal.pageSize.getWidth();
 
   // Header
@@ -28,7 +31,7 @@ export function gerarPdfDuda(report: ReportData) {
   doc.text(`Total: ${report.dados.length} registros`, pw - 14, 22, { align: "right" });
   doc.setTextColor(30, 30, 30);
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 34,
     head: [report.colunas],
     body: report.dados,
@@ -57,11 +60,11 @@ export function gerarExcelDuda(report: ReportData) {
     report.colunas.forEach((col, i) => { obj[col] = row[i] || ""; });
     return obj;
   });
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = (await getXLSX()).utils.json_to_sheet(data);
   ws["!cols"] = report.colunas.map(() => ({ wch: 20 }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, report.titulo.substring(0, 31));
-  XLSX.writeFile(wb, `${report.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, report.titulo.substring(0, 31));
+  (await getXLSX()).writeFile(wb, `${report.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
 }
 
 export async function gerarWordDuda(report: ReportData) {

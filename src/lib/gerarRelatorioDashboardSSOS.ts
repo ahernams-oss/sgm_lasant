@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 const WHITE: [number, number, number] = [255, 255, 255];
@@ -74,7 +77,7 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
 }
 
 export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   addHeader(doc, data.empresa);
   doc.setTextColor(30, 30, 30);
   let y = 42;
@@ -86,7 +89,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
 
   // KPIs SS
   y = sectionTitle(doc, "Indicadores — Solicitações de Serviço (SS)", y);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Total", "Aguardando", "Aprovadas", "Concluídas", "Canceladas"]],
     body: [[
@@ -103,7 +106,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
   // KPIs OS
   y = checkBreak(doc, y, 30);
   y = sectionTitle(doc, "Indicadores — Ordens de Serviço (OS)", y);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     head: [["Total", "Abertas", "Executadas", "Validadas", "Faturadas", "Emergenciais", "Conv. SS→OS", "% Conclusão"]],
     body: [[
@@ -122,7 +125,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
     y = checkBreak(doc, y, data.ssStatus.length * 8 + 20);
     y = sectionTitle(doc, "SS por Situação", y);
     const totalSS = data.ssStatus.reduce((a, b) => a + b.value, 0) || 1;
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Situação", "Quantidade", "Percentual"]],
       body: data.ssStatus.map(s => [s.name, String(s.value), `${((s.value / totalSS) * 100).toFixed(1)}%`]),
@@ -139,7 +142,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
     y = checkBreak(doc, y, data.osStatus.length * 8 + 20);
     y = sectionTitle(doc, "OS por Situação", y);
     const totalOS = data.osStatus.reduce((a, b) => a + b.value, 0) || 1;
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Situação", "Quantidade", "Percentual"]],
       body: data.osStatus.map(s => [s.name, String(s.value), `${((s.value / totalOS) * 100).toFixed(1)}%`]),
@@ -155,7 +158,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
   if (data.tipoOS.length) {
     y = checkBreak(doc, y, data.tipoOS.length * 8 + 20);
     y = sectionTitle(doc, "OS por Tipo de Manutenção", y);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Tipo", "Quantidade"]],
       body: data.tipoOS.map(t => [t.name, String(t.value)]),
@@ -171,7 +174,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
   if (data.rankingClientes.length) {
     y = checkBreak(doc, y, data.rankingClientes.length * 8 + 20);
     y = sectionTitle(doc, "Ranking de Clientes (SS + OS)", y);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["#", "Cliente", "SS", "OS", "Total"]],
       body: data.rankingClientes.map((c, i) => [String(i + 1), c.cliente, String(c.ss), String(c.os), String(c.total)]),
@@ -194,7 +197,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
     doc.text("Pontuação por complexidade da OS · Baixa = 1 pt · Média = 3 pts · Alta = 5 pts", 14, y);
     doc.setTextColor(30, 30, 30);
     y += 4;
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["#", "Funcionário", "Cargo", "Baixa", "Média", "Alta", "OS Concl.", "Total OS", "Pontos"]],
       body: data.rankingFuncionarios.map((f, i) => [
@@ -220,7 +223,7 @@ export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
   if (data.rankingFuncionariosQtd.length) {
     y = checkBreak(doc, y, data.rankingFuncionariosQtd.length * 8 + 20);
     y = sectionTitle(doc, "Ranking de Funcionários por Quantidade de OS", y);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["#", "Funcionário", "Cargo", "OS Concluídas", "OS Abertas", "Total OS"]],
       body: data.rankingFuncionariosQtd.map((f, i) => [
@@ -250,8 +253,8 @@ export function downloadPdfDashboardSSOS(data: DashboardSSOSReport) {
 }
 
 // =================== Excel ===================
-export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBook {
-  const wb = XLSX.utils.book_new();
+export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSXTypes.WorkBook {
+  const wb = (await getXLSX()).utils.book_new();
   const empresaLabel = data.empresa?.nomeFantasia || data.empresa?.razaoSocial || "SGM Lasant";
 
   // Resumo
@@ -270,36 +273,36 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
     ["Total", "Abertas", "Executadas", "Validadas", "Faturadas", "Emergenciais", "Conv. SS→OS", "% Conclusão"],
     [data.kpisOS.total, data.kpisOS.abertas, data.kpisOS.executadas, data.kpisOS.validadas, (data.kpisOS as any).faturadas ?? 0, data.kpisOS.emergenciais, data.kpisOS.conversao, data.kpisOS.conclusao],
   ];
-  const wsResumo = XLSX.utils.aoa_to_sheet(resumo);
+  const wsResumo = (await getXLSX()).utils.aoa_to_sheet(resumo);
   wsResumo["!cols"] = [{ wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+  (await getXLSX()).utils.book_append_sheet(wb, wsResumo, "Resumo");
 
   // SS Status
   const ssRows: any[][] = [["Situação", "Quantidade"], ...data.ssStatus.map(s => [s.name, s.value])];
-  const wsSS = XLSX.utils.aoa_to_sheet(ssRows);
+  const wsSS = (await getXLSX()).utils.aoa_to_sheet(ssRows);
   wsSS["!cols"] = [{ wch: 30 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, wsSS, "SS por Situação");
+  (await getXLSX()).utils.book_append_sheet(wb, wsSS, "SS por Situação");
 
   // OS Status
   const osRows: any[][] = [["Situação", "Quantidade"], ...data.osStatus.map(s => [s.name, s.value])];
-  const wsOS = XLSX.utils.aoa_to_sheet(osRows);
+  const wsOS = (await getXLSX()).utils.aoa_to_sheet(osRows);
   wsOS["!cols"] = [{ wch: 30 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, wsOS, "OS por Situação");
+  (await getXLSX()).utils.book_append_sheet(wb, wsOS, "OS por Situação");
 
   // Tipo OS
   const tipoRows: any[][] = [["Tipo", "Quantidade"], ...data.tipoOS.map(t => [t.name, t.value])];
-  const wsTipo = XLSX.utils.aoa_to_sheet(tipoRows);
+  const wsTipo = (await getXLSX()).utils.aoa_to_sheet(tipoRows);
   wsTipo["!cols"] = [{ wch: 25 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, wsTipo, "OS por Tipo");
+  (await getXLSX()).utils.book_append_sheet(wb, wsTipo, "OS por Tipo");
 
   // Ranking Clientes
   const cliRows: any[][] = [
     ["#", "Cliente", "SS", "OS", "Total"],
     ...data.rankingClientes.map((c, i) => [i + 1, c.cliente, c.ss, c.os, c.total]),
   ];
-  const wsCli = XLSX.utils.aoa_to_sheet(cliRows);
+  const wsCli = (await getXLSX()).utils.aoa_to_sheet(cliRows);
   wsCli["!cols"] = [{ wch: 5 }, { wch: 40 }, { wch: 8 }, { wch: 8 }, { wch: 10 }];
-  XLSX.utils.book_append_sheet(wb, wsCli, "Ranking Clientes");
+  (await getXLSX()).utils.book_append_sheet(wb, wsCli, "Ranking Clientes");
 
   // Ranking Funcionários
   const funcRows: any[][] = [
@@ -310,9 +313,9 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
       i + 1, f.nome, f.cargo, f.baixa, f.media, f.alta, f.concluidas, f.total, f.pontos,
     ]),
   ];
-  const wsFunc = XLSX.utils.aoa_to_sheet(funcRows);
+  const wsFunc = (await getXLSX()).utils.aoa_to_sheet(funcRows);
   wsFunc["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 22 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
-  XLSX.utils.book_append_sheet(wb, wsFunc, "Ranking Funcionários");
+  (await getXLSX()).utils.book_append_sheet(wb, wsFunc, "Ranking Funcionários");
 
   // Ranking Funcionários por Quantidade de OS
   const funcQtdRows: any[][] = [
@@ -321,9 +324,9 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
       i + 1, f.nome, f.cargo, f.concluidas, f.abertas, f.total,
     ]),
   ];
-  const wsFuncQtd = XLSX.utils.aoa_to_sheet(funcQtdRows);
+  const wsFuncQtd = (await getXLSX()).utils.aoa_to_sheet(funcQtdRows);
   wsFuncQtd["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 10 }];
-  XLSX.utils.book_append_sheet(wb, wsFuncQtd, "Ranking Qtd. OS");
+  (await getXLSX()).utils.book_append_sheet(wb, wsFuncQtd, "Ranking Qtd. OS");
 
   return wb;
 }
@@ -331,5 +334,5 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSX.WorkBoo
 export function downloadExcelDashboardSSOS(data: DashboardSSOSReport) {
   const wb = gerarExcelDashboardSSOS(data);
   const dt = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
-  XLSX.writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`);
 }

@@ -1,7 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Funcionario } from "@/contexts/FuncionariosContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 export type TipoJornada =
   | "Diarista"
@@ -46,7 +49,7 @@ const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julh
 const SIGLAS_DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes }: Params) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFontSize(14);
@@ -78,7 +81,7 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
     if (fimSemana) diasColStyles[colIdx] = { fillColor: [240, 240, 245] };
   });
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: 18,
     head,
     body,
@@ -117,9 +120,9 @@ export function gerarMapaPlantoesExcel({ funcionarios, cargos, clientes, ano, me
     return [f.nome, cargo, cliente, f.jornadaTrabalho || "", ...linhaDias];
   });
 
-  const ws = XLSX.utils.aoa_to_sheet([headerDow, headerDia, ...rows]);
+  const ws = (await getXLSX()).utils.aoa_to_sheet([headerDow, headerDia, ...rows]);
   ws["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, ...Array.from({ length: dias }, () => ({ wch: 4 }))];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `${MESES[mes]} ${ano}`);
-  XLSX.writeFile(wb, `mapa-plantoes-${ano}-${String(mes + 1).padStart(2, "0")}.xlsx`);
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, `${MESES[mes]} ${ano}`);
+  (await getXLSX()).writeFile(wb, `mapa-plantoes-${ano}-${String(mes + 1).padStart(2, "0")}.xlsx`);
 }

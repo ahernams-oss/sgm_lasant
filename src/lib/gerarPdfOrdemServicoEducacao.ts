@@ -1,9 +1,11 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { OrdemServico, MaterialOS } from "@/contexts/OrdensServicoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { Cliente } from "@/contexts/ClientesContext";
 import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const BORDER: [number, number, number] = [40, 40, 40];
 
@@ -83,7 +85,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   y += headerH;
 
   // Linha DATA / Nº OS / ITEM-SIGLA / FL.
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7, cellPadding: 1.2, lineColor: BORDER, lineWidth: 0.3, halign: "center", valign: "middle", textColor: [20, 20, 20] },
@@ -111,7 +113,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
 
   // ============ IDENTIFICAÇÃO ============
   const contrato = ((c.contratos || [])[0] || {}) as any;
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7, cellPadding: 1.6, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], valign: "middle" },
@@ -156,7 +158,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   // ============ BLOCO ESTIMATIVA ============
   const renderBlocoSCO = (titulo: string, materiais: MaterialOS[], rotuloRodape: { esq: string; dir: string }, dataLabel: { inicio: string; termino: string }) => {
     // Faixa vertical "FISCALIZAÇÃO – EMPRESA" + descrição
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       styles: { fontSize: 7, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], valign: "middle" },
@@ -175,7 +177,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
 
     // Tabela SCO RIO
     const total = (materiais || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       styles: { fontSize: 6.8, cellPadding: 1.2, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], halign: "center", valign: "middle" },
@@ -218,7 +220,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
     y = (doc as any).lastAutoTable.finalY;
 
     // Rodapé do bloco — DATAS + VISTOS
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "grid",
       styles: { fontSize: 7, cellPadding: 1.4, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], valign: "middle" },
@@ -258,7 +260,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   const tipoCod = os.tipoOs?.cod ?? 1;
   const mk = (n: number, label: string) =>
     `${tipoCod === n ? "[X]" : "[  ]"} ${label}`;
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7, cellPadding: 1.4, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20] },
@@ -290,7 +292,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   if (y > ph - 70) { doc.addPage(); y = 10; }
 
   // FISCALIZAÇÃO — 3 colunas
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7, cellPadding: 1.4, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], valign: "middle" },
@@ -317,7 +319,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   y = (doc as any).lastAutoTable.finalY + 1;
 
   // ESCOLA
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7, cellPadding: 1.4, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], valign: "middle" },
@@ -342,7 +344,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   y = (doc as any).lastAutoTable.finalY + 1;
 
   // C.R.E.
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7, cellPadding: 1.4, lineColor: BORDER, lineWidth: 0.3, textColor: [20, 20, 20], valign: "middle" },

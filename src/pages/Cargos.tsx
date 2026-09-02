@@ -16,9 +16,11 @@ import {
 import { useCargos, type SalarioDataBase, type AnexoCargo, type NrCargo, type EpiPadraoCargo } from "@/contexts/CargosContext";
 import { useEpisCatalogo } from "@/contexts/EpisCatalogoContext";
 import { supabase } from "@/integrations/supabase/client";
-import * as XLSX from "xlsx";
 import { Badge } from "@/components/ui/badge";
 import { usePermissao } from "@/hooks/usePermissao";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const niveis = ["I", "II", "III", "IV", "V"] as const;
 
@@ -254,9 +256,9 @@ const Cargos = () => {
     if (isExcel) {
       reader.onload = (e) => {
         try {
-          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const wb = (await getXLSX()).read(e.target?.result, { type: "array" });
           const ws = wb.Sheets[wb.SheetNames[0]];
-          const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          const rows: string[][] = (await getXLSX()).utils.sheet_to_json(ws, { header: 1 });
           processRows(rows);
         } catch { toast.error("Erro ao ler o arquivo Excel."); }
       };

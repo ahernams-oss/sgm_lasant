@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
-import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrcamentosSco } from "@/contexts/OrcamentosScoContext";
 import { toast } from "sonner";
 import { usePermissao } from "@/hooks/usePermissao";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 function parseNum(v: any): number {
   if (v === null || v === undefined || v === "") return 0;
@@ -23,9 +25,9 @@ function parseNum(v: any): number {
 
 async function readRows(file: File): Promise<any[][]> {
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
+  const wb = (await getXLSX()).read(buf, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(ws, { header: 1, defval: null }) as any[][];
+  return (await getXLSX()).utils.sheet_to_json(ws, { header: 1, defval: null }) as any[][];
 }
 
 function parseElementares(rows: any[][], referencia: string) {

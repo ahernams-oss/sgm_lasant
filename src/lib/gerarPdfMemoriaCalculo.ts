@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Orcamento } from "@/contexts/OrcamentosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const DARK_BLUE: [number, number, number] = [30, 58, 107];
 const BORDER_COLOR: [number, number, number] = [180, 180, 180];
@@ -98,7 +100,7 @@ async function renderMemoria(doc: jsPDF, orc: Orcamento, empresa?: Empresa) {
   y += 8;
 
   doc.setTextColor(30, 30, 30);
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "plain",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -199,7 +201,7 @@ async function renderMemoria(doc: jsPDF, orc: Orcamento, empresa?: Empresa) {
       { content: nf(total), styles: { fontStyle: "bold", fillColor: [245, 247, 252] } },
     ]);
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head,
       body,
@@ -235,14 +237,14 @@ function aplicarRodape(doc: jsPDF, empresa?: Empresa) {
 }
 
 export async function gerarPdfMemoriaCalculo(orc: Orcamento, empresa?: Empresa) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   await renderMemoria(doc, orc, empresa);
   aplicarRodape(doc, empresa);
   doc.save(`Memoria_Calculo_Orcamento_${orc.numero}.pdf`);
 }
 
 export async function gerarPdfMemoriaCalculoLote(orcs: Orcamento[], empresa?: Empresa) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   for (let i = 0; i < orcs.length; i++) {
     if (i > 0) doc.addPage();
     await renderMemoria(doc, orcs[i], empresa);

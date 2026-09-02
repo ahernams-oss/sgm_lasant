@@ -1,8 +1,10 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { SolicitacaoServico } from "@/contexts/SolicitacoesServicosContext";
 import { Empresa } from "@/contexts/EmpresaContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const ORANGE = [230, 150, 50] as const;
 const DARK_BLUE = [30, 58, 107] as const;
@@ -96,7 +98,7 @@ async function renderSolicitacao(
     ? new Date(ss.dataHoraSolicitacao).toLocaleDateString("pt-BR")
     : "dd/mm/yyyy";
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "plain",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -132,7 +134,7 @@ async function renderSolicitacao(
   y = (doc as any).lastAutoTable.finalY;
 
   // ===== LOCATION TABLE =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "plain",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -205,7 +207,7 @@ async function renderSolicitacao(
   y += ressalvaHeight + 6;
 
   // ===== MATERIAL / SERVIÇO UTILIZADO =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -217,7 +219,7 @@ async function renderSolicitacao(
 
   y = (doc as any).lastAutoTable.finalY;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2.5, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30], minCellHeight: 8 },
@@ -238,7 +240,7 @@ async function renderSolicitacao(
   // ===== EQUIPMENT INFO =====
   if (ss.tipo === "Equipamentos" || equipamento) {
     const eqData = equipamento || {};
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       theme: "plain",
       styles: { fontSize: 8, cellPadding: 2, lineColor: [180, 180, 180], lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -314,7 +316,7 @@ export async function gerarPdfSolicitacao(
   empresa?: Empresa,
   equipamento?: any
 ) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
   doc.save(`SS_${formatNumeroAno(ss.numero, ss.createdAt)}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
 }
@@ -327,7 +329,7 @@ export async function gerarPdfSolicitacaoLote(
 ) {
   if (lista.length === 0) return;
 
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
 
   for (let idx = 0; idx < lista.length; idx++) {
     if (idx > 0) doc.addPage();

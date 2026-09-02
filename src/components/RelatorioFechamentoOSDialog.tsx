@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,6 +11,12 @@ import type { OrdemServico } from "@/contexts/OrdensServicoContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { fetchAll } from "@/lib/supabaseHelper";
 import { formatNumeroAno } from "@/lib/formatNumero";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
 type TipoRelatorio = "fechamento_validadas" | "fechamento_local" | "fechamento_categoria" | "fechamento_faturadas" | "fechamento_faturadas_local" | "analitico" | "sintetico" | "financeiro" | "produtividade" | "situacao" | "ciclo_ss" | "ciclo_os";
@@ -355,19 +358,19 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         };
       });
       data.push({ "OS": "" as any, "Unidade": `Nº de OS: ${ordensFiltradas.length}` as any, "Categoria": "Total Geral" as any, "Valor": Number(totalGeral.toFixed(2)) });
-      const ws = XLSX.utils.json_to_sheet(data);
+      const ws = (await getXLSX()).utils.json_to_sheet(data);
       ws["!cols"] = [{ wch: 14 }, { wch: 40 }, { wch: 30 }, { wch: 14 }];
-      const wsCat = XLSX.utils.json_to_sheet(catList.map(c => ({ Categoria: c.nome, Valor: Number(c.valor.toFixed(2)), Percentual: `${c.pct.toFixed(2)}%` })));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Fechamento");
-      XLSX.utils.book_append_sheet(wb, wsCat, "Por Categoria");
-      XLSX.writeFile(wb, `${fileBaseFech}.xlsx`);
+      const wsCat = (await getXLSX()).utils.json_to_sheet(catList.map(c => ({ Categoria: c.nome, Valor: Number(c.valor.toFixed(2)), Percentual: `${c.pct.toFixed(2)}%` })));
+      const wb = (await getXLSX()).utils.book_new();
+      (await getXLSX()).utils.book_append_sheet(wb, ws, "Fechamento");
+      (await getXLSX()).utils.book_append_sheet(wb, wsCat, "Por Categoria");
+      (await getXLSX()).writeFile(wb, `${fileBaseFech}.xlsx`);
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // Capa
@@ -380,7 +383,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.setFontSize(13); doc.setTextColor(80, 80, 80);
     doc.text(`RELATÓRIO DE FECHAMENTO - ${statusLabel}`, pw / 2, 60, { align: "center" });
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 72,
       head: [["Data inicial", "Data final"]],
       body: [[dataIni, dataFimStr]],
@@ -397,7 +400,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const total = totalSemBdi(o);
       return [formatNumeroAno(o.numero, o.createdAt), o.clienteNome || "-", o.categoria || "-", fmtBRL(total)];
     });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 14,
       head: [["OS", "Unidade", "Categoria", "Valor"]],
       body: rows,
@@ -419,7 +422,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const pie = drawPieChart(catList);
       doc.addImage(pie, "PNG", (pw - 100) / 2, 26, 100, 100);
 
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: 135,
         head: [["Categoria", "Valor", "Percentual"]],
         body: catList.map((c, i) => [
@@ -547,17 +550,17 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         linhas.push({ "Nº OS": "", "Tipo": "", "Setor": "TOTAL CATEGORIA", "Valor": Number(c.valor.toFixed(2)), "Valor com BDI": Number(c.valorBdi.toFixed(2)) });
       });
       linhas.push({ "Nº OS": "", "Tipo": "", "Setor": `TOTAL DE OS: ${ordensFiltradas.length}`, "Valor": Number(totalGeral.toFixed(2)), "Valor com BDI": Number(totalGeralBdi.toFixed(2)) });
-      const ws = XLSX.utils.json_to_sheet(linhas);
+      const ws = (await getXLSX()).utils.json_to_sheet(linhas);
       ws["!cols"] = [{ wch: 14 }, { wch: 10 }, { wch: 40 }, { wch: 14 }, { wch: 16 }];
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Por Categoria");
-      XLSX.writeFile(wb, `relatorio_fechamento_categoria.xlsx`);
+      const wb = (await getXLSX()).utils.book_new();
+      (await getXLSX()).utils.book_append_sheet(wb, ws, "Por Categoria");
+      (await getXLSX()).writeFile(wb, `relatorio_fechamento_categoria.xlsx`);
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // ===== Capa =====
@@ -569,7 +572,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.text(clienteNome.toUpperCase(), pw / 2, 55, { align: "center" });
     doc.setFontSize(13); doc.setTextColor(80, 80, 80);
     doc.text("RELATÓRIO DE FECHAMENTO POR CATEGORIA", pw / 2, 64, { align: "center" });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 76,
       head: [["Data inicial", "Data final"]],
       body: [[dataIni, dataFimStr]],
@@ -610,7 +613,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       ]);
     });
 
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 32,
       head: [["Nº OS", "Tipo", "Setor", "Valor", "Valor com BDI"]],
       body,
@@ -632,7 +635,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     // ===== Página de totais gerais =====
     doc.addPage();
     addHeader(doc, "Fechamento por Categoria", "Totais Gerais", `Período: ${dataIni} a ${dataFimStr}`);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 50,
       body: [[
         { content: "TOTAL DE O.S. EXECUTADAS NO PERIODO --->>>", styles: { fontStyle: "bold" as const, halign: "right" as const } },
@@ -643,7 +646,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 30 } },
       margin: { left: (pw - 150) / 2 },
     });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       body: [[
         { content: "Valor Total", styles: { fillColor: [120, 230, 120], fontStyle: "bold" as const } },
@@ -761,18 +764,18 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         "Aprov → Concl (h:min)": (mAC == null ? "" : fmtHoraMin(mAC)) as any,
         "Total (h:min)": (mTot == null ? "" : fmtHoraMin(mTot)) as any,
       });
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Ciclo SS");
-      XLSX.writeFile(wb, "ciclo_vida_solicitacoes.xlsx");
+      const ws = (await getXLSX()).utils.json_to_sheet(data);
+      const wb = (await getXLSX()).utils.book_new();
+      (await getXLSX()).utils.book_append_sheet(wb, ws, "Ciclo SS");
+      (await getXLSX()).writeFile(wb, "ciclo_vida_solicitacoes.xlsx");
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new jsPDF({ orientation: "l", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ orientation: "l", unit: "mm", format: "a4" });
     addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 32,
       head: [["Nº SS", "Cliente", "Situação", "Solicitação", "Aprovação", "Conclusão", "Sol-Apr (h:min)", "Apr-Con (h:min)", "Total (h:min)"]],
       body: linhas.map(({ s, dSol, dAprov, dConcl, tSA, tAC, tTot }) => [
@@ -846,18 +849,18 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         "Aber → Exec (h:min)": (mAE == null ? "" : fmtHoraMin(mAE)) as any,
         "Aber → Conf (h:min)": (mAV == null ? "" : fmtHoraMin(mAV)) as any,
       });
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Ciclo OS");
-      XLSX.writeFile(wb, "ciclo_vida_ordens_servico.xlsx");
+      const ws = (await getXLSX()).utils.json_to_sheet(data);
+      const wb = (await getXLSX()).utils.book_new();
+      (await getXLSX()).utils.book_append_sheet(wb, ws, "Ciclo OS");
+      (await getXLSX()).writeFile(wb, "ciclo_vida_ordens_servico.xlsx");
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new jsPDF({ orientation: "l", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ orientation: "l", unit: "mm", format: "a4" });
     addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 32,
       head: [["Nº OS", "Cliente", "Situação", "Abertura", "Execução", "Confirmação", "Ab-Ex (h:min)", "Ab-Cf (h:min)", "Total (h:min)"]],
       body: linhas.map(({ o, dAbert, dExec, dConf, tAE, tAV }) => [
@@ -956,7 +959,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     };
 
     if (formato === "excel") {
-      const wb = XLSX.utils.book_new();
+      const wb = (await getXLSX()).utils.book_new();
       const geral: any[] = [];
       const resumo: any[] = [];
       locais.forEach(([loc, list]) => {
@@ -972,19 +975,19 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
           "Local": loc, "Tipo de OS": t.nome, "Qtd": t.qtd, "Valor": Number(t.valor.toFixed(2)),
         }));
       });
-      const ws = XLSX.utils.json_to_sheet(geral);
+      const ws = (await getXLSX()).utils.json_to_sheet(geral);
       ws["!cols"] = [{ wch: 30 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 26 }, { wch: 14 }];
-      XLSX.utils.book_append_sheet(wb, ws, "Fechamento por Local");
-      const wsR = XLSX.utils.json_to_sheet(resumo);
+      (await getXLSX()).utils.book_append_sheet(wb, ws, "Fechamento por Local");
+      const wsR = (await getXLSX()).utils.json_to_sheet(resumo);
       wsR["!cols"] = [{ wch: 30 }, { wch: 24 }, { wch: 8 }, { wch: 14 }];
-      XLSX.utils.book_append_sheet(wb, wsR, "Tipos por Local");
-      XLSX.writeFile(wb, `${fileBaseLoc}.xlsx`);
+      (await getXLSX()).utils.book_append_sheet(wb, wsR, "Tipos por Local");
+      (await getXLSX()).writeFile(wb, `${fileBaseLoc}.xlsx`);
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     if (empresa?.logoUrl) {
@@ -995,7 +998,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.text(clienteNome.toUpperCase(), pw / 2, 50, { align: "center" });
     doc.setFontSize(13); doc.setTextColor(80, 80, 80);
     doc.text(`RELATÓRIO DE FECHAMENTO - ${statusLabelLoc} POR LOCAL`, pw / 2, 60, { align: "center" });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 72,
       head: [["Data inicial", "Data final"]],
       body: [[dataIni, dataFimStr]],
@@ -1010,7 +1013,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.addPage();
     doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(30, 30, 30);
     doc.text("Resumo Geral por Local", pw / 2, 16, { align: "center" });
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: 22,
       head: [["Local", "Qtd OS", "Valor", "%"]],
       body: locais.map(([loc, list]) => {
@@ -1032,7 +1035,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(30, 58, 107);
       doc.text(`Local: ${loc}`, 14, 16);
       doc.setTextColor(30, 30, 30);
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: 22,
         head: [["OS", "Unidade", "Tipo de OS", "Categoria", "Valor"]],
         body: list.map(o => [
@@ -1057,7 +1060,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       if (y > ph - 60) { doc.addPage(); y = 18; }
       doc.setFont("helvetica", "bold"); doc.setFontSize(11);
       doc.text(`Resumo dos Tipos de OS — ${loc}`, 14, y);
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y + 4,
         head: [["Tipo de OS", "Qtd", "% Qtd", "Valor"]],
         body: tipos.map(t => [
@@ -1110,9 +1113,9 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const fileBase = titulo.replace(/[^\w]+/g, "_").toLowerCase();
 
     if (formato === "pdf") {
-      const doc = new jsPDF({ orientation: orientacao, unit: "mm", format: "a4" });
+      const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
       addHeader(doc, titulo, `Total: ${ordensFiltradas.length} OS(s)`, filtrosLabel);
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: 32,
         head: [columns],
         body: rows,
@@ -1129,11 +1132,11 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
         columns.forEach((c, i) => { o[c] = r[i] || ""; });
         return o;
       });
-      const ws = XLSX.utils.json_to_sheet(data);
+      const ws = (await getXLSX()).utils.json_to_sheet(data);
       ws["!cols"] = columns.map(() => ({ wch: 20 }));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
-      XLSX.writeFile(wb, `${fileBase}.xlsx`);
+      const wb = (await getXLSX()).utils.book_new();
+      (await getXLSX()).utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
+      (await getXLSX()).writeFile(wb, `${fileBase}.xlsx`);
       toast.success("Excel gerado!");
     }
     onOpenChange(false);

@@ -1,6 +1,8 @@
-import * as XLSX from "xlsx";
 import type { BoletimMedicao } from "@/contexts/BoletinsMedicaoContext";
 import type { Empresa } from "@/contexts/EmpresaContext";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 const fmtDate = (s?: string) => {
   if (!s) return "";
@@ -9,7 +11,7 @@ const fmtDate = (s?: string) => {
 };
 
 export function downloadExcelBoletimMedicao(boletim: BoletimMedicao, empresa?: Empresa) {
-  const wb = XLSX.utils.book_new();
+  const wb = (await getXLSX()).utils.book_new();
   const frentes = boletim.frentes || [];
   const totalContrato =
     Number(boletim.valor_total_contrato) || frentes.reduce((s, f) => s + (Number(f.valor_contrato) || 0), 0);
@@ -84,10 +86,10 @@ export function downloadExcelBoletimMedicao(boletim: BoletimMedicao, empresa?: E
 
   if (boletim.observacoes) rows.push(["Observações:", boletim.observacoes]);
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const ws = (await getXLSX()).utils.aoa_to_sheet(rows);
   ws["!cols"] = [{ wch: 26 }, { wch: 34 }, { wch: 18 }, { wch: 12 }];
-  XLSX.utils.book_append_sheet(wb, ws, "Boletim");
-  XLSX.writeFile(
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Boletim");
+  (await getXLSX()).writeFile(
     wb,
     `Boletim_Medicao_${String(boletim.numero || "").padStart(2, "0")}-${boletim.ano || ""}.xlsx`,
   );

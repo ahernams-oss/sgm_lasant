@@ -1,7 +1,9 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { OrcamentoSco } from "@/contexts/OrcamentosScoContext";
 import { supabase } from "@/integrations/supabase/client";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 const fmt = (v: number) =>
   (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -30,7 +32,7 @@ async function loadComposicoes(servicoCodigos: string[]) {
 }
 
 export async function gerarPdfOrcamentoSco(orc: OrcamentoSco, empresaNome = "") {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
 
   // header
@@ -57,7 +59,7 @@ export async function gerarPdfOrcamentoSco(orc: OrcamentoSco, empresaNome = "") 
   y += 6;
 
   if (orc.tipo_analise === "sintetica") {
-    autoTable(doc, {
+    (await getAutoTable())(doc, {
       startY: y,
       head: [["Código", "Descrição", "Un", "Qtd", "Unit.", "Total"]],
       body: orc.itens.map((i) => [
@@ -78,7 +80,7 @@ export async function gerarPdfOrcamentoSco(orc: OrcamentoSco, empresaNome = "") 
     // analítica - mostra cada serviço com sua composição
     const grouped = await loadComposicoes(orc.itens.map((i) => i.servico_codigo));
     for (const item of orc.itens) {
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [[`${item.servico_codigo} — ${item.descricao}`, "", "", "", "", ""]],
         body: [["Un: " + item.unidade, `Qtd: ${fmtNum(item.quantidade, 2)}`, `Unit: ${fmt(item.preco_unit)}`, "", "", `Total: ${fmt(item.preco_total)}`]],
@@ -89,7 +91,7 @@ export async function gerarPdfOrcamentoSco(orc: OrcamentoSco, empresaNome = "") 
       });
       y = (doc as any).lastAutoTable.finalY;
       const comps = grouped[item.servico_codigo] || [];
-      autoTable(doc, {
+      (await getAutoTable())(doc, {
         startY: y,
         head: [["Composição — Código", "Descrição do Elementar", "Un", "Qtd Unit.", "Qtd Total", "Preço Unit.", "Subtotal"]],
         body: comps.map((c: any) => {

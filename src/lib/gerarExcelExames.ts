@@ -1,5 +1,7 @@
-import * as XLSX from "xlsx";
 
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 interface ExameData {
   funcionario_nome: string;
   tipo_exame: string;
@@ -36,7 +38,7 @@ export function gerarExcelExames(exames: ExameData[]) {
     "Observações": e.observacoes || "",
   }));
 
-  const ws = XLSX.utils.json_to_sheet(rows);
+  const ws = (await getXLSX()).utils.json_to_sheet(rows);
 
   // Column widths
   ws["!cols"] = [
@@ -44,7 +46,7 @@ export function gerarExcelExames(exames: ExameData[]) {
     { wch: 18 }, { wch: 14 }, { wch: 20 }, { wch: 30 },
   ];
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Exames Periódicos");
-  XLSX.writeFile(wb, "relatorio-exames-periodicos.xlsx");
+  const wb = (await getXLSX()).utils.book_new();
+  (await getXLSX()).utils.book_append_sheet(wb, ws, "Exames Periódicos");
+  (await getXLSX()).writeFile(wb, "relatorio-exames-periodicos.xlsx");
 }

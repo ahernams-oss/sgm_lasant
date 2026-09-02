@@ -4,7 +4,9 @@ import { Upload, Download, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useClientes } from "@/contexts/ClientesContext";
-import * as XLSX from "xlsx";
+
+import type * as XLSXTypes from "xlsx";
+const getXLSX = async () => await import("xlsx");
 
 interface Props {
   tipo: "Cliente" | "Fornecedor";
@@ -34,11 +36,11 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([COLUNAS_TEMPLATE.map(c => COLUNAS_LABEL[c] || c)]);
+    const ws = (await getXLSX()).utils.aoa_to_sheet([COLUNAS_TEMPLATE.map(c => COLUNAS_LABEL[c] || c)]);
     ws["!cols"] = COLUNAS_TEMPLATE.map(() => ({ wch: 20 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo");
-    XLSX.writeFile(wb, `modelo_${tipo.toLowerCase()}s.xlsx`);
+    const wb = (await getXLSX()).utils.book_new();
+    (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo");
+    (await getXLSX()).writeFile(wb, `modelo_${tipo.toLowerCase()}s.xlsx`);
     toast.success("Template baixado!");
   };
 
@@ -48,9 +50,9 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const wb = XLSX.read(ev.target?.result, { type: "binary" });
+        const wb = (await getXLSX()).read(ev.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const raw: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const raw: string[][] = (await getXLSX()).utils.sheet_to_json(ws, { header: 1 });
         if (raw.length < 2) { toast.error("Arquivo vazio ou sem dados."); return; }
 
         const header = raw[0].map(h => {

@@ -1,6 +1,8 @@
-import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
 
 interface AdvertenciaData {
   funcionarioNome: string;
@@ -21,7 +23,7 @@ const formatDataExtenso = (d: string) => {
 };
 
 export function gerarPdfAdvertencia(data: AdvertenciaData) {
-  const doc = new jsPDF();
+  const doc = new (await getJsPDF())();
   const pw = doc.internal.pageSize.getWidth();
   const ml = 20;
   const mr = 20;

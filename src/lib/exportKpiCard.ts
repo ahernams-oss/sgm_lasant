@@ -1,5 +1,7 @@
 import { toJpeg } from "html-to-image";
-import jsPDF from "jspdf";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
 
 const slug = (s: string) =>
   s
@@ -36,7 +38,7 @@ export async function exportarKpiCardJpg(el: HTMLElement, label: string) {
 /** Exporta um card de KPI individual como PDF (imagem centralizada com cabeçalho). */
 export async function exportarKpiCardPdf(el: HTMLElement, label: string) {
   const dataUrl = await capturar(el);
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a5" });
+  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a5" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 

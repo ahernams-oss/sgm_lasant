@@ -1,5 +1,3 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { OrdemServico, MaterialOS } from "@/contexts/OrdensServicoContext";
 import { Empresa } from "@/contexts/EmpresaContext";
@@ -8,6 +6,10 @@ import type { OsAssinatura } from "@/contexts/OsAssinaturasContext";
 import { formatNumeroAno } from "@/lib/formatNumero";
 import { supabase } from "@/integrations/supabase/client";
 import { renderOrdemServicoEducacao } from "@/lib/gerarPdfOrdemServicoEducacao";
+
+import type { jsPDF } from "jspdf";
+const getJsPDF = async () => (await import("jspdf")).jsPDF;
+const getAutoTable = async () => (await import("jspdf-autotable")).default;
 
 async function resolverModeloNome(cliente?: Cliente): Promise<string> {
   const id = (cliente as any)?.modeloOsId;
@@ -77,7 +79,7 @@ async function renderAssinaturas(doc: jsPDF, assinaturas: OsAssinatura[], y: num
   const labelPapel = (p: string) => p === "fiscal" ? "Fiscal do Contrato" : "Solicitante";
 
   // Cabeçalho
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], fontStyle: "bold", halign: "center", fillColor: [240, 240, 240] },
@@ -224,7 +226,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
     ? `${fmtDate(os.dataInicio)}${os.horaInicio ? ` ${os.horaInicio}` : ""}`
     : "";
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], valign: "middle" },
@@ -247,7 +249,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   y = (doc as any).lastAutoTable.finalY;
 
   // ===== Datas: Solicitação / Execução, Pavimento / Setor =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], halign: "center", valign: "middle" },
@@ -287,7 +289,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   y = (doc as any).lastAutoTable.finalY + 4;
 
   // ===== Descrição do Serviço Pretendido + Nome do Solicitante =====
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -310,7 +312,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   const fiscalizada = !!(os.historico || []).find((h: any) =>
     ["Executada", "Serviço Confirmado", "Validada"].includes(h.situacao)
   );
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -350,7 +352,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   const bdiSCO = totalSCO * (bdi / 100);
   const totalSCOcomBDI = totalSCO + bdiSCO;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], halign: "center", valign: "middle" },
@@ -400,7 +402,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   const bdiEst = totalEst * (bdi / 100);
   const totalEstcomBDI = totalEst + bdiEst;
 
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.5, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30], halign: "center", valign: "middle" },
@@ -458,7 +460,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
   const validada = os.situacao === "Validada";
   const assinaturaFiscal = (assinaturas || []).find((a) => a.papel === "fiscal");
   let fiscalCellRect: { x: number; y: number; w: number; h: number } | null = null;
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 7.5, cellPadding: 1.8, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -546,7 +548,7 @@ export async function renderOS(doc: jsPDF, { os, empresa, cliente, assinaturas }
 
   // Caixa de observações grande
   const obsTexto = (os.observacoes || []).map((o: any) => `• ${o.descricao || ""}`).join("\n") || "";
-  autoTable(doc, {
+  (await getAutoTable())(doc, {
     startY: y,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2, lineColor: BORDER, lineWidth: 0.3, textColor: [30, 30, 30] },
@@ -598,7 +600,7 @@ export function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, c
 }
 
 export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   const modelo = await resolverModeloNome(opts.cliente);
   if (modelo === "Modelo_Educação") {
     await renderOrdemServicoEducacao(doc, opts);
@@ -616,7 +618,7 @@ export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
 
 export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
   if (lista.length === 0) return;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     const modelo = await resolverModeloNome(lista[i].cliente);
