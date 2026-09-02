@@ -180,7 +180,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     };
 
     if (isExcel) {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const wb = (await getXLSX()).read(e.target?.result, { type: "array" });
           const ws = wb.Sheets[wb.SheetNames[0]];
@@ -207,7 +207,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     }
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const ws = (await getXLSX()).utils.aoa_to_sheet([
       ["Setor"],
       ["Recepção"],

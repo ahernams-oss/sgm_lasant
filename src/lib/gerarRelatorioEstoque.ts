@@ -132,7 +132,7 @@ export async function gerarPdfEstoque(
   doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-export function gerarExcelEstoque(title: string, columns: string[], rows: string[][], filters?: string) {
+exportasync function gerarExcelEstoque(title: string, columns: string[], rows: string[][], filters?: string) {
   const aoa: (string | number)[][] = [];
   aoa.push([title.toUpperCase()]);
   aoa.push([`Gerado em: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`]);

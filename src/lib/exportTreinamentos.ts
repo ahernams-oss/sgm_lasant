@@ -38,7 +38,7 @@ export function exportarTreinamentosCsv(rows: TreinamentoExportRow[], contexto?:
   URL.revokeObjectURL(url);
 }
 
-export function exportarTreinamentosPdf(rows: TreinamentoExportRow[], contexto?: string) {
+exportasync function exportarTreinamentosPdf(rows: TreinamentoExportRow[], contexto?: string) {
   const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
 

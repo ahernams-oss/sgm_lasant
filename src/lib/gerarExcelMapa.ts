@@ -30,7 +30,7 @@ const formatData = (d: string) => {
   catch { return d; }
 };
 
-export function exportarExcelMapa(params: ExcelMapaParams) {
+exportasync function exportarExcelMapa(params: ExcelMapaParams) {
   const { lancamentos, funcionarios, cargos, clientes, filterMes } = params;
 
   const getFuncNome = (id: string) => funcionarios.find((f) => f.id === id)?.nome ?? "—";

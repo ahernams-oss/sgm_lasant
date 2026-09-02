@@ -156,7 +156,7 @@ export async function renderOrdemServicoEducacao(doc: jsPDF, { os, empresa, clie
   y = (doc as any).lastAutoTable.finalY + 2;
 
   // ============ BLOCO ESTIMATIVA ============
-  const renderBlocoSCO = (titulo: string, materiais: MaterialOS[], rotuloRodape: { esq: string; dir: string }, dataLabel: { inicio: string; termino: string }) => {
+  const renderBlocoSCO = async (titulo: string, materiais: MaterialOS[], rotuloRodape: { esq: string; dir: string }, dataLabel: { inicio: string; termino: string }) => {
     // Faixa vertical "FISCALIZAÇÃO – EMPRESA" + descrição
     (await getAutoTable())(doc, {
       startY: y,

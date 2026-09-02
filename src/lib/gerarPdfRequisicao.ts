@@ -89,7 +89,7 @@ export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
   let y = headerH + 10;
 
   // ===== HELPER: Section with bordered table =====
-  const addSection = (title: string, rows: [string, string][]) => {
+  const addSection = async (title: string, rows: [string, string][]) => {
     const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
     if (filteredRows.length === 0) return;
 

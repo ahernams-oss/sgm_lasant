@@ -29,7 +29,7 @@ const formatDate = (d: string | null) => {
   return d.split("-").reverse().join("/");
 };
 
-export function gerarPdfExames(exames: ExameData[]) {
+exportasync function gerarPdfExames(exames: ExameData[]) {
   const doc = new (await getJsPDF())({ orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
 

@@ -48,7 +48,7 @@ interface Params {
 const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const SIGLAS_DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes }: Params) {
+exportasync function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes }: Params) {
   const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -103,7 +103,7 @@ export function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes 
   doc.save(`mapa-plantoes-${ano}-${String(mes + 1).padStart(2, "0")}.pdf`);
 }
 
-export function gerarMapaPlantoesExcel({ funcionarios, cargos, clientes, ano, mes }: Params) {
+exportasync function gerarMapaPlantoesExcel({ funcionarios, cargos, clientes, ano, mes }: Params) {
   const dias = diasDoMes(ano, mes);
   const dataRef = new Date(ano, mes, 1);
   const diasArr = Array.from({ length: dias }, (_, i) => i + 1);

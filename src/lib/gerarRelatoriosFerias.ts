@@ -188,7 +188,7 @@ export async function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { o
   doc.save("escala-sugerida-ferias.pdf");
 }
 
-export function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
+exportasync function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
   const wb = (await getXLSX()).utils.book_new();
 
   const mapa = rows.map((r) => ({

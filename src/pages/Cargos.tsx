@@ -254,7 +254,7 @@ const Cargos = () => {
     };
 
     if (isExcel) {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const wb = (await getXLSX()).read(e.target?.result, { type: "array" });
           const ws = wb.Sheets[wb.SheetNames[0]];

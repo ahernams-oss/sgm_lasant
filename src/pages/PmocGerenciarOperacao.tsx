@@ -923,7 +923,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     doc.save(`historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
     const rows = buildRows();
     if (rows.length === 0) return;
     const data = rows.map((r) => {

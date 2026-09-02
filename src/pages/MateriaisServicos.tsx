@@ -142,7 +142,7 @@ export default function MateriaisServicosPage() {
       };
       reader.readAsText(file);
     } else {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const wb = (await getXLSX()).read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];

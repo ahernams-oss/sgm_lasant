@@ -21,7 +21,7 @@ interface TermoData {
   dataVinculo: string;
 }
 
-export function downloadPdfTermoResponsabilidade(data: TermoData) {
+exportasync function downloadPdfTermoResponsabilidade(data: TermoData) {
   const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;

@@ -86,7 +86,7 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
 
   const titulo = `Relatório de ${tipo === "Cliente" ? "Clientes" : "Fornecedores"}`;
 
-  const handlePdf = () => {
+  const handlePdf = async () => {
     if (!validar()) return;
     const doc = new (await getJsPDF())({ orientation: campos.length > 5 ? "landscape" : "portrait" });
     const pw = doc.internal.pageSize.getWidth();
@@ -122,7 +122,7 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
     onOpenChange(false);
   };
 
-  const handleExcel = () => {
+  const handleExcel = async () => {
     if (!validar()) return;
     const linhas = dados.map(d => {
       const obj: Record<string, string> = {};

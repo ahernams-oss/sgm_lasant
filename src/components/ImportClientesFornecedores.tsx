@@ -35,7 +35,7 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
   const [importing, setImporting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const ws = (await getXLSX()).utils.aoa_to_sheet([COLUNAS_TEMPLATE.map(c => COLUNAS_LABEL[c] || c)]);
     ws["!cols"] = COLUNAS_TEMPLATE.map(() => ({ wch: 20 }));
     const wb = (await getXLSX()).utils.book_new();
@@ -48,7 +48,7 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
         const wb = (await getXLSX()).read(ev.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];

@@ -69,7 +69,7 @@ export async function gerarPdfNrs(nrs: NrCatalogo[], filtros?: string) {
   doc.save("relatorio-nrs.pdf");
 }
 
-export function gerarExcelNrs(nrs: NrCatalogo[]) {
+exportasync function gerarExcelNrs(nrs: NrCatalogo[]) {
   const wb = (await getXLSX()).utils.book_new();
 
   const ws = (await getXLSX()).utils.json_to_sheet(

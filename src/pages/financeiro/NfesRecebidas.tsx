@@ -88,7 +88,7 @@ const numeroSerie = (n: { numero: string | null; serie: string | null; chave?: s
   return `${numero || "—"}${serie ? ` / ${serie}` : ""}`;
 };
 
-const exportarExcel = (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
+const exportarExcel = async (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
   const wb = (await getXLSX()).utils.book_new();
   const fmtDate = (s: string | null) => {
     if (!s) return "";

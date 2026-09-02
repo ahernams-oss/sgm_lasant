@@ -13,7 +13,7 @@ export interface ReportData {
   resumo?: string;
 }
 
-export function gerarPdfDuda(report: ReportData) {
+exportasync function gerarPdfDuda(report: ReportData) {
   const doc = new (await getJsPDF())({ orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
   const pw = doc.internal.pageSize.getWidth();
 
@@ -54,7 +54,7 @@ export function gerarPdfDuda(report: ReportData) {
   doc.save(`${report.titulo.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-export function gerarExcelDuda(report: ReportData) {
+exportasync function gerarExcelDuda(report: ReportData) {
   const data = report.dados.map(row => {
     const obj: Record<string, string> = {};
     report.colunas.forEach((col, i) => { obj[col] = row[i] || ""; });

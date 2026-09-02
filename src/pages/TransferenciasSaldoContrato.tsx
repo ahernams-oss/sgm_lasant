@@ -220,7 +220,7 @@ export default function TransferenciasSaldoContrato() {
     loadHistorico();
   };
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
     if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
     const rows = historico.map(h => ({
       Data: new Date(h.data + "T00:00:00").toLocaleDateString("pt-BR"),

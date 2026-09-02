@@ -248,7 +248,7 @@ function renderMemoriaCalculo(doc: jsPDF, grupos: any[], startY: number) {
     return;
   }
 
-  grupos.forEach((g: any) => {
+  grupos.forEach(async (g: any) => {
     const tipoGrupo = (g.tipo || "unidade") as string;
     const linhas: any[] = Array.isArray(g.linhas) ? g.linhas : [];
     const tipoDe = (l: any): string => (l?.tipo || tipoGrupo) as string;

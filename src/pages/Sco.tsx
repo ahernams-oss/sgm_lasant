@@ -40,7 +40,7 @@ export default function Sco() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const ws = (await getXLSX()).utils.aoa_to_sheet([
       ["Código", "Descrição", "Unidade", "Tipo (SCO/SINAPI/EMOP)"],
       ["EXEMPLO001", "Descrição do item de exemplo", "un", "SCO"],
@@ -83,7 +83,7 @@ export default function Sco() {
       };
       reader.readAsText(file);
     } else {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const wb = (await getXLSX()).read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];

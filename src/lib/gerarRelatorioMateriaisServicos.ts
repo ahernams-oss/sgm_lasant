@@ -52,7 +52,7 @@ export async function gerarPdfMateriaisServicos({ materiais, getCatNome }: Expor
   doc.save("materiais_servicos.pdf");
 }
 
-export function gerarExcelMateriaisServicos({ materiais, getCatNome }: ExportData) {
+exportasync function gerarExcelMateriaisServicos({ materiais, getCatNome }: ExportData) {
   const data = materiais.map(m => ({
     "Código": m.codigo,
     "Descrição": m.descricao,

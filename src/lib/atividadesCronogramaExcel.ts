@@ -19,7 +19,7 @@ const parseModo = (v: any): "distribuido" | "manual" => {
 };
 
 /** Baixa a planilha modelo para importação de atividades. */
-export function baixarModeloAtividades() {
+exportasync function baixarModeloAtividades() {
   const ws = (await getXLSX()).utils.aoa_to_sheet([
     HEAD,
     ["Recomposição de piso", "m²", 300, 2500, "Distribuído"],
@@ -32,7 +32,7 @@ export function baixarModeloAtividades() {
 }
 
 /** Exporta as atividades atuais do cronograma para Excel. */
-export function exportarAtividadesExcel(atividades: CronogramaAtividade[], nome = "Atividades_Cronograma") {
+exportasync function exportarAtividadesExcel(atividades: CronogramaAtividade[], nome = "Atividades_Cronograma") {
   const ws = (await getXLSX()).utils.aoa_to_sheet([
     HEAD,
     ...atividades.map((a) => [

@@ -76,7 +76,7 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
   return y + 3;
 }
 
-export function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
+exportasync function gerarPdfDashboardSSOS(data: DashboardSSOSReport): jsPDF {
   const doc = new (await getJsPDF())();
   addHeader(doc, data.empresa);
   doc.setTextColor(30, 30, 30);
@@ -253,7 +253,7 @@ export function downloadPdfDashboardSSOS(data: DashboardSSOSReport) {
 }
 
 // =================== Excel ===================
-export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSXTypes.WorkBook {
+exportasync function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSXTypes.WorkBook {
   const wb = (await getXLSX()).utils.book_new();
   const empresaLabel = data.empresa?.nomeFantasia || data.empresa?.razaoSocial || "SGM Lasant";
 
@@ -331,7 +331,7 @@ export function gerarExcelDashboardSSOS(data: DashboardSSOSReport): XLSXTypes.Wo
   return wb;
 }
 
-export function downloadExcelDashboardSSOS(data: DashboardSSOSReport) {
+exportasync function downloadExcelDashboardSSOS(data: DashboardSSOSReport) {
   const wb = gerarExcelDashboardSSOS(data);
   const dt = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
   (await getXLSX()).writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`);

@@ -128,7 +128,7 @@ export default function I0Page() {
       };
       reader.readAsText(file);
     } else {
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const wb = (await getXLSX()).read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
@@ -144,7 +144,7 @@ export default function I0Page() {
 
   const mesLabel = (m: number) => meses.find((x) => x.value === m)?.label ?? String(m);
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const ws = (await getXLSX()).utils.aoa_to_sheet([
       ["Mês (1-12)", "Ano", "Código SCO", "Valor"],
       [1, currentYear, "EXEMPLO001", 100.50],

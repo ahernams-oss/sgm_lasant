@@ -12,7 +12,7 @@ interface PmocExcelData {
   tipo: "geral" | "cliente" | "conformidade";
 }
 
-function autoWidth(ws: XLSXTypes.WorkSheet) {
+async function autoWidth(ws: XLSXTypes.WorkSheet) {
   const data = (await getXLSX()).utils.sheet_to_json<string[]>(ws, { header: 1 }) as string[][];
   const cols: { wch: number }[] = [];
   data.forEach(row => {
@@ -24,7 +24,7 @@ function autoWidth(ws: XLSXTypes.WorkSheet) {
   ws["!cols"] = cols;
 }
 
-export function gerarExcelPmocGeral(data: PmocExcelData) {
+exportasync function gerarExcelPmocGeral(data: PmocExcelData) {
   const wb = (await getXLSX()).utils.book_new();
 
   // Planos
@@ -103,7 +103,7 @@ export function gerarExcelPmocCliente(data: PmocExcelData) {
   });
 }
 
-export function gerarExcelPmocConformidade(data: PmocExcelData) {
+exportasync function gerarExcelPmocConformidade(data: PmocExcelData) {
   const wb = (await getXLSX()).utils.book_new();
 
   const confRows = data.planos.map(p => {
@@ -133,7 +133,7 @@ export function gerarExcelPmocConformidade(data: PmocExcelData) {
   return wb;
 }
 
-export function downloadExcelPmoc(data: PmocExcelData) {
+exportasync function downloadExcelPmoc(data: PmocExcelData) {
   let wb: XLSXTypes.WorkBook;
   let nome: string;
   const ts = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");

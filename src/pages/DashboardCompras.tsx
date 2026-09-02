@@ -332,7 +332,7 @@ export default function DashboardCompras() {
   }, [pedidosFiltrados, materiais]);
 
   // PDF Export
-  const exportPdf = () => {
+  const exportPdf = async () => {
     const doc = new (await getJsPDF())();
     const pw = doc.internal.pageSize.getWidth();
     const DARK_BLUE: [number, number, number] = [30, 58, 107];

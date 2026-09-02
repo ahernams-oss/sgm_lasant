@@ -106,7 +106,7 @@ const toNumber = (v: unknown): number => {
   return isNaN(n) ? 0 : n;
 };
 
-function baixarPlanilha(nome: string, aoa: (string | number)[][]) {
+async function baixarPlanilha(nome: string, aoa: (string | number)[][]) {
   const ws = (await getXLSX()).utils.aoa_to_sheet(aoa);
   ws["!cols"] = (aoa[0] || []).map(() => ({ wch: 22 }));
   const wb = (await getXLSX()).utils.book_new();

@@ -26,7 +26,7 @@ interface ReportInput {
   totais?: { label: string; valor: string }[];
 }
 
-function basePdf(r: ReportInput) {
+async function basePdf(r: ReportInput) {
   const orient = r.colunas.length > 6 ? "landscape" : "portrait";
   const doc = new (await getJsPDF())({ orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
@@ -85,7 +85,7 @@ function basePdf(r: ReportInput) {
   doc.save(`${r.titulo.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-function baseExcel(r: ReportInput) {
+async function baseExcel(r: ReportInput) {
   const wb = (await getXLSX()).utils.book_new();
   const data = r.linhas.map((row) => {
     const o: Record<string, any> = {};
@@ -96,7 +96,7 @@ function baseExcel(r: ReportInput) {
   ws["!cols"] = r.colunas.map(() => ({ wch: 22 }));
   if (r.totais && r.totais.length) {
     (await getXLSX()).utils.sheet_add_aoa(ws, [[]], { origin: -1 });
-    r.totais.forEach((t) => {
+    r.totais.forEach(async (t) => {
       (await getXLSX()).utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
     });
   }

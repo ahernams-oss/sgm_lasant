@@ -572,7 +572,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; }
   };
 
-  const exportCotacoesPdf = () => {
+  const exportCotacoesPdf = async () => {
     const doc = new (await getJsPDF())();
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
@@ -597,7 +597,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     });
 
     // Detalhamento dos itens por cotação
-    convitesFiltrados.forEach((c) => {
+    convitesFiltrados.forEach(async (c) => {
       const itens = parseItens(c.itens);
       if (itens.length === 0) return;
       doc.addPage();
@@ -628,7 +628,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     doc.save(`cotacoes_${session.nome.replace(/\s+/g, "_")}.pdf`);
   };
 
-  const exportCotacoesExcel = () => {
+  const exportCotacoesExcel = async () => {
     const wb = (await getXLSX()).utils.book_new();
     const wsResumo = (await getXLSX()).utils.json_to_sheet(convitesFiltrados.map((c) => ({
       "Cotação": `COT-${String(c.cotacao_numero).padStart(4, "0")}`,
@@ -663,7 +663,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     (await getXLSX()).writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`);
   };
 
-  const exportPedidosPdf = () => {
+  const exportPedidosPdf = async () => {
     const doc = new (await getJsPDF())({ orientation: "landscape" });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
@@ -692,7 +692,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
     doc.save(`pedidos_${session.nome.replace(/\s+/g, "_")}.pdf`);
   };
 
-  const exportPedidosExcel = () => {
+  const exportPedidosExcel = async () => {
     const wb = (await getXLSX()).utils.book_new();
     const wsResumo = (await getXLSX()).utils.json_to_sheet(pedidosFiltrados.map((p) => ({
       "Pedido": `OC-${String(p.numero).padStart(4, "0")}`,

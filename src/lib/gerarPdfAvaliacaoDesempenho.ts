@@ -14,7 +14,7 @@ interface Opts {
   empresa?: { razaoSocial?: string; cnpj?: string; logoUrl?: string };
 }
 
-export function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts = {}) {
+exportasync function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts = {}) {
   const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
 

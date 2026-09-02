@@ -9,7 +9,7 @@ const fmtDate = (s?: string) => {
   return d && m && y ? `${d}/${m}/${y}` : s;
 };
 
-export function gerarExcelEventograma(ev: Eventograma) {
+exportasync function gerarExcelEventograma(ev: Eventograma) {
   const wb = (await getXLSX()).utils.book_new();
 
   const cabec = [

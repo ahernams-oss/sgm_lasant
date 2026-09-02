@@ -64,7 +64,7 @@ export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" |
   doc.save(`${r.titulo.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-export function gerarExcelFinanceiro(r: FinReport) {
+exportasync function gerarExcelFinanceiro(r: FinReport) {
   const wb = (await getXLSX()).utils.book_new();
   const data = r.linhas.map((row) => {
     const o: Record<string, any> = {};
@@ -75,7 +75,7 @@ export function gerarExcelFinanceiro(r: FinReport) {
   ws["!cols"] = r.colunas.map(() => ({ wch: 20 }));
   if (r.totais && r.totais.length) {
     (await getXLSX()).utils.sheet_add_aoa(ws, [[]], { origin: -1 });
-    r.totais.forEach((t) => {
+    r.totais.forEach(async (t) => {
       (await getXLSX()).utils.sheet_add_aoa(ws, [[t.label, t.valor]], { origin: -1 });
     });
   }

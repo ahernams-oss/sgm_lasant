@@ -9,7 +9,7 @@ interface PdfOptions {
   clienteNome?: string;
 }
 
-export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
+exportasync function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
   const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -29,7 +29,7 @@ export function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
   doc.setTextColor(30, 30, 30);
   let y = 44;
 
-  const addSection = (title: string, rows: [string, string][]) => {
+  const addSection = async (title: string, rows: [string, string][]) => {
     const filteredRows = rows.filter(([, val]) => val && val.trim() !== "");
     if (filteredRows.length === 0) return;
 
