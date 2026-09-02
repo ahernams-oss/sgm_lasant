@@ -236,8 +236,8 @@ export async function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], e
   return doc;
 }
 
-export function imprimirHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
-  const doc = gerarPdfHolerite(dados, empresa);
+export async function imprimirHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
+  const doc = await gerarPdfHolerite(dados, empresa);
   const url = doc.output("bloburl") as unknown as string;
   const win = window.open(url, "_blank");
   if (win) win.onload = () => win.print();

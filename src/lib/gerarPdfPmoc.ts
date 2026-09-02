@@ -80,7 +80,7 @@ export async function gerarPdfPmocGeral(data: PmocReportData): Promise<jsPDF> {
 
   // Resumo OS por status
   const statusOS: Record<string, number> = {};
-  data.ordensServico.forEach(o => { statusOS[o.status] = (statusOS[o.status] || 0) + 1; });
+  data.ordensServico.forEach(async o => { statusOS[o.status] = (statusOS[o.status] || 0) + 1; });
   y = await tabelaResumo(doc, y, "Ordens de Serviço por Status", ["Status", "Quantidade"],
     Object.entries(statusOS).map(([s, c]) => [s, c.toString()]));
 
@@ -280,7 +280,7 @@ export async function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhad
   });
 
   if (detalhado) {
-    ordensServico.forEach(o => {
+    ordensServico.forEach(async o => {
       doc.addPage();
       header(doc, `OS Nº ${o.numero}`, `${o.equipamentoNome || "-"} | ${o.status}`);
       doc.setTextColor(30, 30, 30);
@@ -449,7 +449,7 @@ export async function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[])
   });
 
   // Detalhar checklist por rotina
-  biblioteca.forEach(b => {
+  biblioteca.forEach(async b => {
     if (!b.checklistItens?.length) return;
     doc.addPage();
     header(doc, `Rotina: ${b.titulo}`, `${b.tipoEquipamento || "-"} | ${b.tipoAtividade} | v${b.versao}`);
@@ -473,13 +473,13 @@ export async function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[])
 
 // ====================== Helpers de download ======================
 const ts = () => new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
-export const downloadPdfPmocPlanos = (planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string) =>
+export const downloadPdfPmocPlanos = async (planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string) =>
   (await gerarPdfPmocPlanos(planos, atividades, filtroCliente)).save(`PMOC_Planos_${ts()}.pdf`);
-export const downloadPdfPmocOS = (os: PmocOrdemServico[], detalhado = true) =>
+export const downloadPdfPmocOS = async (os: PmocOrdemServico[], detalhado = true) =>
   (await gerarPdfPmocOS(os, detalhado)).save(`PMOC_OS_${ts()}.pdf`);
-export const downloadPdfPmocQualidadeAr = (pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]) =>
+export const downloadPdfPmocQualidadeAr = async (pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]) =>
   (await gerarPdfPmocQualidadeAr(pontos, medicoes)).save(`PMOC_QualidadeAr_${ts()}.pdf`);
-export const downloadPdfPmocInconformidades = (inc: PmocInconformidade[]) =>
+export const downloadPdfPmocInconformidades = async (inc: PmocInconformidade[]) =>
   (await gerarPdfPmocInconformidades(inc)).save(`PMOC_Inconformidades_${ts()}.pdf`);
-export const downloadPdfPmocBiblioteca = (bib: PmocBibliotecaRotina[]) =>
+export const downloadPdfPmocBiblioteca = async (bib: PmocBibliotecaRotina[]) =>
   (await gerarPdfPmocBiblioteca(bib)).save(`PMOC_Biblioteca_${ts()}.pdf`);
