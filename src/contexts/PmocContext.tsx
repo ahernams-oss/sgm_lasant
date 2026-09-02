@@ -213,7 +213,7 @@ export function PmocProvider({ children }: { children: ReactNode }) {
       queryKey: t.key,
       queryFn: async () => (await fetchAll(t.table, t.order)).map(t.mapper as (r: any) => any),
       staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
-    })) as any, __active),
+    })) as any, __active) as any,
   });
   const [planos, atividades, ordensServico, responsaveisTecnicos, pontosQA, medicoesQA, inconformidades, biblioteca] =
     results.map(r => (r.data ?? []) as any[]);
