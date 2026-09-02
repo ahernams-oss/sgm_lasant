@@ -211,7 +211,7 @@ export async function gerarPdfBoletimMedicao(
 
   // ===== BLOCOS =====
   const blocos = montarBlocos(boletim);
-  blocos.forEach((b) => {
+  blocos.forEach(async (b) => {
     const alturaEstimada = (b.linhas.length + 5) * 6 + 12;
     if (y + alturaEstimada > ph - 20) {
       doc.addPage();

@@ -267,7 +267,7 @@ export async function gerarPdfDashboard(data: DashboardReportData): Promise<jsPD
   return doc;
 }
 
-export function downloadPdfDashboard(data: DashboardReportData) {
+export async function downloadPdfDashboard(data: DashboardReportData) {
   const doc = await gerarPdfDashboard(data);
   const periodoLabel = data.dateFrom || data.dateTo
     ? `${(data.dateFrom || "").replace(/\//g, "-")}_${(data.dateTo || "").replace(/\//g, "-")}`

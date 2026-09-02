@@ -243,6 +243,6 @@ export function imprimirHolerite(dados: HoleriteDados | HoleriteDados[], empresa
   if (win) win.onload = () => win.print();
 }
 
-export function baixarHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite, nome = "holerite.pdf") {
+export async function baixarHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite, nome = "holerite.pdf") {
   (await gerarPdfHolerite(dados, empresa)).save(nome);
 }

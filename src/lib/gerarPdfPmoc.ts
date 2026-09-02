@@ -213,7 +213,7 @@ export async function gerarPdfPmocConformidade(data: PmocReportData): Promise<js
   return doc;
 }
 
-export function downloadPdfPmoc(data: PmocReportData) {
+export async function downloadPdfPmoc(data: PmocReportData) {
   let doc: jsPDF;
   let nome: string;
   const ts = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
