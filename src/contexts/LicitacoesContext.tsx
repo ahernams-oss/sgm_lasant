@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
-import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 // ============ TYPES ============
 
@@ -246,11 +246,11 @@ export function LicitacoesProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const opts = { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 };
   const results = useQueries({
-    queries: ([
+    queries: gateQueries([
       { queryKey: QK_LIC, queryFn: async () => (await fetchAll("licitacoes", "created_at")).map(rowToLicitacao), ...opts },
       { queryKey: QK_DOC, queryFn: async () => (await fetchAll("licitacoes_documentos", "created_at")).map(rowToDocumento), ...opts },
       { queryKey: QK_ANA, queryFn: async () => (await fetchAll("licitacoes_analises", "created_at")).map(rowToAnalise), ...opts },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
   const licitacoes = (results[0].data as Licitacao[]) ?? [];
   const documentos = (results[1].data as DocumentoLicitacao[]) ?? [];

@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
-import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada";
 export type StatusReceber = "aberta" | "recebida" | "parcial" | "cancelada";
@@ -161,7 +161,7 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
 
   const results = useQueries({
-    queries: ([
+    queries: gateQueries([
       { queryKey: QK_CB, queryFn: async () => fetchAll("fin_contas_bancarias", "nome"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_PC, queryFn: async () => fetchAll("fin_plano_contas", "codigo"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_CC, queryFn: async () => fetchAll("fin_centros_custo", "nome"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
@@ -169,7 +169,7 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
       { queryKey: QK_CR, queryFn: async () => fetchAll("fin_contas_receber", "data_vencimento"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_LN, queryFn: async () => fetchAll("fin_lancamentos", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_OFX, queryFn: async () => fetchAll("fin_movimentos_ofx", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
 
   const contasBancarias = (results[0].data as ContaBancaria[]) || [];

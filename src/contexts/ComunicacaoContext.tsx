@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
-import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface Conversa {
   id: string;
@@ -141,10 +141,10 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   });
 
   const convQueries = useQueries({
-    queries: ([
+    queries: gateQueries([
       { queryKey: [...QK_CONV, "raw"], queryFn: () => fetchAll("comunicacao_conversas", "created_at"), ...opts },
       { queryKey: ["comunicacao_participantes"], queryFn: () => fetchAll("comunicacao_participantes", "created_at"), ...opts },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
   const convData = (convQueries[0].data as any[]) ?? [];
   const partData = (convQueries[1].data as any[]) ?? [];
@@ -161,10 +161,10 @@ export function ComunicacaoProvider({ children }: { children: ReactNode }) {
   })).reverse();
 
   const avisoQueries = useQueries({
-    queries: ([
+    queries: gateQueries([
       { queryKey: [...QK_AVISOS, "raw"], queryFn: () => fetchAll("comunicacao_avisos", "created_at"), ...opts },
       { queryKey: ["comunicacao_avisos_leitura"], queryFn: () => fetchAll("comunicacao_avisos_leitura", "lido_em"), ...opts },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
   const avData = (avisoQueries[0].data as any[]) ?? [];
   const leitData = (avisoQueries[1].data as any[]) ?? [];

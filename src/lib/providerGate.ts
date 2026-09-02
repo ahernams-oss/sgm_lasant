@@ -50,3 +50,8 @@ export function activateProvider(key: string): void {
     emit();
   }
 }
+
+/** Aplica o gate a um array de queries do `useQueries`, preservando os tipos. */
+export function gateQueries<T extends readonly unknown[]>(queries: T, enabled: boolean): T {
+  return (queries as readonly any[]).map((q) => ({ ...(q as object), enabled })) as unknown as T;
+}

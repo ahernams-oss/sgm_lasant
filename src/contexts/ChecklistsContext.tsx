@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
-import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface ChecklistItem {
   descricao: string;
@@ -65,7 +65,7 @@ export function ChecklistsProvider({ children }: { children: ReactNode }) {
   const __active = useProviderGate("Checklists");
   const qc = useQueryClient();
   const results = useQueries({
-    queries: ([
+    queries: gateQueries([
       {
         queryKey: QK_C,
         queryFn: async () => (await fetchAll("checklists")) as Checklist[],
@@ -76,7 +76,7 @@ export function ChecklistsProvider({ children }: { children: ReactNode }) {
         queryFn: async () => (await fetchAll("checklist_preenchimentos")) as ChecklistPreenchimento[],
         staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
       },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
   const checklists = results[0].data ?? [];
   const preenchimentos = results[1].data ?? [];

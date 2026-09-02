@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
-import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface BimQuantitativo {
   id: string; modelo_id: string; categoria: string; elemento: string;
@@ -57,11 +57,11 @@ export function BimProvider({ children }: { children: ReactNode }) {
   const __active = useProviderGate("Bim");
   const qc = useQueryClient();
   const results = useQueries({
-    queries: ([
+    queries: gateQueries([
       { queryKey: QK_M, queryFn: async () => (await fetchAll("bim_modelos", "numero")) as BimModelo[], staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_Q, queryFn: async () => (await fetchAll("bim_quantitativos")) as BimQuantitativo[], staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_P, queryFn: async () => (await fetchAll("bim_pranchas")) as BimPrancha[], staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
   const modelos = results[0].data ?? [];
   const quantitativos = results[1].data ?? [];

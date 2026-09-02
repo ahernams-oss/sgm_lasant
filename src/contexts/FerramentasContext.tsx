@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
+import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export interface Ferramenta {
   id: string; codigo: string; descricao: string; marca: string; modelo: string;
@@ -121,7 +121,7 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
 
   const results = useQueries({
-    queries: ([
+    queries: gateQueries([
       {
         queryKey: QK_F,
         queryFn: async () => {
@@ -158,7 +158,7 @@ export function FerramentasProvider({ children }: { children: ReactNode }) {
         },
         staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
       },
-    ]).map((q: any) => ({ ...q, enabled: __active })),
+    ], __active),
   });
 
   const ferramentas = (results[0].data as Ferramenta[]) || [];
