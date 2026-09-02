@@ -117,7 +117,7 @@ export async function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: 
   doc.save(`avaliacao-desempenho-${(opts.funcionarioNome || "func").replace(/\s+/g, "_")}.pdf`);
 }
 
-exportasync function gerarPdfAvaliacoesLista(
+export async function gerarPdfAvaliacoesLista(
   avaliacoes: AvaliacaoDesempenho[],
   funcMap: Record<string, string>,
 ) {

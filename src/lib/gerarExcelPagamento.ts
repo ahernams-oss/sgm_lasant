@@ -49,7 +49,7 @@ function buildRows(
   });
 }
 
-exportasync function downloadExcelPagamento(
+export async function downloadExcelPagamento(
   medicoesSelecionadas: MedicaoServico[],
   fornecedores: Cliente[],
   empresa: Empresa
