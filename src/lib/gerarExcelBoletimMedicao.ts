@@ -10,7 +10,7 @@ const fmtDate = (s?: string) => {
   return d && m && y ? `${d}/${m}/${y}` : String(s);
 };
 
-exportasync function downloadExcelBoletimMedicao(boletim: BoletimMedicao, empresa?: Empresa) {
+export async function downloadExcelBoletimMedicao(boletim: BoletimMedicao, empresa?: Empresa) {
   const wb = (await getXLSX()).utils.book_new();
   const frentes = boletim.frentes || [];
   const totalContrato =

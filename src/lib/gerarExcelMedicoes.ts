@@ -6,7 +6,7 @@ const getXLSX = async () => await import("xlsx");
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-exportasync function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string): XLSXTypes.WorkBook {
+export async function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string): XLSXTypes.WorkBook {
   const wb = (await getXLSX()).utils.book_new();
 
   // Resumo sheet
@@ -77,7 +77,7 @@ exportasync function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel?
   return wb;
 }
 
-exportasync function downloadExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string) {
+export async function downloadExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string) {
   const wb = gerarExcelMedicoes(medicoes, filterLabel);
   (await getXLSX()).writeFile(wb, `Relatorio_Medicoes_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.xlsx`);
 }

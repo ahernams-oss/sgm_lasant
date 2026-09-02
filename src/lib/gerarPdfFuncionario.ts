@@ -9,7 +9,7 @@ interface PdfOptions {
   clienteNome?: string;
 }
 
-exportasync function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
+export async function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
   const doc = new (await getJsPDF())();
   const pageWidth = doc.internal.pageSize.getWidth();
 

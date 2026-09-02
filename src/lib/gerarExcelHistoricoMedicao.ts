@@ -6,7 +6,7 @@ const getXLSX = async () => await import("xlsx");
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-exportasync function downloadExcelHistoricoMedicao(med: MedicaoServico) {
+export async function downloadExcelHistoricoMedicao(med: MedicaoServico) {
   const wb = (await getXLSX()).utils.book_new();
 
   // Resumo

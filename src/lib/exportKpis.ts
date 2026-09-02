@@ -47,7 +47,7 @@ export function exportarKpisCsv(titulo: string, kpis: KpiExportItem[], contexto?
 }
 
 /** Exporta os KPIs em PDF, agrupados quando houver o campo "grupo". */
-exportasync function exportarKpisPdf(titulo: string, kpis: KpiExportItem[], contexto?: string) {
+export async function exportarKpisPdf(titulo: string, kpis: KpiExportItem[], contexto?: string) {
   const doc = new (await getJsPDF())({ orientation: "portrait", unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
 

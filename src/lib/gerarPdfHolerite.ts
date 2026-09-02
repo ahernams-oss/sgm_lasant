@@ -226,7 +226,7 @@ function desenharHolerite(doc: jsPDF, d: HoleriteDados, empresa?: EmpresaHolerit
 }
 
 
-exportasync function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
+export async function gerarPdfHolerite(dados: HoleriteDados | HoleriteDados[], empresa?: EmpresaHolerite) {
   const lista = Array.isArray(dados) ? dados : [dados];
   const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
   lista.forEach((d, i) => {

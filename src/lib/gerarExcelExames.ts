@@ -26,7 +26,7 @@ const formatDate = (d: string | null) => {
   return d.split("-").reverse().join("/");
 };
 
-exportasync function gerarExcelExames(exames: ExameData[]) {
+export async function gerarExcelExames(exames: ExameData[]) {
   const rows = exames.map((e) => ({
     "Funcionário": e.funcionario_nome,
     "Tipo de Exame": e.tipo_exame,

@@ -202,7 +202,7 @@ function drawKpis(doc: jsPDF, y: number, kpis: RelatorioOrcamentosData["kpis"]):
 }
 
 // -------- Main PDF --------
-exportasync function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData): jsPDF {
+export async function gerarRelatorioOrcamentosPDF(data: RelatorioOrcamentosData): jsPDF {
   const doc = new (await getJsPDF())({ orientation: "portrait", unit: "mm", format: "a4" });
   addHeader(doc, data.empresa);
 

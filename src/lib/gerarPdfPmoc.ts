@@ -66,7 +66,7 @@ async function tabelaResumo(doc: jsPDF, y: number, titulo: string, head: string[
   return (doc as any).lastAutoTable.finalY + 10;
 }
 
-exportasync function gerarPdfPmocGeral(data: PmocReportData): jsPDF {
+export async function gerarPdfPmocGeral(data: PmocReportData): jsPDF {
   const doc = new (await getJsPDF())();
   header(doc, "Relatório Geral PMOC", `Total: ${data.planos.length} planos | ${data.atividades.length} atividades | ${data.ordensServico.length} OS`);
   doc.setTextColor(30, 30, 30);
@@ -116,7 +116,7 @@ exportasync function gerarPdfPmocGeral(data: PmocReportData): jsPDF {
   return doc;
 }
 
-exportasync function gerarPdfPmocCliente(data: PmocReportData): jsPDF {
+export async function gerarPdfPmocCliente(data: PmocReportData): jsPDF {
   const doc = new (await getJsPDF())();
   const clienteNome = data.filtroCliente || "Todos";
   header(doc, "Relatório PMOC por Cliente", `Cliente: ${clienteNome}`);
@@ -167,7 +167,7 @@ exportasync function gerarPdfPmocCliente(data: PmocReportData): jsPDF {
   return doc;
 }
 
-exportasync function gerarPdfPmocConformidade(data: PmocReportData): jsPDF {
+export async function gerarPdfPmocConformidade(data: PmocReportData): jsPDF {
   const doc = new (await getJsPDF())();
   const totalAtiv = data.atividades.length;
   const exec = data.atividades.filter(a => a.ultimaExecucao).length;
@@ -231,7 +231,7 @@ export function downloadPdfPmoc(data: PmocReportData) {
 }
 
 // ====================== Relatório de Planos ======================
-exportasync function gerarPdfPmocPlanos(planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string): jsPDF {
+export async function gerarPdfPmocPlanos(planos: PmocPlano[], atividades: PmocAtividade[], filtroCliente?: string): jsPDF {
   const doc = new (await getJsPDF())();
   const lista = filtroCliente ? planos.filter(p => p.clienteNome === filtroCliente) : planos;
   header(doc, "Relatório de Planos PMOC", `${lista.length} plano(s)${filtroCliente ? ` — Cliente: ${filtroCliente}` : ""}`);
@@ -258,7 +258,7 @@ exportasync function gerarPdfPmocPlanos(planos: PmocPlano[], atividades: PmocAti
 }
 
 // ====================== Relatório de OS ======================
-exportasync function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhado = true): jsPDF {
+export async function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhado = true): jsPDF {
   const doc = new (await getJsPDF())();
   header(doc, "Relatório de Ordens de Serviço PMOC", `${ordensServico.length} OS`);
   doc.setTextColor(30, 30, 30);
@@ -354,7 +354,7 @@ exportasync function gerarPdfPmocOS(ordensServico: PmocOrdemServico[], detalhado
 }
 
 // ====================== Relatório de Qualidade do Ar ======================
-exportasync function gerarPdfPmocQualidadeAr(pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]): jsPDF {
+export async function gerarPdfPmocQualidadeAr(pontos: PmocQualidadeArPonto[], medicoes: PmocQualidadeArMedicao[]): jsPDF {
   const doc = new (await getJsPDF())();
   const naoConf = medicoes.filter(m => !m.conforme).length;
   header(doc, "Relatório de Qualidade do Ar (QAI)", `${pontos.length} ponto(s) | ${medicoes.length} medição(ões) | ${naoConf} não conforme(s)`);
@@ -396,7 +396,7 @@ exportasync function gerarPdfPmocQualidadeAr(pontos: PmocQualidadeArPonto[], med
 }
 
 // ====================== Relatório de Inconformidades ======================
-exportasync function gerarPdfPmocInconformidades(inconformidades: PmocInconformidade[]): jsPDF {
+export async function gerarPdfPmocInconformidades(inconformidades: PmocInconformidade[]): jsPDF {
   const doc = new (await getJsPDF())();
   const abertas = inconformidades.filter(i => i.status !== "Encerrada" && i.status !== "Resolvida").length;
   header(doc, "Relatório de Inconformidades PMOC", `${inconformidades.length} registro(s) | ${abertas} aberta(s)`);
@@ -428,7 +428,7 @@ exportasync function gerarPdfPmocInconformidades(inconformidades: PmocInconformi
 }
 
 // ====================== Relatório de Biblioteca ======================
-exportasync function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[]): jsPDF {
+export async function gerarPdfPmocBiblioteca(biblioteca: PmocBibliotecaRotina[]): jsPDF {
   const doc = new (await getJsPDF())();
   header(doc, "Biblioteca de Rotinas PMOC", `${biblioteca.length} rotina(s) cadastrada(s)`);
   doc.setTextColor(30, 30, 30);

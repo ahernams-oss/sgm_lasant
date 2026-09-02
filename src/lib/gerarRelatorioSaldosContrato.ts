@@ -288,7 +288,7 @@ export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: 
   doc.save(fname);
 }
 
-exportasync function gerarExcelSaldosContrato(input: SaldoReportInput) {
+export async function gerarExcelSaldosContrato(input: SaldoReportInput) {
   const { cliente, contrato } = input;
   const rows = montarLinhasSaldos(input);
   const wb = (await getXLSX()).utils.book_new();

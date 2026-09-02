@@ -24,7 +24,7 @@ async function autoWidth(ws: XLSXTypes.WorkSheet) {
   ws["!cols"] = cols;
 }
 
-exportasync function gerarExcelPmocGeral(data: PmocExcelData) {
+export async function gerarExcelPmocGeral(data: PmocExcelData) {
   const wb = (await getXLSX()).utils.book_new();
 
   // Planos
@@ -103,7 +103,7 @@ export function gerarExcelPmocCliente(data: PmocExcelData) {
   });
 }
 
-exportasync function gerarExcelPmocConformidade(data: PmocExcelData) {
+export async function gerarExcelPmocConformidade(data: PmocExcelData) {
   const wb = (await getXLSX()).utils.book_new();
 
   const confRows = data.planos.map(p => {
@@ -133,7 +133,7 @@ exportasync function gerarExcelPmocConformidade(data: PmocExcelData) {
   return wb;
 }
 
-exportasync function downloadExcelPmoc(data: PmocExcelData) {
+export async function downloadExcelPmoc(data: PmocExcelData) {
   let wb: XLSXTypes.WorkBook;
   let nome: string;
   const ts = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");

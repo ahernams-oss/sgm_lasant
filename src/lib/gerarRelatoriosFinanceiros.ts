@@ -64,7 +64,7 @@ export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" |
   doc.save(`${r.titulo.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-exportasync function gerarExcelFinanceiro(r: FinReport) {
+export async function gerarExcelFinanceiro(r: FinReport) {
   const wb = (await getXLSX()).utils.book_new();
   const data = r.linhas.map((row) => {
     const o: Record<string, any> = {};

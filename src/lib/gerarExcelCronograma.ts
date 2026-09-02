@@ -3,7 +3,7 @@ import type { Cronograma } from "@/contexts/CronogramasContext";
 import type * as XLSXTypes from "xlsx";
 const getXLSX = async () => await import("xlsx");
 
-exportasync function gerarExcelCronograma(cronograma: Cronograma) {
+export async function gerarExcelCronograma(cronograma: Cronograma) {
   const wb = (await getXLSX()).utils.book_new();
   const periodos = cronograma.periodos || [];
   const atividades = cronograma.atividades || [];
