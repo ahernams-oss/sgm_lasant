@@ -386,41 +386,57 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
           variant="default"
           size="sm"
           disabled={!funcionarioId}
-          onClick={async () => {
-            if (!funcionarioId) { toast.error("Salve o funcionário antes de enviar o link."); return; }
-            const pendentes = epis.filter((e) => !e.dataEntrega);
-            if (pendentes.length === 0) { toast.error("Não há EPIs pendentes de recebimento."); return; }
-            try {
-              const token = crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 8);
-              const { error } = await (supabase as any).from("epis_recebimentos").insert({
-                funcionario_id: funcionarioId,
-                token,
-                epis_ids: pendentes.map((e) => e.id),
-                epis_snapshot: pendentes,
-                telefone_envio: telefoneWhatsapp || null,
-              });
-              if (error) throw error;
-              const link = `${window.location.origin}/receber-epis/${token}`;
-              const msg = `Olá! Você tem ${pendentes.length} EPI(s) a confirmar. Acesse o link seguro (válido por 7 dias) para confirmar o recebimento com reconhecimento facial: ${link}`;
-              const fone = (telefoneWhatsapp || "").replace(/\D/g, "");
-              if (fone) {
-                const { enviarPlugSend } = await import("@/lib/plugsend");
-                const r = await enviarPlugSend(fone, msg);
-                if (r.success) toast.success("Link enviado por WhatsApp.");
-                else toast.warning("Link gerado mas WhatsApp falhou. Copie manualmente.");
-              } else {
-                toast.info("Sem WhatsApp cadastrado. Link copiado.");
-              }
-              try { await navigator.clipboard.writeText(link); } catch {}
-            } catch (e: any) {
-              console.error(e);
-              toast.error("Falha ao gerar link: " + (e?.message || ""));
-            }
-          }}
+          onClick={() => enviarLinkRecebimento()}
         >
           Enviar link de recebimento
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!funcionarioId}
+          onClick={() => { setContingenciaFone(""); setContingenciaOpen(true); }}
+        >
+          Enviar p/ nº de contingência
+        </Button>
       </div>
+
+      <Dialog open={contingenciaOpen} onOpenChange={setContingenciaOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar link para número de contingência</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Field label="Número do WhatsApp (com DDD)" required>
+              <Input
+                value={contingenciaFone}
+                onChange={(e) => setContingenciaFone(e.target.value)}
+                placeholder="(21) 99999-9999"
+              />
+            </Field>
+            <p className="text-xs text-muted-foreground">
+              Use quando não for possível enviar para o número do funcionário. O envio fica registrado no recebimento.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setContingenciaOpen(false)}>Cancelar</Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={enviandoLink}
+                onClick={async () => {
+                  const fone = contingenciaFone.replace(/\D/g, "");
+                  if (fone.length < 10) { toast.error("Informe um número válido com DDD."); return; }
+                  const ok = await enviarLinkRecebimento(contingenciaFone);
+                  if (ok) setContingenciaOpen(false);
+                }}
+              >
+                Enviar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
 
       {epis.length > 0 && (
