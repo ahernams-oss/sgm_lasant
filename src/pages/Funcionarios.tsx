@@ -327,6 +327,44 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
 
   const removeEpi = (id: string) => onChange(epis.filter((e) => e.id !== id));
 
+  const enviarLinkRecebimento = async (foneOverride?: string): Promise<boolean> => {
+    if (!funcionarioId) { toast.error("Salve o funcionário antes de enviar o link."); return false; }
+    const pendentes = epis.filter((e) => !e.dataEntrega);
+    if (pendentes.length === 0) { toast.error("Não há EPIs pendentes de recebimento."); return false; }
+    setEnviandoLink(true);
+    try {
+      const destino = (foneOverride ?? telefoneWhatsapp ?? "").replace(/\D/g, "");
+      const token = crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 8);
+      const { error } = await (supabase as any).from("epis_recebimentos").insert({
+        funcionario_id: funcionarioId,
+        token,
+        epis_ids: pendentes.map((e) => e.id),
+        epis_snapshot: pendentes,
+        telefone_envio: destino || null,
+      });
+      if (error) throw error;
+      const link = `${window.location.origin}/receber-epis/${token}`;
+      const msg = `Olá! Você tem ${pendentes.length} EPI(s) a confirmar. Acesse o link seguro (válido por 7 dias) para confirmar o recebimento com reconhecimento facial: ${link}`;
+      if (destino) {
+        const { enviarPlugSend } = await import("@/lib/plugsend");
+        const r = await enviarPlugSend(destino, msg);
+        if (r.success) toast.success(foneOverride ? "Link enviado para o número de contingência." : "Link enviado por WhatsApp.");
+        else toast.warning("Link gerado mas WhatsApp falhou. Copie manualmente.");
+      } else {
+        toast.info("Sem WhatsApp cadastrado. Link copiado.");
+      }
+      try { await navigator.clipboard.writeText(link); } catch {}
+      return true;
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Falha ao gerar link: " + (e?.message || ""));
+      return false;
+    } finally {
+      setEnviandoLink(false);
+    }
+  };
+
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_150px_auto] gap-3 items-end">
