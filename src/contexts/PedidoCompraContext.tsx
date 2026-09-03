@@ -102,8 +102,8 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function usePedidoCompra() {
-  useActivateProvider("PedidoCompra");
+export function usePedidoCompra(activate: boolean = true) {
+  useActivateProvider("PedidoCompra", activate);
   const ctx = useContext(PedidoCompraContext);
   if (!ctx) throw new Error("usePedidoCompra must be used within PedidoCompraProvider");
   return ctx;

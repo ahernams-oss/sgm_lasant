@@ -32,16 +32,17 @@ export function useProviderGate(key: string): boolean {
 }
 
 /** Usado dentro do hook `useXxx()`: marca o provider como ativo. */
-export function useActivateProvider(key: string): void {
+export function useActivateProvider(key: string, enabled: boolean = true): void {
   const [, force] = useState(0);
   useEffect(() => {
-    if (!activated.has(key)) {
+    if (enabled && !activated.has(key)) {
       activated.add(key);
       emit();
       force((n) => n + 1);
     }
-  }, [key]);
+  }, [key, enabled]);
 }
+
 
 /** Ativa manualmente (uso raro: fora de componentes React). */
 export function activateProvider(key: string): void {

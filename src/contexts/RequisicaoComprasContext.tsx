@@ -109,8 +109,8 @@ export function RequisicaoComprasProvider({ children }: { children: ReactNode })
   );
 }
 
-export function useRequisicaoCompras() {
-  useActivateProvider("RequisicaoCompras");
+export function useRequisicaoCompras(activate: boolean = true) {
+  useActivateProvider("RequisicaoCompras", activate);
   const ctx = useContext(RequisicaoComprasContext);
   if (!ctx) throw new Error("useRequisicaoCompras must be used within RequisicaoComprasProvider");
   return ctx;
