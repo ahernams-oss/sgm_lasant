@@ -263,6 +263,9 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
 const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string; funcionarioId?: string; telefoneWhatsapp?: string }) => {
   const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
   const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
+  const [contingenciaOpen, setContingenciaOpen] = useState(false);
+  const [contingenciaFone, setContingenciaFone] = useState("");
+  const [enviandoLink, setEnviandoLink] = useState(false);
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
   const { cargos } = useCargos();
