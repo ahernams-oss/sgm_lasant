@@ -51,9 +51,9 @@ const recebimentoToRow = (r: Recebimento) => ({
 export function RecebimentoProvider({ children }: { children: ReactNode }) {
   const __active = useProviderGate("Recebimento");
   const qc = useQueryClient();
-  const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra();
-  const { requisicoes, updateStatus: updateReqStatus } = useRequisicaoCompras();
-  const { registrarEntradaRecebimento } = useEstoque();
+  const { pedidos, updateStatus: updatePedidoStatus } = usePedidoCompra(__active);
+  const { requisicoes, updateStatus: updateReqStatus } = useRequisicaoCompras(__active);
+  const { registrarEntradaRecebimento } = useEstoque(__active);
 
   const { data: recebimentos = [] } = useQuery({
     enabled: __active,

@@ -332,8 +332,8 @@ export function EstoqueProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useEstoque() {
-  useActivateProvider("Estoque");
+export function useEstoque(activate: boolean = true) {
+  useActivateProvider("Estoque", activate);
   const ctx = useContext(EstoqueContext);
   if (!ctx) throw new Error("useEstoque must be used within EstoqueProvider");
   return ctx;
