@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -181,6 +182,7 @@ const empresaToRow = (e: Empresa) => ({
 });
 
 export function EmpresaProvider({ children }: { children: ReactNode }) {
+  const __active = useProviderGate("Empresa");
   const [empresa, setEmpresa] = useState<Empresa>(EMPTY);
   const [loading, setLoading] = useState(true);
 
@@ -209,7 +211,7 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (__active) load(); }, [load, __active]);
 
   const saveEmpresa = async (data: Empresa) => {
     let empresaId = data.id;
@@ -277,6 +279,7 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
 }
 
 export function useEmpresa() {
+  useActivateProvider("Empresa");
   const ctx = useContext(EmpresaContext);
   if (!ctx) throw new Error("useEmpresa must be used within EmpresaProvider");
   return ctx;
