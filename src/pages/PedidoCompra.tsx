@@ -213,10 +213,10 @@ export default function PedidoCompraPage() {
     });
     return Array.from(set).sort();
   }, [pedidos, requisicoes]);
-  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
+  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterCategoria !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
   const clearFilters = () => {
     setSearch(""); setFilterStatus("Todos"); setFilterFornecedor("Todos");
-    setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterDataIni(""); setFilterDataFim("");
+    setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterCategoria("Todos"); setFilterDataIni(""); setFilterDataFim("");
   };
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
