@@ -436,6 +436,16 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
         <Field label="Data de Vencimento">
           <Input type="date" value={novo.dataVencimento} onChange={(e) => setNovo({ ...novo, dataVencimento: e.target.value })} />
         </Field>
+        <Field label="Motivo">
+          <Select value={novo.motivo} onValueChange={(v) => setNovo({ ...novo, motivo: v })}>
+            <SelectTrigger><SelectValue placeholder="Motivo" /></SelectTrigger>
+            <SelectContent>
+              {MOTIVOS_EPI.map((m) => (
+                <SelectItem key={m.codigo} value={m.codigo}>{m.codigo} - {m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
         <Button type="button" onClick={addEpi} size="sm" className="h-10">
           <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
