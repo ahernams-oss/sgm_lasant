@@ -27,6 +27,7 @@ import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, Anex
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { ConselhoClasseSection } from "@/components/ConselhoClasseSection";
 import { useCargos } from "@/contexts/CargosContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
@@ -261,8 +262,17 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
+export const MOTIVOS_EPI = [
+  { codigo: "1", label: "Admissão" },
+  { codigo: "2", label: "Reposição por desgaste" },
+  { codigo: "3", label: "Reposição por perda" },
+  { codigo: "4", label: "Mudança de função" },
+  { codigo: "5", label: "Extravio" },
+  { codigo: "6", label: "Demissão" },
+];
+
 const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string; funcionarioId?: string; telefoneWhatsapp?: string }) => {
-  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
+  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "", motivo: "1" });
   const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
   const [contingenciaOpen, setContingenciaOpen] = useState(false);
   const [contingenciaFone, setContingenciaFone] = useState("");
@@ -270,6 +280,8 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
   const { cargos } = useCargos();
+  const { usuarioLogado } = useAuth();
+
 
   const cargoEpis = useMemo(() => {
     const cargo = cargos.find((c) => c.id === cargoId);
@@ -295,6 +307,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
           ca: e.ca || "",
           dataEntrega: "",
           dataVencimento: "",
+          motivo: "1",
         }))
       );
     }
@@ -313,6 +326,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
         ca: e.ca || "",
         dataEntrega: "",
         dataVencimento: "",
+        motivo: "1",
       }));
     if (novosDoCargo.length === 0) { toast.info("Todos os EPIs do cargo já estão na lista."); return; }
     onChange([...epis, ...novosDoCargo]);
@@ -326,7 +340,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
   const addEpi = () => {
     if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
     onChange([...epis, { id: crypto.randomUUID(), ...novo }]);
-    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
+    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "", motivo: "1" });
   };
 
   const removeEpi = (id: string) => onChange(epis.filter((e) => e.id !== id));
@@ -337,16 +351,24 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
     if (pendentes.length === 0) { toast.error("Não há EPIs pendentes de recebimento."); return false; }
     setEnviandoLink(true);
     try {
+      const responsavel = usuarioLogado?.nome || "";
+      const pendentesComResp = pendentes.map((e) => ({ ...e, responsavelDistribuicao: e.responsavelDistribuicao || responsavel }));
+      const pendentesIds = new Set(pendentes.map((e) => e.id));
+      const episAtualizados = epis.map((e) =>
+        pendentesIds.has(e.id) ? { ...e, responsavelDistribuicao: e.responsavelDistribuicao || responsavel } : e
+      );
       const destino = (foneOverride ?? telefoneWhatsapp ?? "").replace(/\D/g, "");
       const token = crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 8);
       const { error } = await (supabase as any).from("epis_recebimentos").insert({
         funcionario_id: funcionarioId,
         token,
         epis_ids: pendentes.map((e) => e.id),
-        epis_snapshot: pendentes,
+        epis_snapshot: pendentesComResp,
         telefone_envio: destino || null,
       });
       if (error) throw error;
+      onChange(episAtualizados);
+      await (supabase as any).from("funcionarios").update({ epis: episAtualizados }).eq("id", funcionarioId);
       const link = `${window.location.origin}/receber-epis/${token}`;
       const msg = `Olá! Você tem ${pendentes.length} EPI(s) a confirmar. Acesse o link seguro (válido por 7 dias) para confirmar o recebimento com reconhecimento facial: ${link}`;
       if (destino) {
@@ -371,7 +393,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_150px_auto] gap-3 items-end">
+      <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_180px_auto] gap-3 items-end">
         <Field label="Quantidade">
           <Input type="number" min={1} value={novo.quantidade} onChange={(e) => setNovo({ ...novo, quantidade: parseInt(e.target.value) || 1 })} />
         </Field>
@@ -413,6 +435,16 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
         </Field>
         <Field label="Data de Vencimento">
           <Input type="date" value={novo.dataVencimento} onChange={(e) => setNovo({ ...novo, dataVencimento: e.target.value })} />
+        </Field>
+        <Field label="Motivo">
+          <Select value={novo.motivo} onValueChange={(v) => setNovo({ ...novo, motivo: v })}>
+            <SelectTrigger><SelectValue placeholder="Motivo" /></SelectTrigger>
+            <SelectContent>
+              {MOTIVOS_EPI.map((m) => (
+                <SelectItem key={m.codigo} value={m.codigo}>{m.codigo} - {m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Button type="button" onClick={addEpi} size="sm" className="h-10">
           <Plus className="h-4 w-4 mr-1" /> Adicionar
@@ -492,6 +524,8 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                 <TableHead className="w-40">Data Entrega</TableHead>
                 <TableHead className="w-40">Vencimento</TableHead>
                 <TableHead className="w-40">Nº do pedido</TableHead>
+                <TableHead className="w-52">Motivo</TableHead>
+                <TableHead className="w-48">Responsável em distribuir</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -525,6 +559,20 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                     <Input value={epi.pedido || ""} onChange={(e) => updateEpi(epi.id, { pedido: e.target.value })}
                       placeholder="Nº do pedido" className="h-8" />
                   </TableCell>
+                  <TableCell>
+                    <Select value={epi.motivo || ""} onValueChange={(v) => updateEpi(epi.id, { motivo: v })}>
+                      <SelectTrigger className="h-8"><SelectValue placeholder="Motivo" /></SelectTrigger>
+                      <SelectContent>
+                        {MOTIVOS_EPI.map((m) => (
+                          <SelectItem key={m.codigo} value={m.codigo}>{m.codigo} - {m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {epi.responsavelDistribuicao || <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+
                   <TableCell>
                     <Button size="icon" variant="ghost" type="button" onClick={() => removeEpi(epi.id)} className="h-7 w-7 text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />

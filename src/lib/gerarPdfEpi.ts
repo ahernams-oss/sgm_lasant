@@ -273,53 +273,70 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
   // EPI Table starts on same page
   const epiRows = epis.map((e) => [
     String(e.quantidade).padStart(2, "0"),
-    e.descricao,
-    e.ca,
     formatDate(e.dataEntrega),
+    e.ca || "",
+    e.pedido || "",
+    e.descricao,
+    e.motivo || "",
     "",
+    e.responsavelDistribuicao || "",
   ]);
 
   if (epiRows.length === 0) {
-    epiRows.push(["", "", "", "", ""]);
+    epiRows.push(["", "", "", "", "", "", "", ""]);
   }
 
   (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 10, right: 10 },
-    head: [["Quant.", "E.P.I", "CA", "Data", "Assinatura do Empregado"]],
+    head: [["QUANT", "DATA", "CA", "Nº PEDIDO", "EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL - EPI", "MOTIVO", "RUBRICA DO FUNCIONÁRIO", "RESPONSÁVEL EM DISTRIBUIR"]],
     body: epiRows,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 2.5, minCellHeight: 7, lineColor: [0, 0, 0], lineWidth: 0.3 },
+    styles: { fontSize: 7, cellPadding: 2, minCellHeight: 8, lineColor: [0, 0, 0], lineWidth: 0.3 },
     headStyles: {
       fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
       fontStyle: "bold",
       halign: "center",
+      fontSize: 6.5,
     },
     bodyStyles: {
       textColor: [0, 0, 0],
     },
     columnStyles: {
-      0: { cellWidth: 16, halign: "center", fontStyle: "bold" },
-      1: { cellWidth: 65 },
-      2: { cellWidth: 22, halign: "center" },
-      3: { cellWidth: 24, halign: "center" },
-      4: { cellWidth: "auto" },
-    },
-    didDrawPage: (data) => {
-      // Add signature line at the bottom of the last table page
-      if (data.cursor) {
-        const lastY = data.cursor.y + 12;
-        if (lastY < ph - 20) {
-          doc.line(130, lastY, pw - 10, lastY);
-          doc.setFontSize(7);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(0, 0, 0);
-          doc.text("Assinatura do Empregado", pw - 10, lastY + 4, { align: "right" });
-        }
-      }
+      0: { cellWidth: 12, halign: "center", fontStyle: "bold" },
+      1: { cellWidth: 18, halign: "center" },
+      2: { cellWidth: 18, halign: "center" },
+      3: { cellWidth: 20, halign: "center" },
+      4: { cellWidth: 50 },
+      5: { cellWidth: 14, halign: "center" },
+      6: { cellWidth: 28 },
+      7: { cellWidth: 30, fontSize: 6.5 },
     },
   });
+
+  // Legenda de motivos + assinatura
+  let legY = ((doc as any).lastAutoTable?.finalY ?? y) + 6;
+  if (legY > ph - 30) { doc.addPage(); legY = 20; }
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(0, 0, 0);
+  doc.text("MOTIVO:", 10, legY);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "1 - Admissão    2 - Reposição por desgaste    3 - Reposição por perda    4 - Mudança de função    5 - Extravio    6 - Demissão",
+    10 + doc.getTextWidth("MOTIVO:") + 3,
+    legY
+  );
+
+  const assY = legY + 16;
+  if (assY < ph - 15) {
+    doc.line(130, assY, pw - 10, assY);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text("Assinatura do Empregado", pw - 10, assY + 4, { align: "right" });
+  }
+
 
   // Footer on all pages
   const pageCount = doc.getNumberOfPages();
