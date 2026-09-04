@@ -565,8 +565,34 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                       onChange={(e) => updateEpi(epi.id, { dataVencimento: e.target.value })} className="h-8" />
                   </TableCell>
                   <TableCell>
-                    <Input value={epi.pedido || ""} onChange={(e) => updateEpi(epi.id, { pedido: e.target.value })}
-                      placeholder="Nº do pedido" className="h-8" />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" className="h-8 w-full justify-between font-normal px-2 text-xs">
+                          {epi.pedido || "Nº do pedido"}
+                          <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar pedido EPI..." />
+                          <CommandList>
+                            <CommandEmpty>Nenhum pedido EPI encontrado.</CommandEmpty>
+                            <CommandGroup>
+                              {pedidosEPI.map((p) => (
+                                <CommandItem
+                                  key={p.id}
+                                  value={String(p.numero)}
+                                  onSelect={() => updateEpi(epi.id, { pedido: String(p.numero) })}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", epi.pedido === String(p.numero) ? "opacity-100" : "opacity-0")} />
+                                  OC-{String(p.numero).padStart(4, "0")}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </TableCell>
                   <TableCell>
                     <Select value={epi.motivo || ""} onValueChange={(v) => updateEpi(epi.id, { motivo: v })}>
