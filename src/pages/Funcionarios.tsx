@@ -576,7 +576,9 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                         <Command>
                           <CommandInput placeholder="Buscar pedido EPI..." />
                           <CommandList>
-                            <CommandEmpty>Nenhum pedido EPI encontrado.</CommandEmpty>
+                            <CommandEmpty className="py-2 px-2 text-sm">
+                              <div className="text-muted-foreground">Nenhum pedido EPI encontrado.</div>
+                            </CommandEmpty>
                             <CommandGroup>
                               {pedidosEPI.map((p) => (
                                 <CommandItem
@@ -593,6 +595,12 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                         </Command>
                       </PopoverContent>
                     </Popover>
+                    <Input
+                      value={epi.pedido || ""}
+                      onChange={(e) => updateEpi(epi.id, { pedido: e.target.value })}
+                      placeholder="Nº manual"
+                      className="h-7 mt-1 text-xs"
+                    />
                   </TableCell>
                   <TableCell>
                     <Select value={epi.motivo || ""} onValueChange={(v) => updateEpi(epi.id, { motivo: v })}>
