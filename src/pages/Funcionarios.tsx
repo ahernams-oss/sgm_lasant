@@ -24,6 +24,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, UniformeItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { ConselhoClasseSection } from "@/components/ConselhoClasseSection";
 import { useCargos } from "@/contexts/CargosContext";
@@ -279,6 +280,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
   const [enviandoLink, setEnviandoLink] = useState(false);
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
+  const { pedidos } = usePedidoCompra();
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
 
@@ -295,6 +297,13 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
     const classeIds = new Set(classes.filter((c) => subIds.has(c.subGrupoId)).map((c) => c.id));
     return materiais.filter((m) => classeIds.has(m.categoriaId));
   }, [materiais, grupos, subGrupos, classes]);
+
+  const pedidosEPI = useMemo(() => {
+    const epiMaterialIds = new Set(materiaisGrupo04.map((m) => m.id));
+    return pedidos
+      .filter((p) => p.itens.some((it) => epiMaterialIds.has(it.itemId)))
+      .sort((a, b) => b.numero - a.numero);
+  }, [pedidos, materiaisGrupo04]);
 
   // Auto-prefill EPIs from cargo when list is empty and cargo has episPadrao
   useEffect(() => {
@@ -556,8 +565,42 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                       onChange={(e) => updateEpi(epi.id, { dataVencimento: e.target.value })} className="h-8" />
                   </TableCell>
                   <TableCell>
-                    <Input value={epi.pedido || ""} onChange={(e) => updateEpi(epi.id, { pedido: e.target.value })}
-                      placeholder="Nº do pedido" className="h-8" />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" className="h-8 w-full justify-between font-normal px-2 text-xs">
+                          {epi.pedido || "Nº do pedido"}
+                          <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar pedido EPI..." />
+                          <CommandList>
+                            <CommandEmpty className="py-2 px-2 text-sm">
+                              <div className="text-muted-foreground">Nenhum pedido EPI encontrado.</div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {pedidosEPI.map((p) => (
+                                <CommandItem
+                                  key={p.id}
+                                  value={String(p.numero)}
+                                  onSelect={() => updateEpi(epi.id, { pedido: String(p.numero) })}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", epi.pedido === String(p.numero) ? "opacity-100" : "opacity-0")} />
+                                  OC-{String(p.numero).padStart(4, "0")}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <Input
+                      value={epi.pedido || ""}
+                      onChange={(e) => updateEpi(epi.id, { pedido: e.target.value })}
+                      placeholder="Nº manual"
+                      className="h-7 mt-1 text-xs"
+                    />
                   </TableCell>
                   <TableCell>
                     <Select value={epi.motivo || ""} onValueChange={(v) => updateEpi(epi.id, { motivo: v })}>
