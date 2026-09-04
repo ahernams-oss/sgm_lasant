@@ -351,16 +351,24 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
     if (pendentes.length === 0) { toast.error("Não há EPIs pendentes de recebimento."); return false; }
     setEnviandoLink(true);
     try {
+      const responsavel = usuarioLogado?.nome || "";
+      const pendentesComResp = pendentes.map((e) => ({ ...e, responsavelDistribuicao: e.responsavelDistribuicao || responsavel }));
+      const pendentesIds = new Set(pendentes.map((e) => e.id));
+      const episAtualizados = epis.map((e) =>
+        pendentesIds.has(e.id) ? { ...e, responsavelDistribuicao: e.responsavelDistribuicao || responsavel } : e
+      );
       const destino = (foneOverride ?? telefoneWhatsapp ?? "").replace(/\D/g, "");
       const token = crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 8);
       const { error } = await (supabase as any).from("epis_recebimentos").insert({
         funcionario_id: funcionarioId,
         token,
         epis_ids: pendentes.map((e) => e.id),
-        epis_snapshot: pendentes,
+        epis_snapshot: pendentesComResp,
         telefone_envio: destino || null,
       });
       if (error) throw error;
+      onChange(episAtualizados);
+      await (supabase as any).from("funcionarios").update({ epis: episAtualizados }).eq("id", funcionarioId);
       const link = `${window.location.origin}/receber-epis/${token}`;
       const msg = `Olá! Você tem ${pendentes.length} EPI(s) a confirmar. Acesse o link seguro (válido por 7 dias) para confirmar o recebimento com reconhecimento facial: ${link}`;
       if (destino) {
