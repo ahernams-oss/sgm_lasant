@@ -307,6 +307,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
           ca: e.ca || "",
           dataEntrega: "",
           dataVencimento: "",
+          motivo: "1",
         }))
       );
     }
