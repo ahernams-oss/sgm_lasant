@@ -548,6 +548,16 @@ export default function PedidoCompraPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-44">
+          <Label className="text-xs">Categoria</Label>
+          <Select value={filterCategoria} onValueChange={v => { setFilterCategoria(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todas</SelectItem>
+              <SelectItem value="EPIs">EPIs</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-40">
           <Label className="text-xs">Data inicial</Label>
           <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPagePed(1); }} />
