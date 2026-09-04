@@ -107,6 +107,12 @@ export async function gerarPdfEpiFacial(func: Funcionario, rec: Recebimento, opt
    "d) comunicar à organização quando extraviado, danificado ou qualquer alteração que o torne impróprio para uso;",
    "e) cumprir as determinações da organização sobre o uso adequado."].forEach(t => para(t, 3));
 
+  centerBold("Consolidação das Leis do Trabalho", 7.5);
+  para("A lei 6.514/1977, que alterou a CLT (consolidação das leis do trabalho), estabelece no Brasil as diretrizes de Segurança e Medicina do Trabalho especificamente sobre o EPI, a lei determina que as empresa forneçam gratuitamente os equipamentos de proteção adequados aos riscos que devem estar sempre em perfeito estado.");
+  para("Art. 462 – Ao empregador é vedado efetuar qualquer desconto nos salários do empregado, salvo quando este resultar de adiantamentos, de dispositivos de lei ou de contrato coletivo.");
+  para("Art 462 -O limite máximo de desconto total não pode ultrapassar 70% do salário líquido, garantindo ao trabalhador pelo menos 30% da sua remuneração.");
+  para("§ 1º - Em caso de dano causado pelo empregado, o desconto será lícito, desde que esta possibilidade tenha sido acordada ou na ocorrência de dolo do empregado.");
+
   centerBold("Termo de autorização de uso de imagem", 7.5);
   para("Autoriza, de forma livre, expressa e informada, a captação, utilização e armazenamento de sua imagem pela empresa, para fins de controle do uso de EPI, cumprimento de obrigações legais, auditorias, defesa administrativa ou judicial, em conformidade com a LGPD (Lei nº 13.709/2018).");
 
@@ -116,32 +122,51 @@ export async function gerarPdfEpiFacial(func: Funcionario, rec: Recebimento, opt
   doc.text(rec.confirmado_em ? fmtDate(rec.confirmado_em) : fmtDate(rec.created_at), margin + doc.getTextWidth("Data:") + 4, y);
   y += 5;
 
-  // EPI table
+  // EPI table (novo modelo)
   const rows = (rec.epis_snapshot || []).map((e: any) => [
     String(e.quantidade || 1).padStart(2, "0"),
-    e.descricao || "",
-    e.ca || "",
     fmtDate(e.dataEntrega || rec.confirmado_em || rec.created_at),
+    e.ca || "",
+    e.pedido || "",
+    e.descricao || "",
+    e.motivo || "",
+    "",
+    e.responsavelDistribuicao || "",
   ]);
-  if (rows.length === 0) rows.push(["", "", "", ""]);
+  if (rows.length === 0) rows.push(["", "", "", "", "", "", "", ""]);
 
   (await getAutoTable())(doc, {
     startY: y,
     margin: { left: 10, right: 10 },
-    head: [["Quant.", "E.P.I", "CA", "Data"]],
+    head: [["QUANT", "DATA", "CA", "Nº PEDIDO", "EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL - EPI", "MOTIVO", "RUBRICA DO FUNCIONÁRIO", "RESPONSÁVEL EM DISTRIBUIR"]],
     body: rows,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 2.5, minCellHeight: 7, lineColor: [0, 0, 0], lineWidth: 0.3 },
-    headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: "bold", halign: "center" },
+    styles: { fontSize: 7, cellPadding: 2, minCellHeight: 8, lineColor: [0, 0, 0], lineWidth: 0.3 },
+    headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: "bold", halign: "center", fontSize: 6.5 },
     columnStyles: {
-      0: { cellWidth: 20, halign: "center", fontStyle: "bold" },
-      1: { cellWidth: "auto" },
-      2: { cellWidth: 30, halign: "center" },
-      3: { cellWidth: 30, halign: "center" },
+      0: { cellWidth: 12, halign: "center", fontStyle: "bold" },
+      1: { cellWidth: 18, halign: "center" },
+      2: { cellWidth: 18, halign: "center" },
+      3: { cellWidth: 20, halign: "center" },
+      4: { cellWidth: 50 },
+      5: { cellWidth: 14, halign: "center" },
+      6: { cellWidth: 28 },
+      7: { cellWidth: 30, fontSize: 6.5 },
     },
   });
 
-  let ay = (doc as any).lastAutoTable.finalY + 6;
+  // Legenda de motivos
+  let legY = (doc as any).lastAutoTable.finalY + 5;
+  if (legY > ph - 20) { doc.addPage(); legY = 20; }
+  doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(0);
+  doc.text("MOTIVO:", 10, legY);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "1 - Admissão    2 - Reposição por desgaste    3 - Reposição por perda    4 - Mudança de função    5 - Extravio    6 - Demissão",
+    10 + doc.getTextWidth("MOTIVO:") + 3, legY
+  );
+
+  let ay = legY + 6;
 
   // Confirmation block: selfie + metadata
   const boxH = 62;
