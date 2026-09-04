@@ -162,16 +162,6 @@ export default function PedidoCompraPage() {
     return new Set(classes.filter(c => epiSubIds.has(c.subGrupoId)).map(c => c.id));
   }, [grupos, subGrupos, classes]);
 
-  const pedidoTemCategoria = (p: PedidoCompra, categoria: string) => {
-    if (categoria === "EPIs") {
-      return p.itens.some(it => {
-        const mat = materiais.find(m => m.id === it.itemId);
-        return mat && epiClasseIds.has(mat.categoriaId);
-      });
-    }
-    return true;
-  };
-
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
@@ -183,8 +173,11 @@ export default function PedidoCompraPage() {
         return req?.centroCustoNome === filterCentroCusto;
       });
     }
-    if (filterCategoria !== "Todos") {
-      list = list.filter(p => pedidoTemCategoria(p, filterCategoria));
+    if (filterCategoria === "EPIs") {
+      list = list.filter(p => p.itens.some(it => {
+        const mat = materiais.find(m => m.id === it.itemId);
+        return mat && epiClasseIds.has(mat.categoriaId);
+      }));
     }
     if (filterDataIni) list = list.filter(p => p.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
