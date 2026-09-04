@@ -261,8 +261,17 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
   );
 };
 
+export const MOTIVOS_EPI = [
+  { codigo: "1", label: "Admissão" },
+  { codigo: "2", label: "Reposição por desgaste" },
+  { codigo: "3", label: "Reposição por perda" },
+  { codigo: "4", label: "Mudança de função" },
+  { codigo: "5", label: "Extravio" },
+  { codigo: "6", label: "Demissão" },
+];
+
 const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { epis: EpiItem[]; onChange: (e: EpiItem[]) => void; cargoId?: string; funcionarioId?: string; telefoneWhatsapp?: string }) => {
-  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
+  const [novo, setNovo] = useState({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "", motivo: "1" });
   const [epiPopoverOpen, setEpiPopoverOpen] = useState(false);
   const [contingenciaOpen, setContingenciaOpen] = useState(false);
   const [contingenciaFone, setContingenciaFone] = useState("");
@@ -270,6 +279,8 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
   const { cargos } = useCargos();
+  const { usuarioLogado } = useAuth();
+
 
   const cargoEpis = useMemo(() => {
     const cargo = cargos.find((c) => c.id === cargoId);
