@@ -97,21 +97,25 @@ export default function PortalFuncEpis() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>EPI</TableHead>
+                      <TableHead className="text-center w-16">Quant.</TableHead>
+                      <TableHead>E.P.I</TableHead>
                       <TableHead className="text-center w-24">CA</TableHead>
-                      <TableHead className="text-center w-16">Qtd</TableHead>
-                      <TableHead className="text-center w-32">Data Entrega</TableHead>
-                      <TableHead className="text-center w-32">Vencimento</TableHead>
+                      <TableHead className="text-center w-28">Data Entrega</TableHead>
+                      <TableHead className="text-center w-28">Vencimento</TableHead>
+                      <TableHead className="text-center w-28">Nº do Pedido</TableHead>
+                      <TableHead className="w-40">Motivo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {recebidos.map((e) => (
                       <TableRow key={e.id}>
+                        <TableCell className="text-center">{String(e.quantidade).padStart(2, "0")}</TableCell>
                         <TableCell className="font-medium">{e.descricao}</TableCell>
                         <TableCell className="text-center">{e.ca || "—"}</TableCell>
-                        <TableCell className="text-center">{String(e.quantidade).padStart(2, "0")}</TableCell>
                         <TableCell className="text-center">{fmtDate(e.dataEntrega)}</TableCell>
                         <TableCell className="text-center">{fmtDate(e.dataVencimento)}</TableCell>
+                        <TableCell className="text-center">{e.pedido || "—"}</TableCell>
+                        <TableCell>{motivoLabel(e.motivo)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
