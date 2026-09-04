@@ -107,6 +107,12 @@ export async function gerarPdfEpiFacial(func: Funcionario, rec: Recebimento, opt
    "d) comunicar à organização quando extraviado, danificado ou qualquer alteração que o torne impróprio para uso;",
    "e) cumprir as determinações da organização sobre o uso adequado."].forEach(t => para(t, 3));
 
+  centerBold("Consolidação das Leis do Trabalho", 7.5);
+  para("A lei 6.514/1977, que alterou a CLT (consolidação das leis do trabalho), estabelece no Brasil as diretrizes de Segurança e Medicina do Trabalho especificamente sobre o EPI, a lei determina que as empresa forneçam gratuitamente os equipamentos de proteção adequados aos riscos que devem estar sempre em perfeito estado.");
+  para("Art. 462 – Ao empregador é vedado efetuar qualquer desconto nos salários do empregado, salvo quando este resultar de adiantamentos, de dispositivos de lei ou de contrato coletivo.");
+  para("Art 462 -O limite máximo de desconto total não pode ultrapassar 70% do salário líquido, garantindo ao trabalhador pelo menos 30% da sua remuneração.");
+  para("§ 1º - Em caso de dano causado pelo empregado, o desconto será lícito, desde que esta possibilidade tenha sido acordada ou na ocorrência de dolo do empregado.");
+
   centerBold("Termo de autorização de uso de imagem", 7.5);
   para("Autoriza, de forma livre, expressa e informada, a captação, utilização e armazenamento de sua imagem pela empresa, para fins de controle do uso de EPI, cumprimento de obrigações legais, auditorias, defesa administrativa ou judicial, em conformidade com a LGPD (Lei nº 13.709/2018).");
 
