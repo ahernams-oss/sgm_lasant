@@ -67,6 +67,8 @@ function getNextStatuses(current: StatusPedido): StatusPedido[] {
 export default function PedidoCompraPage() {
   const { pedidos, updateStatus, cancelarPedido } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
+  const { materiais } = useMateriaisServicos();
+  const { grupos, subGrupos, classes } = useCategoriasCompras();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
