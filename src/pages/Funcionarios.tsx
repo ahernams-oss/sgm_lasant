@@ -298,6 +298,13 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
     return materiais.filter((m) => classeIds.has(m.categoriaId));
   }, [materiais, grupos, subGrupos, classes]);
 
+  const pedidosEPI = useMemo(() => {
+    const epiMaterialIds = new Set(materiaisGrupo04.map((m) => m.id));
+    return pedidos
+      .filter((p) => p.itens.some((it) => epiMaterialIds.has(it.itemId)))
+      .sort((a, b) => b.numero - a.numero);
+  }, [pedidos, materiaisGrupo04]);
+
   // Auto-prefill EPIs from cargo when list is empty and cargo has episPadrao
   useEffect(() => {
     if (epis.length === 0 && cargoEpis.length > 0) {
