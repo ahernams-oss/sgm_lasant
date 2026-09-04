@@ -4,6 +4,8 @@ import { useSearchParams } from "react-router-dom";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { usePedidoCompra, PedidoCompra, StatusPedido } from "@/contexts/PedidoCompraContext";
 import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
+import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
+import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,6 +67,8 @@ function getNextStatuses(current: StatusPedido): StatusPedido[] {
 export default function PedidoCompraPage() {
   const { pedidos, updateStatus, cancelarPedido } = usePedidoCompra();
   const { requisicoes } = useRequisicaoCompras();
+  const { materiais } = useMateriaisServicos();
+  const { grupos, subGrupos, classes } = useCategoriasCompras();
   const { clientes } = useClientes();
   const { empresa } = useEmpresa();
   const { usuarioLogado } = useAuth();
@@ -85,15 +89,16 @@ export default function PedidoCompraPage() {
   };
   const { toast } = useToast();
 
-  const _pedSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterFornecedor: string; filterComprador: string; filterCentroCusto: string; filterDataIni: string; filterDataFim: string; }>("pedido_compra_filters_v1");
+  const _pedSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterFornecedor: string; filterComprador: string; filterCentroCusto: string; filterCategoria: string; filterDataIni: string; filterDataFim: string; }>("pedido_compra_filters_v1");
   const [search, setSearch] = useState(_pedSavedFilters?.search ?? "");
   const [filterStatus, setFilterStatus] = useState(_pedSavedFilters?.filterStatus ?? "Todos");
   const [filterFornecedor, setFilterFornecedor] = useState(_pedSavedFilters?.filterFornecedor ?? "Todos");
   const [filterComprador, setFilterComprador] = useState(_pedSavedFilters?.filterComprador ?? "Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState(_pedSavedFilters?.filterCentroCusto ?? "Todos");
+  const [filterCategoria, setFilterCategoria] = useState(_pedSavedFilters?.filterCategoria ?? "Todos");
   const [filterDataIni, setFilterDataIni] = useState(_pedSavedFilters?.filterDataIni ?? "");
   const [filterDataFim, setFilterDataFim] = useState(_pedSavedFilters?.filterDataFim ?? "");
-  usePersistFilters("pedido_compra_filters_v1", { search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim });
+  usePersistFilters("pedido_compra_filters_v1", { search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterCategoria, filterDataIni, filterDataFim });
   const [pagePed, setPagePed] = useState(1);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -151,6 +156,12 @@ export default function PedidoCompraPage() {
   const [batchSending, setBatchSending] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0, ok: 0, fail: 0 });
 
+  const epiClasseIds = useMemo(() => {
+    const epiGrupoIds = new Set(grupos.filter(g => /epi/i.test(g.nome)).map(g => g.id));
+    const epiSubIds = new Set(subGrupos.filter(s => epiGrupoIds.has(s.grupoId)).map(s => s.id));
+    return new Set(classes.filter(c => epiSubIds.has(c.subGrupoId)).map(c => c.id));
+  }, [grupos, subGrupos, classes]);
+
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
@@ -162,6 +173,12 @@ export default function PedidoCompraPage() {
         return req?.centroCustoNome === filterCentroCusto;
       });
     }
+    if (filterCategoria === "EPIs") {
+      list = list.filter(p => p.itens.some(it => {
+        const mat = materiais.find(m => m.id === it.itemId);
+        return mat && epiClasseIds.has(mat.categoriaId);
+      }));
+    }
     if (filterDataIni) list = list.filter(p => p.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
@@ -170,7 +187,7 @@ export default function PedidoCompraPage() {
     }
 
     return list.sort((a, b) => b.numero - a.numero);
-  }, [pedidos, requisicoes, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
+  }, [pedidos, requisicoes, materiais, epiClasseIds, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterCategoria, filterDataIni, filterDataFim]);
 
   const fornecedoresUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -189,10 +206,10 @@ export default function PedidoCompraPage() {
     });
     return Array.from(set).sort();
   }, [pedidos, requisicoes]);
-  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
+  const hasActiveFilters = search !== "" || filterStatus !== "Todos" || filterFornecedor !== "Todos" || filterComprador !== "Todos" || filterCentroCusto !== "Todos" || filterCategoria !== "Todos" || filterDataIni !== "" || filterDataFim !== "";
   const clearFilters = () => {
     setSearch(""); setFilterStatus("Todos"); setFilterFornecedor("Todos");
-    setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterDataIni(""); setFilterDataFim("");
+    setFilterComprador("Todos"); setFilterCentroCusto("Todos"); setFilterCategoria("Todos"); setFilterDataIni(""); setFilterDataFim("");
   };
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -521,6 +538,16 @@ export default function PedidoCompraPage() {
             <SelectContent>
               <SelectItem value="Todos">Todos</SelectItem>
               {fornecedoresUnicos.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-44">
+          <Label className="text-xs">Categoria</Label>
+          <Select value={filterCategoria} onValueChange={v => { setFilterCategoria(v); setPagePed(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todas</SelectItem>
+              <SelectItem value="EPIs">EPIs</SelectItem>
             </SelectContent>
           </Select>
         </div>
