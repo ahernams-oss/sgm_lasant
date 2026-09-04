@@ -87,15 +87,16 @@ export default function PedidoCompraPage() {
   };
   const { toast } = useToast();
 
-  const _pedSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterFornecedor: string; filterComprador: string; filterCentroCusto: string; filterDataIni: string; filterDataFim: string; }>("pedido_compra_filters_v1");
+  const _pedSavedFilters = loadPersistedFilters<{ search: string; filterStatus: string; filterFornecedor: string; filterComprador: string; filterCentroCusto: string; filterCategoria: string; filterDataIni: string; filterDataFim: string; }>("pedido_compra_filters_v1");
   const [search, setSearch] = useState(_pedSavedFilters?.search ?? "");
   const [filterStatus, setFilterStatus] = useState(_pedSavedFilters?.filterStatus ?? "Todos");
   const [filterFornecedor, setFilterFornecedor] = useState(_pedSavedFilters?.filterFornecedor ?? "Todos");
   const [filterComprador, setFilterComprador] = useState(_pedSavedFilters?.filterComprador ?? "Todos");
   const [filterCentroCusto, setFilterCentroCusto] = useState(_pedSavedFilters?.filterCentroCusto ?? "Todos");
+  const [filterCategoria, setFilterCategoria] = useState(_pedSavedFilters?.filterCategoria ?? "Todos");
   const [filterDataIni, setFilterDataIni] = useState(_pedSavedFilters?.filterDataIni ?? "");
   const [filterDataFim, setFilterDataFim] = useState(_pedSavedFilters?.filterDataFim ?? "");
-  usePersistFilters("pedido_compra_filters_v1", { search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim });
+  usePersistFilters("pedido_compra_filters_v1", { search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterCategoria, filterDataIni, filterDataFim });
   const [pagePed, setPagePed] = useState(1);
 
   const [searchParams, setSearchParams] = useSearchParams();
