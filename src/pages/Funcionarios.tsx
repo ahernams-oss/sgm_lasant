@@ -393,7 +393,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_150px_auto] gap-3 items-end">
+      <div className="grid grid-cols-1 lg:grid-cols-[80px_1fr_120px_150px_180px_auto] gap-3 items-end">
         <Field label="Quantidade">
           <Input type="number" min={1} value={novo.quantidade} onChange={(e) => setNovo({ ...novo, quantidade: parseInt(e.target.value) || 1 })} />
         </Field>
