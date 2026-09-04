@@ -326,6 +326,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
         ca: e.ca || "",
         dataEntrega: "",
         dataVencimento: "",
+        motivo: "1",
       }));
     if (novosDoCargo.length === 0) { toast.info("Todos os EPIs do cargo já estão na lista."); return; }
     onChange([...epis, ...novosDoCargo]);
@@ -339,7 +340,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
   const addEpi = () => {
     if (!novo.descricao.trim()) { toast.error("Informe a descrição do EPI."); return; }
     onChange([...epis, { id: crypto.randomUUID(), ...novo }]);
-    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "" });
+    setNovo({ quantidade: 1, descricao: "", ca: "", dataEntrega: "", dataVencimento: "", motivo: "1" });
   };
 
   const removeEpi = (id: string) => onChange(epis.filter((e) => e.id !== id));
