@@ -209,10 +209,20 @@ function drawTermoAndLegal(doc: jsPDF, pw: number, startY: number, dataEntrega?:
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
 
+  const cltIntro = "A lei 6.514/1977, que alterou a CLT (consolidação das leis do trabalho), estabelece no Brasil as diretrizes de Segurança e Medicina do Trabalho especificamente sobre o EPI, a lei determina que as empresa forneçam gratuitamente os equipamentos de proteção adequados aos riscos que devem estar sempre em perfeito estado.";
+  const cil = doc.splitTextToSize(cltIntro, contentW);
+  doc.text(cil, margin, y);
+  y += cil.length * 3.2 + 2;
+
   const clt = "Art. 462 – Ao empregador é vedado efetuar qualquer desconto nos salários do empregado, salvo quando este resultar de adiantamentos, de dispositivos de lei ou de contrato coletivo.";
   const cl = doc.splitTextToSize(clt, contentW);
   doc.text(cl, margin, y);
   y += cl.length * 3.2 + 2;
+
+  const cltLimite = "Art 462 -O limite máximo de desconto total não pode ultrapassar 70% do salário líquido, garantindo ao trabalhador pelo menos 30% da sua remuneração.";
+  const cLim = doc.splitTextToSize(cltLimite, contentW);
+  doc.text(cLim, margin, y);
+  y += cLim.length * 3.2 + 2;
 
   const p1 = "§ 1º - Em caso de dano causado pelo empregado, o desconto será lícito, desde que esta possibilidade tenha sido acordada ou na ocorrência de dolo do empregado.";
   const pl = doc.splitTextToSize(p1, contentW);
