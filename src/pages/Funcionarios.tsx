@@ -280,6 +280,7 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
   const [enviandoLink, setEnviandoLink] = useState(false);
   const { materiais } = useMateriaisServicos();
   const { grupos, subGrupos, classes } = useCategoriasCompras();
+  const { pedidos } = usePedidoCompra();
   const { cargos } = useCargos();
   const { usuarioLogado } = useAuth();
 
