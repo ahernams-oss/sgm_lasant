@@ -27,6 +27,7 @@ import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, Anex
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { ConselhoClasseSection } from "@/components/ConselhoClasseSection";
 import { useCargos } from "@/contexts/CargosContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useClientes } from "@/contexts/ClientesContext";
 import { useMateriaisServicos } from "@/contexts/MateriaisServicosContext";
 import { useCategoriasCompras } from "@/contexts/CategoriasComprasContext";
