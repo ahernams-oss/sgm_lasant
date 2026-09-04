@@ -524,6 +524,8 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                 <TableHead className="w-40">Data Entrega</TableHead>
                 <TableHead className="w-40">Vencimento</TableHead>
                 <TableHead className="w-40">Nº do pedido</TableHead>
+                <TableHead className="w-52">Motivo</TableHead>
+                <TableHead className="w-48">Responsável em distribuir</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
