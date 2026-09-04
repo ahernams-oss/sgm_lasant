@@ -560,6 +560,20 @@ const EpiTab = ({ epis, onChange, cargoId, funcionarioId, telefoneWhatsapp }: { 
                       placeholder="Nº do pedido" className="h-8" />
                   </TableCell>
                   <TableCell>
+                    <Select value={epi.motivo || ""} onValueChange={(v) => updateEpi(epi.id, { motivo: v })}>
+                      <SelectTrigger className="h-8"><SelectValue placeholder="Motivo" /></SelectTrigger>
+                      <SelectContent>
+                        {MOTIVOS_EPI.map((m) => (
+                          <SelectItem key={m.codigo} value={m.codigo}>{m.codigo} - {m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {epi.responsavelDistribuicao || <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+
+                  <TableCell>
                     <Button size="icon" variant="ghost" type="button" onClick={() => removeEpi(epi.id)} className="h-7 w-7 text-destructive hover:text-destructive">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
