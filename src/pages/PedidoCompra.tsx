@@ -156,6 +156,22 @@ export default function PedidoCompraPage() {
   const [batchSending, setBatchSending] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0, ok: 0, fail: 0 });
 
+  const epiClasseIds = useMemo(() => {
+    const epiGrupoIds = new Set(grupos.filter(g => /epi/i.test(g.nome)).map(g => g.id));
+    const epiSubIds = new Set(subGrupos.filter(s => epiGrupoIds.has(s.grupoId)).map(s => s.id));
+    return new Set(classes.filter(c => epiSubIds.has(c.subGrupoId)).map(c => c.id));
+  }, [grupos, subGrupos, classes]);
+
+  const pedidoTemCategoria = (p: PedidoCompra, categoria: string) => {
+    if (categoria === "EPIs") {
+      return p.itens.some(it => {
+        const mat = materiais.find(m => m.id === it.itemId);
+        return mat && epiClasseIds.has(mat.categoriaId);
+      });
+    }
+    return true;
+  };
+
   const filtered = useMemo(() => {
     let list = pedidos;
     if (filterStatus !== "Todos") list = list.filter(p => p.status === filterStatus);
@@ -167,6 +183,9 @@ export default function PedidoCompraPage() {
         return req?.centroCustoNome === filterCentroCusto;
       });
     }
+    if (filterCategoria !== "Todos") {
+      list = list.filter(p => pedidoTemCategoria(p, filterCategoria));
+    }
     if (filterDataIni) list = list.filter(p => p.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(p => p.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
@@ -175,7 +194,7 @@ export default function PedidoCompraPage() {
     }
 
     return list.sort((a, b) => b.numero - a.numero);
-  }, [pedidos, requisicoes, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterDataIni, filterDataFim]);
+  }, [pedidos, requisicoes, materiais, epiClasseIds, search, filterStatus, filterFornecedor, filterComprador, filterCentroCusto, filterCategoria, filterDataIni, filterDataFim]);
 
   const fornecedoresUnicos = useMemo(() => {
     const map = new Map<string, string>();
