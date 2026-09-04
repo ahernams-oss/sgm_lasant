@@ -13,7 +13,19 @@ interface EpiItem {
   quantidade: number;
   dataEntrega?: string;
   dataVencimento?: string;
+  pedido?: string;
+  motivo?: string;
 }
+
+const MOTIVOS: Record<string, string> = {
+  "1": "1 - Substituição por dano",
+  "2": "2 - Extravio",
+  "3": "3 - Vencimento do CA",
+  "4": "4 - Novo colaborador",
+  "5": "5 - Mudança de função",
+  "6": "6 - Outros",
+};
+const motivoLabel = (m?: string) => (m && MOTIVOS[m] ? MOTIVOS[m] : m || "—");
 interface Recebimento {
   id: string;
   status: string;
@@ -85,25 +97,34 @@ export default function PortalFuncEpis() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>EPI</TableHead>
+                      <TableHead className="text-center w-16">Quant.</TableHead>
+                      <TableHead>E.P.I</TableHead>
                       <TableHead className="text-center w-24">CA</TableHead>
-                      <TableHead className="text-center w-16">Qtd</TableHead>
-                      <TableHead className="text-center w-32">Data Entrega</TableHead>
-                      <TableHead className="text-center w-32">Vencimento</TableHead>
+                      <TableHead className="text-center w-28">Data Entrega</TableHead>
+                      <TableHead className="text-center w-28">Vencimento</TableHead>
+                      <TableHead className="text-center w-28">Nº do Pedido</TableHead>
+                      <TableHead className="w-40">Motivo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {recebidos.map((e) => (
                       <TableRow key={e.id}>
+                        <TableCell className="text-center">{String(e.quantidade).padStart(2, "0")}</TableCell>
                         <TableCell className="font-medium">{e.descricao}</TableCell>
                         <TableCell className="text-center">{e.ca || "—"}</TableCell>
-                        <TableCell className="text-center">{String(e.quantidade).padStart(2, "0")}</TableCell>
                         <TableCell className="text-center">{fmtDate(e.dataEntrega)}</TableCell>
                         <TableCell className="text-center">{fmtDate(e.dataVencimento)}</TableCell>
+                        <TableCell className="text-center">{e.pedido || "—"}</TableCell>
+                        <TableCell>{motivoLabel(e.motivo)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+              )}
+              {recebidos.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-3">
+                  Motivos: 1 - Substituição por dano | 2 - Extravio | 3 - Vencimento do CA | 4 - Novo colaborador | 5 - Mudança de função | 6 - Outros
+                </p>
               )}
             </CardContent>
           </Card>
@@ -120,17 +141,21 @@ export default function PortalFuncEpis() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>EPI</TableHead>
+                      <TableHead className="text-center w-16">Quant.</TableHead>
+                      <TableHead>E.P.I</TableHead>
                       <TableHead className="text-center w-24">CA</TableHead>
-                      <TableHead className="text-center w-16">Qtd</TableHead>
+                      <TableHead className="text-center w-28">Nº do Pedido</TableHead>
+                      <TableHead className="w-40">Motivo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {pendentes.map((e) => (
                       <TableRow key={e.id}>
+                        <TableCell className="text-center">{String(e.quantidade).padStart(2, "0")}</TableCell>
                         <TableCell className="font-medium">{e.descricao}</TableCell>
                         <TableCell className="text-center">{e.ca || "—"}</TableCell>
-                        <TableCell className="text-center">{String(e.quantidade).padStart(2, "0")}</TableCell>
+                        <TableCell className="text-center">{e.pedido || "—"}</TableCell>
+                        <TableCell>{motivoLabel(e.motivo)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
