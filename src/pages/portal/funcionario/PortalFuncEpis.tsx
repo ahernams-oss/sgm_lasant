@@ -13,7 +13,19 @@ interface EpiItem {
   quantidade: number;
   dataEntrega?: string;
   dataVencimento?: string;
+  pedido?: string;
+  motivo?: string;
 }
+
+const MOTIVOS: Record<string, string> = {
+  "1": "1 - Substituição por dano",
+  "2": "2 - Extravio",
+  "3": "3 - Vencimento do CA",
+  "4": "4 - Novo colaborador",
+  "5": "5 - Mudança de função",
+  "6": "6 - Outros",
+};
+const motivoLabel = (m?: string) => (m && MOTIVOS[m] ? MOTIVOS[m] : m || "—");
 interface Recebimento {
   id: string;
   status: string;
