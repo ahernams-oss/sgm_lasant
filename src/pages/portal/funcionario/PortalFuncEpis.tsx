@@ -121,6 +121,11 @@ export default function PortalFuncEpis() {
                   </TableBody>
                 </Table>
               )}
+              {recebidos.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-3">
+                  Motivos: 1 - Substituição por dano | 2 - Extravio | 3 - Vencimento do CA | 4 - Novo colaborador | 5 - Mudança de função | 6 - Outros
+                </p>
+              )}
             </CardContent>
           </Card>
 
