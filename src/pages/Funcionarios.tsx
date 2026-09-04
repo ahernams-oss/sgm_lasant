@@ -24,6 +24,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useFuncionarios, emptyFuncionarioForm, PassagemDiaria, Dependente, AnexoDependente, EpiItem, UniformeItem, NrFuncionario, tiposTransporte, grausParentesco } from "@/contexts/FuncionariosContext";
+import { usePedidoCompra } from "@/contexts/PedidoCompraContext";
 import { AnexosDocumentosTab } from "@/components/AnexosDocumentosTab";
 import { ConselhoClasseSection } from "@/components/ConselhoClasseSection";
 import { useCargos } from "@/contexts/CargosContext";
