@@ -70,16 +70,26 @@ export default function OAuthConsent() {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const { data, error: err } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password: senha,
+    // Usa o mesmo login do SGM (edge function auth-login), que valida a senha
+    // na tabela de usuários e emite um token de sessão do provedor de autenticação.
+    const { data: loginData, error: loginErr } = await supabase.functions.invoke("auth-login", {
+      body: { email: email.trim().toLowerCase(), senha },
+    });
+    if (loginErr || !loginData?.tokenHash) {
+      setError("E-mail ou senha inválidos.");
+      setBusy(false);
+      return;
+    }
+    const { data, error: err } = await supabase.auth.verifyOtp({
+      type: "magiclink",
+      token_hash: loginData.tokenHash,
     });
     if (err || !data.session) {
       setError(err?.message ?? "Não foi possível entrar.");
       setBusy(false);
       return;
     }
-    setSessionEmail(data.session.user.email ?? null);
+    setSessionEmail(data.session.user.email ?? loginData.email ?? null);
     await carregarDetalhes();
     setBusy(false);
   };
