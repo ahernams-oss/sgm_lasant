@@ -68,6 +68,8 @@ interface ProcessoSeletivoContextType {
   processos: ProcessoSeletivo[];
   criarProcesso: (requisicaoId: string) => ProcessoSeletivo;
   getProcessoByRequisicao: (requisicaoId: string) => ProcessoSeletivo | undefined;
+  /** Carrega o processo completo (com os anexos) e atualiza o cache. */
+  carregarProcessoCompleto: (processoId: string) => Promise<ProcessoSeletivo | null>;
   addCandidato: (processoId: string, candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }) => void;
   updateCandidato: (processoId: string, candidatoId: string, data: Partial<Candidato>) => void;
   importarCandidatos: (
