@@ -62,6 +62,57 @@ export type Database = {
         }
         Relationships: []
       }
+      auditoria_historico: {
+        Row: {
+          acao: string
+          arquivado_em: string
+          created_at: string
+          dados_antes: Json | null
+          dados_depois: Json | null
+          entidade_descricao: string | null
+          entidade_id: string | null
+          id: string
+          ip: string | null
+          modulo: string
+          user_agent: string | null
+          usuario_email: string | null
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          acao: string
+          arquivado_em?: string
+          created_at: string
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          entidade_descricao?: string | null
+          entidade_id?: string | null
+          id: string
+          ip?: string | null
+          modulo: string
+          user_agent?: string | null
+          usuario_email?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          arquivado_em?: string
+          created_at?: string
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          entidade_descricao?: string | null
+          entidade_id?: string | null
+          id?: string
+          ip?: string | null
+          modulo?: string
+          user_agent?: string | null
+          usuario_email?: string | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: []
+      }
       avaliacoes_desempenho: {
         Row: {
           avaliador_id: string | null
@@ -9345,6 +9396,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      arquivar_auditoria: { Args: { _dias?: number }; Returns: number }
       current_usuario_id: { Args: never; Returns: string }
       has_module: { Args: { _modulo: string }; Returns: boolean }
       is_acesso_total: { Args: never; Returns: boolean }
