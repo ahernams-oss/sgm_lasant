@@ -295,6 +295,8 @@ export default function ProntuarioEpis() {
                     <TableHead className="w-20 text-center">Qtd</TableHead>
                     <TableHead className="w-32 text-center">Entrega</TableHead>
                     <TableHead className="w-32 text-center">Vencimento</TableHead>
+                    <TableHead className="w-28 text-center">Pedido</TableHead>
+                    <TableHead className="w-40">Motivo</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -305,13 +307,18 @@ export default function ProntuarioEpis() {
                       <TableCell className="text-center">{e.quantidade}</TableCell>
                       <TableCell className="text-center">{fmt(e.dataEntrega)}</TableCell>
                       <TableCell className="text-center">{fmt(e.dataVencimento)}</TableCell>
+                      <TableCell className="text-center">{e.pedido || "—"}</TableCell>
+                      <TableCell className="text-xs">{e.motivo || "—"}</TableCell>
                     </TableRow>
                   ))}
                   {emAberto.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum EPI em posse.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum EPI em posse.</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                <strong>Motivo:</strong> 1 - Admissão · 2 - Reposição por desgaste · 3 - Reposição por perda · 4 - Mudança de função · 5 - Extravio · 6 - Demissão
+              </p>
             </CardContent>
           </Card>
 
