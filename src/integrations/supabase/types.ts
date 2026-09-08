@@ -9363,10 +9363,6 @@ export type Database = {
           titulo: string
         }[]
       }
-      mig_export_tmp: {
-        Args: { _limit?: number; _offset?: number; _t: string }
-        Returns: Json
-      }
       refresh_usuario_senha_status: {
         Args: { _usuario_id: string }
         Returns: undefined
