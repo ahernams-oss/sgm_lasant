@@ -27,7 +27,7 @@ export interface ProntuarioDados {
   clienteNome?: string;
   admissao?: string;
   eventos: ProntuarioEvento[];
-  emAberto: { descricao: string; ca: string; quantidade: number; dataEntrega: string; dataVencimento: string }[];
+  emAberto: { descricao: string; ca: string; quantidade: number; dataEntrega: string; dataVencimento: string; motivo?: string; pedido?: string }[];
 }
 
 const fmt = (d: string) => {
