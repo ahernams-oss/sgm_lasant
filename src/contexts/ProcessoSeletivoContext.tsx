@@ -101,8 +101,14 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
     enabled: __active,
     queryKey: QK,
     queryFn: async () => {
-      const data = await fetchAll("processos_seletivos", "created_at");
-      return data.map(rowToProcesso) as ProcessoSeletivo[];
+      // Lista "leve": os anexos (base64) não trafegam aqui — são carregados
+      // sob demanda ao abrir um processo específico.
+      const { data, error } = await (supabase as any).rpc("processos_seletivos_leves");
+      if (error) {
+        const fallback = await fetchAll("processos_seletivos", "created_at");
+        return fallback.map(rowToProcesso) as ProcessoSeletivo[];
+      }
+      return (data || []).map(rowToProcesso) as ProcessoSeletivo[];
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -110,10 +116,9 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: QK });
 
-  // Resolve um processo mesmo quando ele ainda não está no cache (recém-criado).
+  // Resolve um processo SEMPRE a partir do banco (dados completos, com anexos),
+  // pois a lista em cache não contém o conteúdo dos arquivos.
   const resolveProcesso = async (processoId: string): Promise<ProcessoSeletivo | null> => {
-    const emCache = (queryClient.getQueryData<ProcessoSeletivo[]>(QK) || []).find((p) => p.id === processoId);
-    if (emCache) return emCache;
     const { data } = await (supabase as any)
       .from("processos_seletivos")
       .select("*")
