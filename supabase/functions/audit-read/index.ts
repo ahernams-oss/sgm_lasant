@@ -15,11 +15,13 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const { dataIni, dataFim, id, modulo, acao, busca } = body ?? {};
+    // Origem: "atual" (tabela de auditoria) ou "historico" (registros arquivados a cada 15 dias)
+    const TABELA = body?.origem === "historico" ? "auditoria_historico" : "auditoria";
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     // Detalhe de um único registro (com snapshots completos)
     if (id) {
-      const { data, error } = await admin.from("auditoria").select("*").eq("id", id).maybeSingle();
+      const { data, error } = await admin.from(TABELA).select("*").eq("id", id).maybeSingle();
       if (error) return json({ ok: false, error: error.message }, 500);
       return json({ ok: true, data });
     }
@@ -30,7 +32,7 @@ Deno.serve(async (req) => {
     const to = from + pageSize - 1;
 
     let q = admin
-      .from("auditoria")
+      .from(TABELA)
       .select(LIST_COLS, { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to);
@@ -53,7 +55,7 @@ Deno.serve(async (req) => {
     let resumo: Record<string, number> | undefined;
     if (body?.resumo !== false) {
       const base = () => {
-        let c = admin.from("auditoria").select("id", { count: "exact", head: true });
+        let c = admin.from(TABELA).select("id", { count: "exact", head: true });
         if (dataIni) c = c.gte("created_at", new Date(dataIni + "T00:00:00").toISOString());
         if (dataFim) c = c.lte("created_at", new Date(dataFim + "T23:59:59").toISOString());
         if (modulo && modulo !== "todos") c = c.eq("modulo", modulo);
