@@ -9396,7 +9396,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      arquivar_auditoria: { Args: { _dias?: number }; Returns: number }
+      arquivar_auditoria:
+        | { Args: { _dias?: number }; Returns: number }
+        | { Args: { _dias?: number; _lote?: number }; Returns: number }
+      arquivar_auditoria_ciclo: { Args: { _dias?: number }; Returns: number }
       current_usuario_id: { Args: never; Returns: string }
       has_module: { Args: { _modulo: string }; Returns: boolean }
       is_acesso_total: { Args: never; Returns: boolean }
