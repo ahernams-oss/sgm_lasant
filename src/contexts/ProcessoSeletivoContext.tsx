@@ -209,6 +209,18 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   const getProcessoByRequisicao = (requisicaoId: string) =>
     processos.find(p => p.requisicaoId === requisicaoId);
 
+  const carregarProcessoCompleto = async (processoId: string) => {
+    const full = await resolveProcesso(processoId);
+    if (full) {
+      queryClient.setQueryData<ProcessoSeletivo[]>(QK, (prev = []) =>
+        prev.some((p) => p.id === full.id)
+          ? prev.map((p) => (p.id === full.id ? full : p))
+          : [...prev, full]
+      );
+    }
+    return full;
+  };
+
   const addCandidato = async (
     processoId: string,
     candidato: Omit<Candidato, "id" | "etapaAtual" | "parecerPsicologo" | "statusPsicologico" | "avaliadorTecnico" | "parecerTecnico" | "statusTecnico" | "liberadoPor" | "statusLiberacao" | "idade" | "estadoCivil" | "experienciasAnteriores" | "anexos" | "documentos" | "exameAdmissional" | "dadosBancarios"> & { anexos?: AnexoCandidato[] }
