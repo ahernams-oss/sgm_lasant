@@ -352,7 +352,7 @@ export function ProcessoSeletivoProvider({ children }: { children: ReactNode }) 
   };
 
   return (
-    <ProcessoSeletivoContext.Provider value={{ processos, criarProcesso, getProcessoByRequisicao, addCandidato, updateCandidato, importarCandidatos, avancarEtapa }}>
+    <ProcessoSeletivoContext.Provider value={{ processos, criarProcesso, getProcessoByRequisicao, carregarProcessoCompleto, addCandidato, updateCandidato, importarCandidatos, avancarEtapa }}>
       {children}
     </ProcessoSeletivoContext.Provider>
   );
@@ -362,6 +362,7 @@ const fallbackCtx: ProcessoSeletivoContextType = {
   processos: [],
   criarProcesso: (() => null) as any,
   getProcessoByRequisicao: () => undefined,
+  carregarProcessoCompleto: async () => null,
   addCandidato: () => {},
   updateCandidato: () => {},
   importarCandidatos: async () => 0,
