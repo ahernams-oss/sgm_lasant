@@ -135,7 +135,7 @@ const ProcessoSeletivoPage = () => {
   const { requisicaoId } = useParams<{ requisicaoId: string }>();
   const navigate = useNavigate();
   const { requisicoes, updateStatus } = useRequisicoes();
-  const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, importarCandidatos, avancarEtapa } =
+  const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, importarCandidatos, avancarEtapa, carregarProcessoCompleto } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
   const { clientes } = useClientes();
@@ -192,6 +192,17 @@ const ProcessoSeletivoPage = () => {
   if (!processo && requisicaoId && requisicao?.status === "Aprovada") {
     processo = criarProcesso(requisicaoId);
   }
+
+  // A listagem vem sem os arquivos anexados (para abrir rápido).
+  // Ao abrir um processo, carrega a versão completa com os anexos.
+  const completoRef = useRef<string | null>(null);
+  const processoId = processo?.id;
+  useEffect(() => {
+    if (!processoId || completoRef.current === processoId) return;
+    completoRef.current = processoId;
+    carregarProcessoCompleto(processoId);
+  }, [processoId, carregarProcessoCompleto]);
+
 
 
   // Recupera automaticamente os indicados da requisição aprovada como candidatos
