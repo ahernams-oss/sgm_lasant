@@ -193,6 +193,17 @@ const ProcessoSeletivoPage = () => {
     processo = criarProcesso(requisicaoId);
   }
 
+  // A listagem vem sem os arquivos anexados (para abrir rápido).
+  // Ao abrir um processo, carrega a versão completa com os anexos.
+  const completoRef = useRef<string | null>(null);
+  const processoId = processo?.id;
+  useEffect(() => {
+    if (!processoId || completoRef.current === processoId) return;
+    completoRef.current = processoId;
+    carregarProcessoCompleto(processoId);
+  }, [processoId, carregarProcessoCompleto]);
+
+
 
   // Recupera automaticamente os indicados da requisição aprovada como candidatos
   const importIndicadosRef = useRef<string | null>(null);
