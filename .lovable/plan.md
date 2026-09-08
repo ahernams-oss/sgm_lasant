@@ -1,82 +1,58 @@
-# Importação de Holerites (PDF consolidado + IA)
+# Plano de Migração do Backend para o Brasil (São Paulo)
 
-Nova rotina no menu RH: **Importar Holerites**. O usuário arrasta um PDF único com todos os holerites do mês, o sistema quebra por página, identifica CPF/nome de cada holerite via IA, casa com o funcionário e publica no portal.
+O backend atual (banco, autenticação, arquivos e funções) roda nos EUA (us-east-1). A região não pode ser trocada no mesmo projeto: é preciso criar um novo ambiente em São Paulo (sa-east-1) e transferir tudo para ele.
 
-## Fluxo
+## O que muda para os usuários
 
-```text
-Upload PDF mensal
-      │
-      ▼
-Split por página (pdf-lib) → N PDFs individuais
-      │
-      ▼
-Para cada página:
-   - extrai texto (pdf.js)
-   - IA (Gemini Flash) extrai: CPF, nome, competência, tipo (folha/13o/férias/rescisão), valor líquido
-   - casa com funcionários.cpf → funcionario_id
-      │
-      ▼
-Tela de conferência: lista com status
-   ✓ Casado automaticamente  |  ⚠ Ambíguo (múltiplos matches)  |  ✗ Não encontrado
-      │
-      ▼
-RH revisa, corrige manualmente os pendentes, clica "Publicar"
-      │
-      ▼
-Cada PDF individual é enviado para bucket `portal-holerites/{funcionario_id}/{ano}-{mes}-{tipo}.pdf`
-e registrado em `portal_holerites` → aparece no portal do funcionário
-```
+- Consultas e telas ficam mais rápidas (menos ida e volta até os EUA).
+- Haverá uma janela de indisponibilidade planejada (estimativa: 2 a 4 horas), preferencialmente fora do horário comercial.
+- Todos continuam usando o mesmo endereço `app.lasant.com.br`.
 
-## Backend
+## Etapas
 
-### Nova tabela `portal_holerites_import_lote`
-Guarda cada lote importado para auditoria: `id`, `arquivo_nome`, `competencia_mes`, `competencia_ano`, `total_paginas`, `total_publicados`, `importado_por`, `created_at`, `status` (processando/conferencia/publicado).
+### 1. Preparação (sem parar o sistema)
+- Criar o novo ambiente no Brasil.
+- Recriar a estrutura completa do banco usando o pacote de scripts que já geramos (tabelas, chaves, índices, funções, gatilhos, permissões e regras de acesso).
+- Recriar as 29 pastas de arquivos e as configurações de tempo real.
+- Republicar as funções de servidor (WhatsApp, e-mails, portal, notas fiscais, MCP, EPIs etc.) e recadastrar as chaves e segredos usados por elas.
+- Testar em paralelo com dados de exemplo.
 
-### Nova tabela `portal_holerites_import_item`
-Uma linha por página do PDF: `id`, `lote_id`, `pagina`, `cpf_detectado`, `nome_detectado`, `funcionario_id` (nullable), `tipo` (folha/13o/ferias/rescisao/outros), `valor_liquido`, `status_match` (auto/ambiguo/nao_encontrado/manual), `pdf_pagina_base64`, `publicado` (bool).
+### 2. Congelamento e cópia dos dados (janela de parada)
+- Avisar os usuários e bloquear novas gravações.
+- Copiar os dados de todas as 160 tabelas, respeitando a ordem das dependências, e reposicionar os contadores automáticos (nº de OS, SS, RCS, orçamentos, boletins, RDOs, contratos, NFS-e).
+- Copiar os usuários e suas credenciais de acesso, preservando as senhas.
+- Copiar todos os arquivos armazenados (anexos, fotos, selfies, documentos, holerites).
 
-### Edge function `processar-holerites-lote` (nova)
-- Recebe PDF base64 + competência.
-- Usa `pdf-lib` (via `npm:`) para separar em páginas individuais.
-- Para cada página: extrai texto e envia para Lovable AI (`google/gemini-3.6-flash`) com prompt estruturado retornando `{cpf, nome, competencia, tipo, valor_liquido}`.
-- Casa CPF com `funcionarios` (busca por CPF normalizado).
-- Grava lote + itens; retorna resumo para tela.
+### 3. Virada
+- Apontar o aplicativo para o novo ambiente.
+- Republicar o site e revalidar o domínio `app.lasant.com.br`.
+- Reconfigurar integrações externas: PlugSend/WhatsApp, envio de e-mails, Brasil NFe (inclusive o endereço do webhook) e o conector do ChatGPT (MCP/OAuth).
 
-### Edge function `publicar-holerites-lote` (nova)
-- Recebe `lote_id`.
-- Para cada item com `funcionario_id`, faz upload do PDF individual no bucket `portal-holerites` e insere em `portal_holerites`.
-- Marca lote como `publicado`.
+### 4. Validação
+- Login e permissões por perfil.
+- Criação de OS, SS, requisição de compras e orçamento (verificando a numeração).
+- Upload e download de anexos e fotos.
+- Geração de PDFs e relatórios.
+- Envio de WhatsApp e e-mail.
+- Portal do funcionário e do fornecedor.
+- Rotinas automáticas (alertas de férias, EPIs, licitações).
 
-## Frontend
-
-Nova rota `/rh/importar-holerites` (permissão: RH/Diretor):
-
-**Passo 1 — Upload:** dropzone + seleção de competência (mês/ano). Botão "Analisar".
-
-**Passo 2 — Conferência:** tabela com uma linha por página do PDF:
-| Página | CPF detectado | Nome detectado | Funcionário casado | Tipo | Valor líquido | Ações |
-
-- Linhas verdes: casadas automaticamente.
-- Linhas amarelas: ambíguas — combobox para escolher entre candidatos.
-- Linhas vermelhas: não encontrado — combobox para vincular manualmente ou marcar "ignorar".
-- Preview do PDF da página ao clicar (usa `PdfPreview.tsx` existente).
-- Botão "Publicar N holerites" (desabilitado se houver linhas não resolvidas).
-
-**Passo 3 — Concluído:** resumo (X publicados, Y ignorados) e link "Ver no portal do funcionário".
+### 5. Estabilização
+- Manter o ambiente antigo em modo somente leitura por 7 dias como segurança.
+- Se algo crítico falhar, voltar a apontar o aplicativo para o ambiente antigo (plano de retorno).
+- Após 7 dias sem problemas, desativar o ambiente antigo.
 
 ## Detalhes técnicos
 
-- Modelo: `google/gemini-3.6-flash` (rápido, barato, ótimo para extração estruturada). Prompt em JSON mode.
-- Tipo do holerite é inferido pelo texto do próprio holerite ("Rescisão", "Férias", "13º Salário", senão `folha`).
-- Se o PDF tiver >50 páginas, processa em batches de 20 para não estourar limite de tempo da edge function.
-- CPF matching é feito com CPF normalizado (só dígitos); em caso de múltiplos ativos, marca como ambíguo.
-- Se um holerite da mesma competência+tipo+funcionário já existir, marca `duplicado` e pede confirmação para sobrescrever.
+- Origem: Supabase gerenciado (Lovable Cloud) em us-east-1; destino: projeto Supabase em sa-east-1.
+- Estrutura: reutilizar `migracao-supabase.zip` (extensões, sequences, tabelas, constraints, índices, 27 funções, 78 triggers, grants, 235 policies, buckets, realtime).
+- Dados: `pg_dump --data-only --disable-triggers` por lote de tabelas, ou COPY por tabela; `setval` em todas as sequences ao final.
+- Auth: migração de `auth.users`/`auth.identities` preservando hashes; validar o login próprio do SGM (tabelas `usuarios_credenciais`, `empresa_credenciais`, `clientes_credenciais`).
+- Storage: cópia objeto a objeto via API entre projetos, mantendo caminhos e políticas dos 29 buckets.
+- Edge Functions: redeploy com `verify_jwt = false` onde já configurado; recriar segredos (PlugSend, Gemini/IA, Brasil NFe, e-mail, MCP/OAuth).
+- Frontend: atualizar URL e chave pública do backend; reemitir credenciais de cliente OAuth do MCP.
+- Riscos principais: perda de webhooks apontados para o endereço antigo, tokens de link mágico (EPIs, portal) já emitidos, e diferenças de fuso/`search_path` em funções.
 
-## Fora do escopo (para depois)
+## Decisão necessária antes de começar
 
-- OCR para PDFs escaneados (por ora, exige PDF de texto — que é o padrão dos ERPs de folha).
-- Importação de eventos detalhados (só o PDF fica disponível; sem parsing linha-a-linha de proventos/descontos).
-- Notificação em massa via WhatsApp após publicar (fácil de adicionar depois se quiser).
-
-Se aprovar, implemento em uma leva: migrações + 2 edge functions + tela de importação + link no menu.
+A migração exige criar e administrar um projeto Supabase próprio (fora do Lovable Cloud) na região São Paulo, com conta e faturamento seus. Confirmando isso, executo as etapas 1 a 5.
