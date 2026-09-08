@@ -64,13 +64,14 @@ export default function Auditoria() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [detalhe, setDetalhe] = useState<Registro | null>(null);
+  const [origem, setOrigem] = useState<"atual" | "historico">("atual");
 
   const carregar = async (opts?: { page?: number; busca?: string }) => {
     const p = opts?.page ?? page;
     const b = opts?.busca ?? buscaAplicada;
     setLoading(true);
     const { data, error } = await (supabase as any).functions.invoke("audit-read", {
-      body: { dataIni, dataFim, page: p, pageSize, modulo: filtroModulo, acao: filtroAcao, busca: b },
+      body: { dataIni, dataFim, page: p, pageSize, modulo: filtroModulo, acao: filtroAcao, busca: b, origem },
     });
     if (!error && data?.ok) {
       setRegistros(data.data || []);
@@ -84,12 +85,12 @@ export default function Auditoria() {
   // Carrega o registro completo (com snapshots) apenas ao abrir o detalhe.
   const abrirDetalhe = async (r: Registro) => {
     setDetalhe(r);
-    const { data, error } = await (supabase as any).functions.invoke("audit-read", { body: { id: r.id } });
+    const { data, error } = await (supabase as any).functions.invoke("audit-read", { body: { id: r.id, origem } });
     if (!error && data?.ok && data.data) setDetalhe(data.data as Registro);
   };
 
   // Recarrega ao mudar página, tamanho de página ou filtros de módulo/ação.
-  useEffect(() => { carregar(); /* eslint-disable-next-line */ }, [page, pageSize, filtroModulo, filtroAcao]);
+  useEffect(() => { carregar(); /* eslint-disable-next-line */ }, [page, pageSize, filtroModulo, filtroAcao, origem]);
 
   // Debounce da busca (aplica no servidor).
   useEffect(() => {
@@ -120,10 +121,30 @@ export default function Auditoria() {
           <h1 className="text-2xl font-serif font-semibold">Auditoria do Sistema</h1>
           <p className="text-sm text-muted-foreground">Registro de criações, edições e exclusões em todos os módulos.</p>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border overflow-hidden">
+            <Button
+              variant={origem === "atual" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-none"
+              onClick={() => { setOrigem("atual"); setPage(1); }}
+            >
+              Últimos 15 dias
+            </Button>
+            <Button
+              variant={origem === "historico" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-none"
+              onClick={() => { setOrigem("historico"); setPage(1); }}
+            >
+              Histórico arquivado
+            </Button>
+          </div>
         <Button variant="outline" onClick={() => carregar()} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
           Atualizar
         </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
