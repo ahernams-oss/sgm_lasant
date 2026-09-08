@@ -135,7 +135,7 @@ const ProcessoSeletivoPage = () => {
   const { requisicaoId } = useParams<{ requisicaoId: string }>();
   const navigate = useNavigate();
   const { requisicoes, updateStatus } = useRequisicoes();
-  const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, importarCandidatos, avancarEtapa } =
+  const { getProcessoByRequisicao, criarProcesso, addCandidato, updateCandidato, importarCandidatos, avancarEtapa, carregarProcessoCompleto } =
     useProcessoSeletivo();
   const { temAcessoTotal } = useAuth();
   const { clientes } = useClientes();
