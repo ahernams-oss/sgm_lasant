@@ -9363,11 +9363,23 @@ export type Database = {
           titulo: string
         }[]
       }
+      processos_seletivos_leves: {
+        Args: never
+        Returns: {
+          candidatos: Json
+          created_at: string
+          data_criacao: string
+          id: string
+          numero: number
+          requisicao_id: string
+        }[]
+      }
       refresh_usuario_senha_status: {
         Args: { _usuario_id: string }
         Returns: undefined
       }
       req_header: { Args: { _name: string }; Returns: string }
+      strip_anexo_base64: { Args: { _a: Json }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
