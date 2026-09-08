@@ -27,7 +27,7 @@ export interface ProntuarioDados {
   clienteNome?: string;
   admissao?: string;
   eventos: ProntuarioEvento[];
-  emAberto: { descricao: string; ca: string; quantidade: number; dataEntrega: string; dataVencimento: string }[];
+  emAberto: { descricao: string; ca: string; quantidade: number; dataEntrega: string; dataVencimento: string; motivo?: string; pedido?: string }[];
 }
 
 const fmt = (d: string) => {
@@ -92,16 +92,27 @@ export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
 
   (await getAutoTable())(doc, {
     startY: y,
-    head: [["EPI", "CA", "Qtd", "Entrega", "Vencimento"]],
+    head: [["EPI", "CA", "Qtd", "Entrega", "Vencimento", "Pedido", "Motivo"]],
     body: d.emAberto.length
-      ? d.emAberto.map((e) => [e.descricao, e.ca || "—", String(e.quantidade), fmt(e.dataEntrega), fmt(e.dataVencimento)])
-      : [["Nenhum EPI em posse", "", "", "", ""]],
+      ? d.emAberto.map((e) => [e.descricao, e.ca || "—", String(e.quantidade), fmt(e.dataEntrega), fmt(e.dataVencimento), e.pedido || "—", e.motivo || "—"])
+      : [["Nenhum EPI em posse", "", "", "", "", "", ""]],
     styles: { fontSize: 8, cellPadding: 1.6 },
     headStyles: { fillColor: [30, 58, 107], textColor: 255, fontSize: 8 },
     margin: { left: 10, right: 10 },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 8;
+  y = (doc as any).lastAutoTable.finalY + 5;
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.text("MOTIVO:", 12, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "1 - Admissão   2 - Reposição por desgaste   3 - Reposição por perda   4 - Mudança de função   5 - Extravio   6 - Demissão",
+    12 + doc.getTextWidth("MOTIVO:") + 3,
+    y
+  );
+
+  y += 8;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.text("Histórico contínuo (entregas e recolhimentos)", 12, y);
