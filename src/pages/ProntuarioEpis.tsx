@@ -125,6 +125,8 @@ export default function ProntuarioEpis() {
           quantidade: Number(e.quantidade || 0) - (devolvidoPorItem[e.id] || 0),
           dataEntrega: e.dataEntrega || "",
           dataVencimento: e.dataVencimento || "",
+          motivo: (e as any).motivo || "",
+          pedido: (e as any).pedido || "",
         }))
         .filter((e) => e.quantidade > 0),
     [epis, devolvidoPorItem]
@@ -140,7 +142,11 @@ export default function ProntuarioEpis() {
         descricao: e.descricao,
         ca: e.ca || "",
         quantidade: Number(e.quantidade || 0),
-        detalhe: e.dataVencimento ? `Vencimento: ${fmt(e.dataVencimento)}` : "",
+        detalhe: [
+          e.dataVencimento ? `Vencimento: ${fmt(e.dataVencimento)}` : "",
+          (e as any).motivo ? `Motivo: ${(e as any).motivo}` : "",
+          (e as any).pedido ? `Pedido: ${(e as any).pedido}` : "",
+        ].filter(Boolean).join(" • "),
         evidencia: evidenciaEntrega[e.id],
       });
     });
