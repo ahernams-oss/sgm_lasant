@@ -54,6 +54,13 @@ export interface Faturamento {
   pago: boolean;
   dataPagamento: string;
 }
+export interface Empenho {
+  id: string;
+  numero: string;
+  processo?: string;
+  data?: string;
+  valor?: string;
+}
 export interface Contrato {
   id: string; numero: string; numeroProcesso?: string; descricao: string; dataInicio: string; dataFim: string;
   bdi: string; descontoLicitacao?: string; valorBase: string; valorBase2: string; valorBase3: string;
@@ -63,7 +70,9 @@ export interface Contrato {
   inss?: string; pis?: string; cofins?: string; csll?: string; irrf?: string; iss?: string; cbs?: string; ibs?: string;
   meta1?: string; meta2?: string; meta3?: string;
   faturamentos: Faturamento[];
+  empenhos?: Empenho[];
 }
+
 export interface LinhaFornecimento {
   id: string; materialId: string; codigo: string; descricao: string;
   tipo: "Material" | "Serviço" | "Grupo de Compras"; unidadeMedida: string; observacao?: string;
