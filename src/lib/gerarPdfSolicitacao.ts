@@ -316,7 +316,7 @@ export async function gerarPdfSolicitacao(
   empresa?: Empresa,
   equipamento?: any
 ) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   await renderSolicitacao(doc, ss, comImagens, empresa, equipamento);
   doc.save(`SS_${formatNumeroAno(ss.numero, ss.createdAt)}_${ss.clienteNome?.replace(/\s+/g, "_") || "sem_cliente"}.pdf`);
 }
@@ -329,7 +329,7 @@ export async function gerarPdfSolicitacaoLote(
 ) {
   if (lista.length === 0) return;
 
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
 
   for (let idx = 0; idx < lista.length; idx++) {
     if (idx > 0) doc.addPage();

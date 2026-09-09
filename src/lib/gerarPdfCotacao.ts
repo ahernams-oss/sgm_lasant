@@ -83,7 +83,7 @@ function checkPageBreak(doc: jsPDF, y: number, needed: number, ml: number, fullW
 
 async function gerarPdfCotacaoAsync(data: CotacaoPdfData): Promise<jsPDF> {
   const { cotacao, requisicao, empresa } = data;
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;

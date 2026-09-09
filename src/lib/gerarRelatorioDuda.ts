@@ -14,7 +14,7 @@ export interface ReportData {
 }
 
 export async function gerarPdfDuda(report: ReportData) {
-  const doc = new (await getJsPDF())({ orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
   const pw = doc.internal.pageSize.getWidth();
 
   // Header

@@ -333,7 +333,7 @@ export default function DashboardCompras() {
 
   // PDF Export
   const exportPdf = async () => {
-    const doc = new (await getJsPDF())();
+    const doc = new (await getJsPDF())({ compress: true });
     const pw = doc.internal.pageSize.getWidth();
     const DARK_BLUE: [number, number, number] = [30, 58, 107];
 

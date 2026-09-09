@@ -49,7 +49,7 @@ const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julh
 const SIGLAS_DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export async function gerarMapaPlantoesPdf({ funcionarios, cargos, clientes, ano, mes }: Params) {
-  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFontSize(14);

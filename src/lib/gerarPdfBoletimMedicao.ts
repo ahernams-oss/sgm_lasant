@@ -150,7 +150,7 @@ export async function gerarPdfBoletimMedicao(
   empresa?: Empresa,
   assinaturas: AssinaturaBoletimPdf[] = [],
 ) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;

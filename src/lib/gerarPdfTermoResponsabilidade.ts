@@ -22,7 +22,7 @@ interface TermoData {
 }
 
 export async function downloadPdfTermoResponsabilidade(data: TermoData) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
 

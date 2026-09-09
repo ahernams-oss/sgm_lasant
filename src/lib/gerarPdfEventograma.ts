@@ -14,7 +14,7 @@ const fmtDate = (s?: string) => {
 };
 
 export async function gerarPdfEventograma(ev: Eventograma, empresa: Empresa | null) {
-  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(15, 27, 61);

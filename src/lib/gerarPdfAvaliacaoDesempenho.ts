@@ -15,7 +15,7 @@ interface Opts {
 }
 
 export async function gerarPdfAvaliacaoDesempenho(a: AvaliacaoDesempenho, opts: Opts = {}) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -121,7 +121,7 @@ export async function gerarPdfAvaliacoesLista(
   avaliacoes: AvaliacaoDesempenho[],
   funcMap: Record<string, string>,
 ) {
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);

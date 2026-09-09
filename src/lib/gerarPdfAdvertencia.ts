@@ -23,7 +23,7 @@ const formatDataExtenso = (d: string) => {
 };
 
 export async function gerarPdfAdvertencia(data: AdvertenciaData) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 20;
   const mr = 20;

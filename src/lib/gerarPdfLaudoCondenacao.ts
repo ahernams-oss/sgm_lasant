@@ -156,7 +156,7 @@ export async function gerarPdfLaudoCondenacao(
   empresa?: EmpresaTimbrado,
   assinatura?: LaudoAssinatura,
 ) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const logo = await loadLogo(empresa?.logoUrl);

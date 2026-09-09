@@ -88,7 +88,7 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
 
   const handlePdf = async () => {
     if (!validar()) return;
-    const doc = new (await getJsPDF())({ orientation: campos.length > 5 ? "landscape" : "portrait" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: campos.length > 5 ? "landscape" : "portrait" });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 28, "F");

@@ -28,7 +28,7 @@ interface ReportInput {
 
 async function basePdf(r: ReportInput) {
   const orient = r.colunas.length > 6 ? "landscape" : "portrait";
-  const doc = new (await getJsPDF())({ orientation: orient });
+  const doc = new (await getJsPDF())({ compress: true, orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);

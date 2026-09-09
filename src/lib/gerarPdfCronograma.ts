@@ -31,7 +31,7 @@ const fmtPct = (n: number) => `${(Number(n) || 0).toFixed(2)}%`;
 export type CronogramaModelo = "completo" | "fisico" | "financeiro" | "resumo";
 
 export async function gerarPdfCronograma(cronograma: Cronograma, empresa?: Empresa, modelo: CronogramaModelo = "completo") {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4", orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4", orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 10, mr = 10;
   let y = 10;

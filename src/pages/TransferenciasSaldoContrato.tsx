@@ -248,7 +248,7 @@ export default function TransferenciasSaldoContrato() {
 
   const exportarPDF = async () => {
     if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
-    const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "landscape", unit: "mm", format: "a4" });
     await addHeader(doc, {
       title: "Transferências de Saldo entre Contratos",
       subtitle: `Total: ${historico.length} registro(s)`,

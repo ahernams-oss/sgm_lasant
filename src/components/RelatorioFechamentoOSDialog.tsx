@@ -370,7 +370,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // Capa
@@ -560,7 +560,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // ===== Capa =====
@@ -773,7 +773,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: "l", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "l", unit: "mm", format: "a4" });
     addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     (await getAutoTable())(doc, {
       startY: 32,
@@ -858,7 +858,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: "l", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "l", unit: "mm", format: "a4" });
     addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     (await getAutoTable())(doc, {
       startY: 32,
@@ -987,7 +987,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     if (empresa?.logoUrl) {
@@ -1113,7 +1113,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const fileBase = titulo.replace(/[^\w]+/g, "_").toLowerCase();
 
     if (formato === "pdf") {
-      const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+      const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
       addHeader(doc, titulo, `Total: ${ordensFiltradas.length} OS(s)`, filtrosLabel);
       (await getAutoTable())(doc, {
         startY: 32,

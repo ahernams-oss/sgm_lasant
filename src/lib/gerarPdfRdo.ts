@@ -40,7 +40,7 @@ export interface RenderRdoOptions {
 }
 
 export async function gerarPdfRdo({ rdo, empresa, cliente, assinaturas = [], incluirImagens = false }: RenderRdoOptions) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 12, mr = 12;
   const cw = pw - ml - mr;

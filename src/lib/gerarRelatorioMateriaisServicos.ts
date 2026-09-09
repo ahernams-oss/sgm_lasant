@@ -13,7 +13,7 @@ interface ExportData {
 }
 
 export async function gerarPdfMateriaisServicos({ materiais, getCatNome }: ExportData) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
 
   const totalMat = materiais.filter(m => m.tipo === "Material").length;

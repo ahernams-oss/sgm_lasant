@@ -79,7 +79,7 @@ function valorExtenso(v: number): string {
 
 // ===== PDF =====
 export async function gerarPdfContratoTerceiro(c: ContratoTerceiro, empresa?: Empresa) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 20;

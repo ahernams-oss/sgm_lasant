@@ -77,7 +77,7 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
 }
 
 export async function gerarPdfDashboardSSOS(data: DashboardSSOSReport): Promise<jsPDF> {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   addHeader(doc, data.empresa);
   doc.setTextColor(30, 30, 30);
   let y = 42;

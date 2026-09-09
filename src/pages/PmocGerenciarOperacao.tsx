@@ -906,7 +906,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     const rows = buildRows();
     if (rows.length === 0) return;
     const logo = await getLogo();
-    const doc = new (await getJsPDF())({ orientation: "l" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "l" });
     const pw = doc.internal.pageSize.getWidth();
     await drawHeader(doc, pw, logo, "PMOC — Histórico de Execuções", `Total: ${rows.length} registro(s)${filtrosLabel ? " | " + filtrosLabel : ""}`);
 

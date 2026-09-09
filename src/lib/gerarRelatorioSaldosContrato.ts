@@ -186,7 +186,7 @@ async function fetchDataUrl(url: string): Promise<{ dataUrl: string; ext: string
 export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: string) {
   const { cliente, contrato } = input;
   const rows = montarLinhasSaldos(input);
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);

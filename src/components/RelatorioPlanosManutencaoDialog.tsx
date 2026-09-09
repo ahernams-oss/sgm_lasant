@@ -250,7 +250,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
     if (rows.length === 0) { toast.error("Nenhum dado para exportar com os filtros selecionados."); return; }
 
     if (formato === "pdf") {
-      const doc = new (await getJsPDF())({ orientation });
+      const doc = new (await getJsPDF())({ compress: true, orientation });
       addHeader(doc, titulo, `Total: ${rows.length} registro(s)`, filtrosLabel);
       (await getAutoTable())(doc, {
         startY: 34,

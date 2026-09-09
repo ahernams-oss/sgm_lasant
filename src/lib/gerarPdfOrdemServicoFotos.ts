@@ -342,7 +342,7 @@ async function renderBase(doc: jsPDF, opts: RenderOSOptions) {
 }
 
 export async function gerarPdfOrdemServicoComFotos(opts: RenderOSOptions) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   await renderBase(doc, opts);
   doc.addPage();
   const y = await renderCabecalhoFotos(doc, opts);
@@ -353,7 +353,7 @@ export async function gerarPdfOrdemServicoComFotos(opts: RenderOSOptions) {
 export async function gerarPdfOrdemServicoFotosMemoria(
   opts: RenderOSOptions & { memoriaCalculo?: any[] }
 ) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   await renderBase(doc, opts);
 
   doc.addPage();
@@ -543,7 +543,7 @@ async function renderMemoriaCalculoComFotos(doc: jsPDF, grupos: any[], startY: n
 export async function gerarPdfOrdemServicoFotosMemoriaFotos(
   opts: RenderOSOptions & { memoriaCalculo?: any[] }
 ) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   await renderBase(doc, opts);
 
   doc.addPage();
@@ -572,7 +572,7 @@ async function finalizarLote(doc: jsPDF, lista: LoteOpts[], sufixo: string) {
 /** Lote: OS + relatório fotográfico. */
 export async function gerarPdfOrdemServicoComFotosLote(lista: LoteOpts[]) {
   if (!lista.length) return;
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     await renderBase(doc, lista[i]);
@@ -586,7 +586,7 @@ export async function gerarPdfOrdemServicoComFotosLote(lista: LoteOpts[]) {
 /** Lote: OS + fotos + memória de cálculo. */
 export async function gerarPdfOrdemServicoFotosMemoriaLote(lista: LoteOpts[]) {
   if (!lista.length) return;
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     await renderBase(doc, lista[i]);
@@ -603,7 +603,7 @@ export async function gerarPdfOrdemServicoFotosMemoriaLote(lista: LoteOpts[]) {
 /** Lote: OS + fotos + memória de cálculo com fotos por sub-item. */
 export async function gerarPdfOrdemServicoFotosMemoriaFotosLote(lista: LoteOpts[]) {
   if (!lista.length) return;
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     await renderBase(doc, lista[i]);

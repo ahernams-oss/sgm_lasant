@@ -17,7 +17,7 @@ export interface FinReport {
 
 export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" | "landscape") {
   const orient = orientacao || (r.colunas.length > 6 ? "landscape" : "portrait");
-  const doc = new (await getJsPDF())({ orientation: orient });
+  const doc = new (await getJsPDF())({ compress: true, orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
   // Cabeçalho padrão LASANT

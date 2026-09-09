@@ -118,7 +118,7 @@ export async function gerarPdfEstoque(
   filters?: string,
   logoUrl?: string
 ) {
-  const doc = new (await getJsPDF())({ orientation: columns.length > 6 ? "landscape" : "portrait" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: columns.length > 6 ? "landscape" : "portrait" });
   await addHeader(doc, { title, subtitle: `Total: ${rows.length} registros`, filters }, logoUrl);
   (await getAutoTable())(doc, {
     startY: filters ? 44 : 38,

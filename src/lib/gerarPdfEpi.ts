@@ -269,7 +269,7 @@ export async function gerarPdfEpi(func: Funcionario, opts: EpiPdfOptions = {}) {
     logoSeg = await loadImage("/seguranca_trabalho.jpg");
   } catch { /* skip */ }
 
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 

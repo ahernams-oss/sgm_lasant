@@ -41,7 +41,7 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
 }
 
 export async function gerarPdfRequisicao(req: Requisicao, empresa?: Empresa) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 14;

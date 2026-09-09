@@ -573,7 +573,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   };
 
   const exportCotacoesPdf = async () => {
-    const doc = new (await getJsPDF())();
+    const doc = new (await getJsPDF())({ compress: true });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 24, "F");
@@ -664,7 +664,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   };
 
   const exportPedidosPdf = async () => {
-    const doc = new (await getJsPDF())({ orientation: "landscape" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 24, "F");

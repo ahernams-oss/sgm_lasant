@@ -54,7 +54,7 @@ export interface FiltrosPdfFerias {
 }
 
 export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: "save" | "blob"; filtros?: FiltrosPdfFerias }) {
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   await addHeader(doc, {
     title: "Relatório de Mapa de Férias",
     subtitle: `Total: ${rows.length} registro(s) · CLT Art. 134 — concessão em até 12 meses`,
@@ -146,7 +146,7 @@ export async function gerarPdfFerias(rows: FeriasReportRow[], opts?: { output?: 
 }
 
 export async function gerarPdfEscalaFerias(escala: EscalaReportRow[], opts?: { output?: "save" | "blob" }) {
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   await addHeader(doc, {
     title: "Escala Sugerida de Férias",
     subtitle: `Total: ${escala.length} registro(s)`,
