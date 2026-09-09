@@ -66,5 +66,5 @@ export async function downloadExcelHistoricoMedicao(med: MedicaoServico) {
   wsHist["!cols"] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 30 }];
   (await getXLSX()).utils.book_append_sheet(wb, wsHist, "Histórico");
 
-  (await getXLSX()).writeFile(wb, `Medicao_${med.numero}_Historico.xlsx`);
+  (await getXLSX()).writeFile(wb, `Medicao_${med.numero}_Historico.xlsx`, { compression: true });
 }

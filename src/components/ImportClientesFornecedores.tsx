@@ -40,7 +40,7 @@ export default function ImportClientesFornecedores({ tipo }: Props) {
     ws["!cols"] = COLUNAS_TEMPLATE.map(() => ({ wch: 20 }));
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo");
-    (await getXLSX()).writeFile(wb, `modelo_${tipo.toLowerCase()}s.xlsx`);
+    (await getXLSX()).writeFile(wb, `modelo_${tipo.toLowerCase()}s.xlsx`, { compression: true });
     toast.success("Template baixado!");
   };
 

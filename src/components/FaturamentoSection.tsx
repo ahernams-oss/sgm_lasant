@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -218,20 +219,17 @@ export default function FaturamentoSection({ faturamentos, onChange, contratoNum
     e.target.value = "";
   };
 
-  const handleAnexoNf = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAnexoNf = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setForm((prev) => ({
-        ...prev,
-        anexoNfUrl: ev.target?.result as string,
-        anexoNfNome: file.name,
-      }));
-      toast.success("NF anexada.");
-    };
-    reader.readAsDataURL(file);
     e.target.value = "";
+    const base64 = await lerArquivoBase64(file);
+    setForm((prev) => ({
+      ...prev,
+      anexoNfUrl: base64,
+      anexoNfNome: file.name,
+    }));
+    toast.success("NF anexada.");
   };
 
   const handleSave = async () => {

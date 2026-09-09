@@ -199,7 +199,7 @@ async function renderPagina(
 }
 
 export async function gerarPdfMedicaoControle({ cliente, contrato, faturamento, ordens, empresaNome }: Params): Promise<jsPDF> {
-  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape", unit: "mm", format: "a4" });
 
   const ini = faturamento.periodoInicio || "";
   const fim = faturamento.periodoFim || "";

@@ -43,7 +43,7 @@ const formatMes = (mes: string) => {
 
 export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const { lancamentos, funcionarios, cargos, clientes, filterMes, filterCliente, filterFuncionario } = params;
-  const doc = new (await getJsPDF())("landscape");
+  const doc = new (await getJsPDF())({ orientation: "landscape", compress: true });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   const getFuncNome = (id: string) => funcionarios.find((f) => f.id === id)?.nome ?? "—";

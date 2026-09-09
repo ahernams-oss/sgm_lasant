@@ -10,7 +10,7 @@ const getXLSX = async () => await import("xlsx");
 const fmt = (d?: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
 
 export async function gerarPdfNrs(nrs: NrCatalogo[], filtros?: string) {
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
 
   await addHeader(doc, {
     title: "Relatório de Normas Regulamentadoras (NRs)",
@@ -103,5 +103,5 @@ export async function gerarExcelNrs(nrs: NrCatalogo[]) {
     (await getXLSX()).utils.book_append_sheet(wb, wsRev, "Revisões");
   }
 
-  (await getXLSX()).writeFile(wb, "relatorio-nrs.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-nrs.xlsx", { compression: true });
 }

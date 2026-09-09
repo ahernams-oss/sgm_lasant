@@ -81,7 +81,7 @@ function fieldRow(
 
 async function gerarPdfPedidoCotacao(data: PedidoCotacaoData): Promise<jsPDF> {
   const { cotacao, requisicao, empresa, fornecedor } = data;
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;

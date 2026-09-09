@@ -112,7 +112,7 @@ async function baixarPlanilha(nome: string, aoa: (string | number)[][]) {
   ws["!cols"] = (aoa[0] || []).map(() => ({ wch: 22 }));
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Equipamentos");
-  (await getXLSX()).writeFile(wb, nome);
+  (await getXLSX()).writeFile(wb, nome, { compression: true });
 }
 
 export default function ImportExportEquipamentos() {

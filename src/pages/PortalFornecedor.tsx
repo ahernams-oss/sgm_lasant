@@ -573,7 +573,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
   };
 
   const exportCotacoesPdf = async () => {
-    const doc = new (await getJsPDF())();
+    const doc = new (await getJsPDF())({ compress: true });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 24, "F");
@@ -660,11 +660,11 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       wsItens["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 6 }, { wch: 40 }, { wch: 12 }, { wch: 12 }];
       (await getXLSX()).utils.book_append_sheet(wb, wsItens, "Itens");
     }
-    (await getXLSX()).writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`);
+    (await getXLSX()).writeFile(wb, `cotacoes_${session.nome.replace(/\s+/g, "_")}.xlsx`, { compression: true });
   };
 
   const exportPedidosPdf = async () => {
-    const doc = new (await getJsPDF())({ orientation: "landscape" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
     const pw = doc.internal.pageSize.getWidth();
     doc.setFillColor(30, 58, 107);
     doc.rect(0, 0, pw, 24, "F");
@@ -727,7 +727,7 @@ function Dashboard({ session, onLogout }: { session: FornecedorSession; onLogout
       wsItens["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 8 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
       (await getXLSX()).utils.book_append_sheet(wb, wsItens, "Itens");
     }
-    (await getXLSX()).writeFile(wb, `pedidos_${session.nome.replace(/\s+/g, "_")}.xlsx`);
+    (await getXLSX()).writeFile(wb, `pedidos_${session.nome.replace(/\s+/g, "_")}.xlsx`, { compression: true });
   };
 
   return (

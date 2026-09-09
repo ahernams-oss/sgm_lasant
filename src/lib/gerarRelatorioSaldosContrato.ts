@@ -186,7 +186,7 @@ async function fetchDataUrl(url: string): Promise<{ dataUrl: string; ext: string
 export async function gerarPdfSaldosContrato(input: SaldoReportInput, logoUrl?: string) {
   const { cliente, contrato } = input;
   const rows = montarLinhasSaldos(input);
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -339,5 +339,5 @@ export async function gerarExcelSaldosContrato(input: SaldoReportInput) {
 
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Saldos");
   const fname = `saldos_${(cliente.nome || "cliente").replace(/\s+/g, "_").toLowerCase()}_${contrato.numero || "contrato"}.xlsx`;
-  (await getXLSX()).writeFile(wb, fname);
+  (await getXLSX()).writeFile(wb, fname, { compression: true });
 }

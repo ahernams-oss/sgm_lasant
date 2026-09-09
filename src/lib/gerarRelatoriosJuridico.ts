@@ -28,7 +28,7 @@ interface ReportInput {
 
 async function basePdf(r: ReportInput) {
   const orient = r.colunas.length > 6 ? "landscape" : "portrait";
-  const doc = new (await getJsPDF())({ orientation: orient });
+  const doc = new (await getJsPDF())({ compress: true, orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(30, 58, 107);
@@ -101,7 +101,7 @@ async function baseExcel(r: ReportInput) {
     }
   }
   (await getXLSX()).utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
-  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
 }
 
 // ===================== PROCESSOS =====================

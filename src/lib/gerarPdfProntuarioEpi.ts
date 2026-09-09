@@ -53,7 +53,7 @@ async function loadImage(url: string): Promise<string | null> {
 }
 
 export async function gerarPdfProntuarioEpi(d: ProntuarioDados) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
 
   const logo = await loadImage("/Logo_Lasant.png");

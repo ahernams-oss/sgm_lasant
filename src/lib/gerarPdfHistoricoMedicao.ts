@@ -11,7 +11,7 @@ const fmt = (v: number) =>
 const fmtPerc = (v: number) => `${v.toFixed(2)}%`;
 
 export async function gerarPdfHistoricoMedicao(med: MedicaoServico): Promise<jsPDF> {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
 
   await addHeader(doc, {

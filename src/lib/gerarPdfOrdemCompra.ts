@@ -83,7 +83,7 @@ function fieldRow(
 // ── main generator (async for logo) ─────────────────────
 export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<jsPDF> {
   const { pedido, empresa, fornecedor, autorizadoPor, assinatura } = data;
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;
@@ -319,7 +319,7 @@ export async function gerarPdfOrdemCompraAsync(data: OrdemCompraData): Promise<j
 export async function gerarPdfOrdemCompra(data: OrdemCompraData): Promise<jsPDF> {
   // kept for backward compat but callers should migrate to async
   const { pedido, empresa, fornecedor, autorizadoPor } = data;
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   // call async version result is not awaited here – use downloadPdfOrdemCompra instead
   // This is a simplified sync version
   return doc;

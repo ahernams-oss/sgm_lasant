@@ -8,7 +8,7 @@ const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export async function gerarPdfMedicoes(medicoes: MedicaoServico[], filterLabel?: string): Promise<jsPDF> {
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   const pw = doc.internal.pageSize.getWidth();
 
   // Header

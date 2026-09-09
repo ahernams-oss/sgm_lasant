@@ -600,7 +600,7 @@ export function addContinuationHeaders(doc: jsPDF, osNumero?: number | string, c
 }
 
 export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   const modelo = await resolverModeloNome(opts.cliente);
   if (modelo === "Modelo_Educação") {
     await renderOrdemServicoEducacao(doc, opts);
@@ -618,7 +618,7 @@ export async function gerarPdfOrdemServico(opts: RenderOSOptions) {
 
 export async function gerarPdfOrdemServicoLote(lista: RenderOSOptions[]) {
   if (lista.length === 0) return;
-  const doc = new (await getJsPDF())({ unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, unit: "mm", format: "a4" });
   for (let i = 0; i < lista.length; i++) {
     if (i > 0) doc.addPage();
     const modelo = await resolverModeloNome(lista[i].cliente);

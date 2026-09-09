@@ -39,7 +39,7 @@ interface AtaData {
 
 export async function gerarPdfAtaPregao(data: AtaData): Promise<jsPDF> {
   const { pregao, itens, participantes, lances, empresa } = data;
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const ml = 12;

@@ -61,7 +61,7 @@ function agruparPorFamilia(orc: Orcamento) {
 }
 
 export async function gerarPdfOrcamento(orc: Orcamento, empresa?: Empresa) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ml = 14;
   const mr = 14;

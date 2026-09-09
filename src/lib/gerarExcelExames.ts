@@ -48,5 +48,5 @@ export async function gerarExcelExames(exames: ExameData[]) {
 
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Exames Periódicos");
-  (await getXLSX()).writeFile(wb, "relatorio-exames-periodicos.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-exames-periodicos.xlsx", { compression: true });
 }

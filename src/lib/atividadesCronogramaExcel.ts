@@ -28,7 +28,7 @@ export async function baixarModeloAtividades() {
   ws["!cols"] = [{ wch: 45 }, { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 18 }];
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Atividades");
-  (await getXLSX()).writeFile(wb, "Modelo_Atividades_Cronograma.xlsx");
+  (await getXLSX()).writeFile(wb, "Modelo_Atividades_Cronograma.xlsx", { compression: true });
 }
 
 /** Exporta as atividades atuais do cronograma para Excel. */
@@ -46,7 +46,7 @@ export async function exportarAtividadesExcel(atividades: CronogramaAtividade[],
   ws["!cols"] = [{ wch: 45 }, { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 18 }];
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Atividades");
-  (await getXLSX()).writeFile(wb, `${nome}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${nome}.xlsx`, { compression: true });
 }
 
 /** Lê um arquivo Excel e devolve as atividades importadas. */

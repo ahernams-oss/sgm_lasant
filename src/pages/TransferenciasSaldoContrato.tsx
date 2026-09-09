@@ -242,13 +242,13 @@ export default function TransferenciasSaldoContrato() {
     ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length + 2, 16) }));
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Transferências");
-    (await getXLSX()).writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`);
+    (await getXLSX()).writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`, { compression: true });
     toast.success("Excel gerado.");
   };
 
   const exportarPDF = async () => {
     if (historico.length === 0) { toast.error("Nenhum registro para exportar."); return; }
-    const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "landscape", unit: "mm", format: "a4" });
     await addHeader(doc, {
       title: "Transferências de Saldo entre Contratos",
       subtitle: `Total: ${historico.length} registro(s)`,

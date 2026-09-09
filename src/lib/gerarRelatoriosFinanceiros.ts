@@ -17,7 +17,7 @@ export interface FinReport {
 
 export async function gerarPdfFinanceiro(r: FinReport, orientacao?: "portrait" | "landscape") {
   const orient = orientacao || (r.colunas.length > 6 ? "landscape" : "portrait");
-  const doc = new (await getJsPDF())({ orientation: orient });
+  const doc = new (await getJsPDF())({ compress: true, orientation: orient });
   const pw = doc.internal.pageSize.getWidth();
 
   // Cabeçalho padrão LASANT
@@ -80,5 +80,5 @@ export async function gerarExcelFinanceiro(r: FinReport) {
     }
   }
   (await getXLSX()).utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
-  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
 }

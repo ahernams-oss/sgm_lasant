@@ -153,7 +153,7 @@ export default function I0Page() {
     ws["!cols"] = [{ wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 12 }];
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo I0");
-    (await getXLSX()).writeFile(wb, "modelo_i0.xlsx");
+    (await getXLSX()).writeFile(wb, "modelo_i0.xlsx", { compression: true });
     toast({ title: "Modelo baixado com sucesso" });
   };
 

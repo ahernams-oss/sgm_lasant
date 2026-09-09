@@ -14,7 +14,7 @@ export interface ReportData {
 }
 
 export async function gerarPdfDuda(report: ReportData) {
-  const doc = new (await getJsPDF())({ orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: report.colunas.length > 6 ? "landscape" : "portrait" });
   const pw = doc.internal.pageSize.getWidth();
 
   // Header
@@ -64,7 +64,7 @@ export async function gerarExcelDuda(report: ReportData) {
   ws["!cols"] = report.colunas.map(() => ({ wch: 20 }));
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, report.titulo.substring(0, 31));
-  (await getXLSX()).writeFile(wb, `${report.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${report.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
 }
 
 export async function gerarWordDuda(report: ReportData) {

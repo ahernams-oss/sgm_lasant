@@ -47,7 +47,7 @@ export async function gerarPdfEpiFacial(func: Funcionario, rec: Recebimento, opt
   try { logoLasant = await loadImage("/Logo_Lasant.png"); } catch {}
   try { logoSeg = await loadImage("/seguranca_trabalho.jpg"); } catch {}
 
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 

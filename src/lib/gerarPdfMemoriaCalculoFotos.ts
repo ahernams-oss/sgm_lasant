@@ -299,14 +299,14 @@ function aplicarRodapeFotos(doc: jsPDF, empresa?: Empresa) {
 }
 
 export async function gerarPdfMemoriaCalculoFotos(orc: Orcamento, empresa?: Empresa) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   await renderMemoriaFotos(doc, orc, empresa);
   aplicarRodapeFotos(doc, empresa);
   doc.save(`Memoria_Calculo_Fotos_Orcamento_${orc.numero}.pdf`);
 }
 
 export async function gerarPdfMemoriaCalculoFotosLote(orcs: Orcamento[], empresa?: Empresa) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   for (let i = 0; i < orcs.length; i++) {
     if (i > 0) doc.addPage();
     await renderMemoriaFotos(doc, orcs[i], empresa);

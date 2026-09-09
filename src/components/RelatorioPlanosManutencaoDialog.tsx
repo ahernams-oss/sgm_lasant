@@ -250,7 +250,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
     if (rows.length === 0) { toast.error("Nenhum dado para exportar com os filtros selecionados."); return; }
 
     if (formato === "pdf") {
-      const doc = new (await getJsPDF())({ orientation });
+      const doc = new (await getJsPDF())({ compress: true, orientation });
       addHeader(doc, titulo, `Total: ${rows.length} registro(s)`, filtrosLabel);
       (await getAutoTable())(doc, {
         startY: 34,
@@ -273,7 +273,7 @@ export default function RelatorioPlanosManutencaoDialog({ open, onOpenChange, pl
       ws["!cols"] = columns.map(() => ({ wch: 20 }));
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
-      (await getXLSX()).writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+      (await getXLSX()).writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
       toast.success("Excel gerado!");
     }
     onOpenChange(false);

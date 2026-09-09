@@ -10,7 +10,7 @@ interface PdfOptions {
 }
 
 export async function gerarPdfFuncionario(func: Funcionario, opts: PdfOptions = {}) {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // Header

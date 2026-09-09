@@ -154,7 +154,7 @@ export async function gerarPdfPmocInformacoes(params: {
 }) {
   const { equip, equipNome, planoTitulo, atividades } = params;
   const logo = await getLogo();
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   await drawHeader(doc, pw, logo, "PMOC — Ficha do Equipamento", equipNome);
 
@@ -198,7 +198,7 @@ export async function gerarPdfPmocManutencoesFotos(params: {
 }) {
   const { equip, equipNome, planoTitulo, execucoes } = params;
   const logo = await getLogo();
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   await drawHeader(doc, pw, logo, "PMOC — Manutenções Executadas (com fotos)", equipNome);
@@ -346,7 +346,7 @@ export async function gerarPdfPmocHistoricoAtividades(params: {
 }) {
   const { equip, equipNome, planoTitulo, execucoes } = params;
   const logo = await getLogo();
-  const doc = new (await getJsPDF())({ orientation: "l" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "l" });
   const pw = doc.internal.pageSize.getWidth();
   await drawHeader(doc, pw, logo, "PMOC — Histórico de Atividades do Equipamento", equipNome);
 

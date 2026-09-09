@@ -111,5 +111,5 @@ export async function downloadExcelPagamento(
   ]);
   (await getXLSX()).utils.book_append_sheet(wb, ws3, "Pagamentos Boletos e Tributos");
 
-  (await getXLSX()).writeFile(wb, "Consolidado_Pagamentos.xlsx");
+  (await getXLSX()).writeFile(wb, "Consolidado_Pagamentos.xlsx", { compression: true });
 }

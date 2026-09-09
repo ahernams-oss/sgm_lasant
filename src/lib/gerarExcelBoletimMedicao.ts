@@ -92,5 +92,6 @@ export async function downloadExcelBoletimMedicao(boletim: BoletimMedicao, empre
   (await getXLSX()).writeFile(
     wb,
     `Boletim_Medicao_${String(boletim.numero || "").padStart(2, "0")}-${boletim.ano || ""}.xlsx`,
+    { compression: true },
   );
 }

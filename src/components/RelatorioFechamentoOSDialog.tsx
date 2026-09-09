@@ -364,13 +364,13 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, "Fechamento");
       (await getXLSX()).utils.book_append_sheet(wb, wsCat, "Por Categoria");
-      (await getXLSX()).writeFile(wb, `${fileBaseFech}.xlsx`);
+      (await getXLSX()).writeFile(wb, `${fileBaseFech}.xlsx`, { compression: true });
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // Capa
@@ -554,13 +554,13 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       ws["!cols"] = [{ wch: 14 }, { wch: 10 }, { wch: 40 }, { wch: 14 }, { wch: 16 }];
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, "Por Categoria");
-      (await getXLSX()).writeFile(wb, `relatorio_fechamento_categoria.xlsx`);
+      (await getXLSX()).writeFile(wb, `relatorio_fechamento_categoria.xlsx`, { compression: true });
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     // ===== Capa =====
@@ -767,13 +767,13 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const ws = (await getXLSX()).utils.json_to_sheet(data);
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, "Ciclo SS");
-      (await getXLSX()).writeFile(wb, "ciclo_vida_solicitacoes.xlsx");
+      (await getXLSX()).writeFile(wb, "ciclo_vida_solicitacoes.xlsx", { compression: true });
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: "l", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "l", unit: "mm", format: "a4" });
     addHeader(doc, "Ciclo de Vida — Solicitações de Serviço", `${ssFiltradas.length} SS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     (await getAutoTable())(doc, {
       startY: 32,
@@ -852,13 +852,13 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const ws = (await getXLSX()).utils.json_to_sheet(data);
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, "Ciclo OS");
-      (await getXLSX()).writeFile(wb, "ciclo_vida_ordens_servico.xlsx");
+      (await getXLSX()).writeFile(wb, "ciclo_vida_ordens_servico.xlsx", { compression: true });
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: "l", unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: "l", unit: "mm", format: "a4" });
     addHeader(doc, "Ciclo de Vida — Ordens de Serviço", `${osList.length} OS(s) no período`, `Período: ${dataIni} a ${dataFimStr}`);
     (await getAutoTable())(doc, {
       startY: 32,
@@ -981,13 +981,13 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const wsR = (await getXLSX()).utils.json_to_sheet(resumo);
       wsR["!cols"] = [{ wch: 30 }, { wch: 24 }, { wch: 8 }, { wch: 14 }];
       (await getXLSX()).utils.book_append_sheet(wb, wsR, "Tipos por Local");
-      (await getXLSX()).writeFile(wb, `${fileBaseLoc}.xlsx`);
+      (await getXLSX()).writeFile(wb, `${fileBaseLoc}.xlsx`, { compression: true });
       toast.success("Excel gerado!");
       onOpenChange(false);
       return;
     }
 
-    const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+    const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
     const pw = doc.internal.pageSize.getWidth();
 
     if (empresa?.logoUrl) {
@@ -1113,7 +1113,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const fileBase = titulo.replace(/[^\w]+/g, "_").toLowerCase();
 
     if (formato === "pdf") {
-      const doc = new (await getJsPDF())({ orientation: orientacao, unit: "mm", format: "a4" });
+      const doc = new (await getJsPDF())({ compress: true, orientation: orientacao, unit: "mm", format: "a4" });
       addHeader(doc, titulo, `Total: ${ordensFiltradas.length} OS(s)`, filtrosLabel);
       (await getAutoTable())(doc, {
         startY: 32,
@@ -1136,7 +1136,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       ws["!cols"] = columns.map(() => ({ wch: 20 }));
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
-      (await getXLSX()).writeFile(wb, `${fileBase}.xlsx`);
+      (await getXLSX()).writeFile(wb, `${fileBase}.xlsx`, { compression: true });
       toast.success("Excel gerado!");
     }
     onOpenChange(false);

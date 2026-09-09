@@ -71,7 +71,7 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
 
 export async function gerarPdfDashboard(data: DashboardReportData): Promise<jsPDF> {
   const { requisicoes, dateFrom, dateTo, empresa, funcionarios, exames, processos, lancamentos } = data;
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
 
   addHeader(doc, empresa);
 

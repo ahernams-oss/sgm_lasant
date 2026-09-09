@@ -32,7 +32,7 @@ async function loadComposicoes(servicoCodigos: string[]) {
 }
 
 export async function gerarPdfOrcamentoSco(orc: OrcamentoSco, empresaNome = "") {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   const pw = doc.internal.pageSize.getWidth();
 
   // header

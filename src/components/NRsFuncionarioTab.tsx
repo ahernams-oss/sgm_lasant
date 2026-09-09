@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import React, { useState, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { Plus, AlertTriangle, Trash2, FileDown, Upload, FileText } from "lucide-react";
@@ -80,7 +81,7 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
     toast.success("NR adicionada!");
   };
 
-  const handleFormFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFormFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
@@ -88,11 +89,8 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
       e.target.value = "";
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPendingFile({ base64: reader.result as string, nome: file.name, tipo: file.type });
-    };
-    reader.readAsDataURL(file);
+    const base64 = await lerArquivoBase64(file);
+    setPendingFile({ base64, nome: file.name, tipo: file.type });
   };
 
   const removeNr = (id: string) => {
@@ -105,26 +103,22 @@ export function NRsFuncionarioTab({ nrs, onChange }: Props) {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadingId) return;
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Arquivo muito grande (máx. 2MB).");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      onChange(nrs.map((n) =>
-        n.id === uploadingId
-          ? { ...n, anexoBase64: base64, anexoNome: file.name, anexoTipo: file.type }
-          : n
-      ));
-      toast.success("Anexo adicionado!");
-      setUploadingId(null);
-    };
-    reader.readAsDataURL(file);
     e.target.value = "";
+    const base64 = await lerArquivoBase64(file);
+    onChange(nrs.map((n) =>
+      n.id === uploadingId
+        ? { ...n, anexoBase64: base64, anexoNome: file.name, anexoTipo: file.type }
+        : n
+    ));
+    toast.success("Anexo adicionado!");
+    setUploadingId(null);
   };
 
   const downloadAnexo = (nr: NrFuncionario) => {

@@ -90,5 +90,5 @@ export async function exportarExcelMapa(params: ExcelMapaParams) {
   (await getXLSX()).utils.book_append_sheet(wb, wsAdvs, "Advertências");
 
   const mesLabel = filterMes.replace("-", "_");
-  (await getXLSX()).writeFile(wb, `Mapa_Funcionarios_${mesLabel}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Mapa_Funcionarios_${mesLabel}.xlsx`, { compression: true });
 }

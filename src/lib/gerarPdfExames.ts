@@ -30,7 +30,7 @@ const formatDate = (d: string | null) => {
 };
 
 export async function gerarPdfExames(exames: ExameData[]) {
-  const doc = new (await getJsPDF())({ orientation: "landscape" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // Header

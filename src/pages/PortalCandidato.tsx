@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,20 +71,17 @@ export default function PortalCandidato() {
     toast.success("Termos aceitos. Você já pode anexar seus documentos.");
   };
 
-  const anexarDoc = (idx: number, file: File) => {
+  const anexarDoc = async (idx: number, file: File) => {
     if (file.size > 2 * 1024 * 1024) { toast.error(`"${file.name}" excede 2MB.`); return; }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const docs = [...(candidato!.documentos || [])];
-      docs[idx] = {
-        ...docs[idx],
-        anexo: { nome: file.name, tipo: file.type, base64: reader.result as string },
-        entregue: true,
-        naoPossui: false,
-      };
-      persist({ documentos: docs });
+    const base64 = await lerArquivoBase64(file);
+    const docs = [...(candidato!.documentos || [])];
+    docs[idx] = {
+      ...docs[idx],
+      anexo: { nome: file.name, tipo: file.type, base64 },
+      entregue: true,
+      naoPossui: false,
     };
-    reader.readAsDataURL(file);
+    persist({ documentos: docs });
   };
 
   const removerAnexo = (idx: number) => {

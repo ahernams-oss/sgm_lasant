@@ -77,7 +77,7 @@ function sectionTitle(doc: jsPDF, text: string, y: number): number {
 }
 
 export async function gerarPdfDashboardSSOS(data: DashboardSSOSReport): Promise<jsPDF> {
-  const doc = new (await getJsPDF())();
+  const doc = new (await getJsPDF())({ compress: true });
   addHeader(doc, data.empresa);
   doc.setTextColor(30, 30, 30);
   let y = 42;
@@ -334,5 +334,5 @@ export async function gerarExcelDashboardSSOS(data: DashboardSSOSReport): Promis
 export async function downloadExcelDashboardSSOS(data: DashboardSSOSReport) {
   const wb = await gerarExcelDashboardSSOS(data);
   const dt = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
-  (await getXLSX()).writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`, { compression: true });
 }

@@ -59,7 +59,7 @@ export async function gerarPdfCertificadoTreinamento(
   dados: CertificadoTreinamentoDados,
   empresa?: EmpresaCertificado,
 ): Promise<jsPDF> {
-  const doc = new (await getJsPDF())({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new (await getJsPDF())({ compress: true, orientation: "landscape", unit: "mm", format: "a4" });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
