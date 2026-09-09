@@ -185,14 +185,11 @@ const DependentesTab = ({ dependentes, onChange }: { dependentes: Dependente[]; 
 
   const removeDependente = (id: string) => onChange(dependentes.filter((d) => d.id !== id));
 
-  const handleAnexo = (depId: string, file: File) => {
+  const handleAnexo = async (depId: string, file: File) => {
     if (file.size > 5 * 1024 * 1024) { toast.error("Arquivo muito grande (máx 5MB)."); return; }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const anexo: AnexoDependente = { id: crypto.randomUUID(), nome: file.name, base64: reader.result as string, tipo: file.type };
-      onChange(dependentes.map((d) => d.id === depId ? { ...d, anexos: [...d.anexos, anexo] } : d));
-    };
-    reader.readAsDataURL(file);
+    const base64 = await lerArquivoBase64(file);
+    const anexo: AnexoDependente = { id: crypto.randomUUID(), nome: file.name, base64, tipo: file.type };
+    onChange(dependentes.map((d) => d.id === depId ? { ...d, anexos: [...d.anexos, anexo] } : d));
   };
 
   const removeAnexo = (depId: string, anexoId: string) =>

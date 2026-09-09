@@ -306,16 +306,13 @@ const ProcessoSeletivoPage = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach((file) => {
+    Array.from(files).forEach(async (file) => {
       if (file.size > 2 * 1024 * 1024) {
         toast.error(`Arquivo "${file.name}" excede 2MB.`);
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAnexos((prev) => [...prev, { nome: file.name, tipo: file.type, base64: reader.result as string }]);
-      };
-      reader.readAsDataURL(file);
+      const base64 = await lerArquivoBase64(file);
+      setAnexos((prev) => [...prev, { nome: file.name, tipo: file.type, base64 }]);
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
