@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { toast } from "sonner";
-import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck, DollarSign, FileBarChart } from "lucide-react";
+import { Users, Trash2, Search, MessageCircle, MoreVertical, MapPin, FileText, Plus, ChevronDown, ChevronUp, Truck, DollarSign, FileBarChart, Landmark } from "lucide-react";
 import RelatorioClienteFornecedorDialog from "@/components/RelatorioClienteFornecedorDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { enviarWhatsApp } from "@/lib/whatsapp";
@@ -18,6 +18,8 @@ import LocaisEntregaSection from "@/components/LocaisEntregaSection";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ImportClientesFornecedores from "@/components/ImportClientesFornecedores";
 import FaturamentoSection from "@/components/FaturamentoSection";
+import EmpenhoSection from "@/components/EmpenhoSection";
+
 import { usePermissao } from "@/hooks/usePermissao";
 
 const FaturamentoView = () => {
@@ -157,6 +159,8 @@ const Clientes = () => {
   const [contratoErrors, setContratoErrors] = useState<{ cbs?: string; ibs?: string; descontoLicitacao?: string }>({});
   const [editingContratoId, setEditingContratoId] = useState<string | null>(null);
   const [faturamentoContratoId, setFaturamentoContratoId] = useState<string | null>(null);
+  const [empenhoContratoId, setEmpenhoContratoId] = useState<string | null>(null);
+
 
   const validarPercentual = (valor: string, nome: string): string | undefined => {
     if (!valor.trim()) return undefined;
