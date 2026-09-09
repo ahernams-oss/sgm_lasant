@@ -221,6 +221,52 @@ export default function RelatoriosGerenciais() {
         ],
       };
     }
+    if (tipo === "empenhos_saldo") {
+      const alvo = clientes.filter((c) => c.tipo !== "Fornecedor" && (clienteSel === "todos" || c.id === clienteSel));
+      const linhas = alvo.map((c) => {
+        const contratos = c.contratos || [];
+        const inicio =
+          contratos
+            .map((ct) => ct.dataInicio)
+            .filter(Boolean)
+            .sort()[0] || (c as any).dataInicioContrato || "";
+        const totalEmpenho = contratos.reduce(
+          (s, ct) => s + (ct.empenhos || []).reduce((s2, e) => s2 + parseMoedaBR(e.valor), 0),
+          0,
+        );
+        const faturado = ordens
+          .filter((o) => o.clienteId === c.id && o.situacao === "Faturada")
+          .filter((o) => {
+            const d = String(dataFaturamentoOS(o as any) || "").slice(0, 10);
+            return !inicio || (d && d >= inicio.slice(0, 10));
+          })
+          .reduce((s, o) => s + calcularValorTotalOS(o as any), 0);
+        return { nome: c.nome, inicio, totalEmpenho, faturado, saldo: totalEmpenho - faturado };
+      }).filter((l) => l.totalEmpenho > 0 || l.faturado > 0);
+
+      const te = linhas.reduce((s, l) => s + l.totalEmpenho, 0);
+      const tf = linhas.reduce((s, l) => s + l.faturado, 0);
+      return {
+        titulo: "Saldo de Empenhos por Cliente",
+        subtitulo: "Total empenhado - OS Faturadas desde o início do contrato",
+        filtros: filtroLabel,
+        colunas: ["Cliente", "Início do Contrato", "Total Empenhado", "OS Faturadas", "Saldo de Empenho"],
+        linhas: linhas
+          .sort((a, b) => a.nome.localeCompare(b.nome))
+          .map((l) => [
+            l.nome,
+            l.inicio ? formatDate(l.inicio) : "—",
+            formatBRLValor(l.totalEmpenho),
+            formatBRLValor(l.faturado),
+            formatBRLValor(l.saldo),
+          ]) as any,
+        totais: [
+          { label: "Total Empenhado", valor: formatBRLValor(te) },
+          { label: "Total Faturado", valor: formatBRLValor(tf) },
+          { label: "Saldo Geral", valor: formatBRLValor(te - tf) },
+        ],
+      };
+    }
     // fin_resumo
     const cr = fin.contasReceber.filter((c) => c.status === "recebida" && inRange(c.data_recebimento));
     const cp = fin.contasPagar.filter((c) => c.status === "paga" && inRange(c.data_pagamento));
