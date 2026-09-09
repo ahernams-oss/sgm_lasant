@@ -15,7 +15,7 @@ import { useRequisicaoCompras } from "@/contexts/RequisicaoComprasContext";
 import { useOrdensServico } from "@/contexts/OrdensServicoContext";
 import { useSolicitacoesServicos } from "@/contexts/SolicitacoesServicosContext";
 import { gerarPdfFinanceiro, gerarExcelFinanceiro, FinReport } from "@/lib/gerarRelatoriosFinanceiros";
-import { MESES_PT, montarFaturamentoPorClienteMes, formatBRLValor } from "@/lib/faturamentoClientes";
+import { MESES_PT, montarFaturamentoPorClienteMes, formatBRLValor, parseMoedaBR, dataFaturamentoOS, calcularValorTotalOS } from "@/lib/faturamentoClientes";
 import { usePermissao } from "@/hooks/usePermissao";
 import { toast } from "sonner";
 
@@ -23,7 +23,7 @@ type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
 type TipoRel =
   | "os_status" | "os_cliente" | "ss_status" | "compras_pedidos"
   | "requisicoes_status" | "funcionarios_cliente" | "funcionarios_cargo" | "fin_resumo"
-  | "faturamento_cliente_mes";
+  | "faturamento_cliente_mes" | "empenhos_saldo";
 
 const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
   { value: "semanal", label: "Semanal", desc: "Últimos 7 dias." },
@@ -42,6 +42,7 @@ const TIPOS: { value: TipoRel; label: string; desc: string; usaCliente: boolean;
   { value: "funcionarios_cargo", label: "Funcionários por Cargo", desc: "Distribuição de funcionários ativos por cargo (CBO).", usaCliente: false, usaSituacao: false },
   { value: "fin_resumo", label: "Resumo Financeiro do Período", desc: "Recebimentos, pagamentos e saldo do período.", usaCliente: false, usaSituacao: false },
   { value: "faturamento_cliente_mes", label: "Faturamento por Cliente / Mês", desc: "Valor faturado (OS Faturadas) por cliente e mês, com valor contratual e saldo. Usa o ano do período selecionado.", usaCliente: true, usaSituacao: false },
+  { value: "empenhos_saldo", label: "Saldo de Empenhos por Cliente", desc: "Total empenhado menos o total de OS Faturadas desde a data de início do contrato.", usaCliente: true, usaSituacao: false },
 ];
 
 export default function RelatoriosGerenciais() {
@@ -217,6 +218,52 @@ export default function RelatoriosGerenciais() {
           { label: "Total Faturado", valor: formatBRLValor(totalGeral) },
           { label: "Total Contratual", valor: formatBRLValor(totalContratual) },
           { label: "Saldo Contratual", valor: formatBRLValor(totalContratual - totalGeral) },
+        ],
+      };
+    }
+    if (tipo === "empenhos_saldo") {
+      const alvo = clientes.filter((c) => c.tipo !== "Fornecedor" && (clienteSel === "todos" || c.id === clienteSel));
+      const linhas = alvo.map((c) => {
+        const contratos = c.contratos || [];
+        const inicio =
+          contratos
+            .map((ct) => ct.dataInicio)
+            .filter(Boolean)
+            .sort()[0] || (c as any).dataInicioContrato || "";
+        const totalEmpenho = contratos.reduce(
+          (s, ct) => s + (ct.empenhos || []).reduce((s2, e) => s2 + parseMoedaBR(e.valor), 0),
+          0,
+        );
+        const faturado = ordens
+          .filter((o) => o.clienteId === c.id && o.situacao === "Faturada")
+          .filter((o) => {
+            const d = String(dataFaturamentoOS(o as any) || "").slice(0, 10);
+            return !inicio || (d && d >= inicio.slice(0, 10));
+          })
+          .reduce((s, o) => s + calcularValorTotalOS(o as any), 0);
+        return { nome: c.nome, inicio, totalEmpenho, faturado, saldo: totalEmpenho - faturado };
+      }).filter((l) => l.totalEmpenho > 0 || l.faturado > 0);
+
+      const te = linhas.reduce((s, l) => s + l.totalEmpenho, 0);
+      const tf = linhas.reduce((s, l) => s + l.faturado, 0);
+      return {
+        titulo: "Saldo de Empenhos por Cliente",
+        subtitulo: "Total empenhado - OS Faturadas desde o início do contrato",
+        filtros: filtroLabel,
+        colunas: ["Cliente", "Início do Contrato", "Total Empenhado", "OS Faturadas", "Saldo de Empenho"],
+        linhas: linhas
+          .sort((a, b) => a.nome.localeCompare(b.nome))
+          .map((l) => [
+            l.nome,
+            l.inicio ? formatDate(l.inicio) : "—",
+            formatBRLValor(l.totalEmpenho),
+            formatBRLValor(l.faturado),
+            formatBRLValor(l.saldo),
+          ]) as any,
+        totais: [
+          { label: "Total Empenhado", valor: formatBRLValor(te) },
+          { label: "Total Faturado", valor: formatBRLValor(tf) },
+          { label: "Saldo Geral", valor: formatBRLValor(te - tf) },
         ],
       };
     }
