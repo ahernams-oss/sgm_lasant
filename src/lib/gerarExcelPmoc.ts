@@ -147,5 +147,5 @@ export async function downloadExcelPmoc(data: PmocExcelData) {
     wb = await gerarExcelPmocGeral(data);
     nome = `PMOC_Relatorio_Geral_${ts}.xlsx`;
   }
-  (await getXLSX()).writeFile(wb, nome);
+  (await getXLSX()).writeFile(wb, nome, { compression: true });
 }

@@ -251,5 +251,5 @@ export async function gerarExcelFerias(rows: FeriasReportRow[], escala: EscalaRe
     const buf = (await getXLSX()).write(wb, { bookType: "xlsx", type: "array" });
     return new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   }
-  (await getXLSX()).writeFile(wb, "relatorio-mapa-ferias.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-mapa-ferias.xlsx", { compression: true });
 }

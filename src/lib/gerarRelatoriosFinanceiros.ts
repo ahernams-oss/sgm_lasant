@@ -80,5 +80,5 @@ export async function gerarExcelFinanceiro(r: FinReport) {
     }
   }
   (await getXLSX()).utils.book_append_sheet(wb, ws, r.titulo.substring(0, 31));
-  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${r.titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
 }

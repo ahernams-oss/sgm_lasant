@@ -935,7 +935,7 @@ function HistoricoExecucoes({ execucoes }: { execucoes: Execucao[] }) {
     ws["!cols"] = columns.map(() => ({ wch: 22 }));
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Histórico");
-    (await getXLSX()).writeFile(wb, `historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    (await getXLSX()).writeFile(wb, `historico_execucoes_pmoc_${new Date().toISOString().slice(0, 10)}.xlsx`, { compression: true });
   };
 
   return (

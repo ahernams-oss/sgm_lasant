@@ -79,5 +79,5 @@ export async function gerarExcelMedicoes(medicoes: MedicaoServico[], filterLabel
 
 export async function downloadExcelMedicoes(medicoes: MedicaoServico[], filterLabel?: string) {
   const wb = await gerarExcelMedicoes(medicoes, filterLabel);
-  (await getXLSX()).writeFile(wb, `Relatorio_Medicoes_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Relatorio_Medicoes_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.xlsx`, { compression: true });
 }

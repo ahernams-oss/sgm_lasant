@@ -219,7 +219,7 @@ export default function LocaisSection({ locais, onChange }: LocaisSectionProps) 
     ws["!cols"] = [{ wch: 30 }];
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo Setores");
-    (await getXLSX()).writeFile(wb, "modelo_setores.xlsx");
+    (await getXLSX()).writeFile(wb, "modelo_setores.xlsx", { compression: true });
     toast.success("Modelo de importação baixado!");
   };
 

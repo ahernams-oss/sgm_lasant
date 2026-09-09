@@ -124,5 +124,5 @@ export async function gerarMapaPlantoesExcel({ funcionarios, cargos, clientes, a
   ws["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, ...Array.from({ length: dias }, () => ({ wch: 4 }))];
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, `${MESES[mes]} ${ano}`);
-  (await getXLSX()).writeFile(wb, `mapa-plantoes-${ano}-${String(mes + 1).padStart(2, "0")}.xlsx`);
+  (await getXLSX()).writeFile(wb, `mapa-plantoes-${ano}-${String(mes + 1).padStart(2, "0")}.xlsx`, { compression: true });
 }

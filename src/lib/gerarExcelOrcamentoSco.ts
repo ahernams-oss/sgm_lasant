@@ -55,5 +55,5 @@ export async function gerarExcelOrcamentoSco(orc: OrcamentoSco) {
     (await getXLSX()).utils.book_append_sheet(wb, (await getXLSX()).utils.aoa_to_sheet(ana), "Analítico");
   }
 
-  (await getXLSX()).writeFile(wb, `Orcamento_SCO_${orc.numero}_${orc.tipo_analise}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Orcamento_SCO_${orc.numero}_${orc.tipo_analise}.xlsx`, { compression: true });
 }

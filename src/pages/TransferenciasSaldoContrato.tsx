@@ -242,7 +242,7 @@ export default function TransferenciasSaldoContrato() {
     ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length + 2, 16) }));
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Transferências");
-    (await getXLSX()).writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`);
+    (await getXLSX()).writeFile(wb, `transferencias-saldo-${new Date().toISOString().slice(0,10)}.xlsx`, { compression: true });
     toast.success("Excel gerado.");
   };
 

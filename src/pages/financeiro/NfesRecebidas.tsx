@@ -140,7 +140,7 @@ const exportarExcel = async (tipo: "nfe" | "nfse", rows: Nfe[] | Nfse[]) => {
     ];
     (await getXLSX()).utils.book_append_sheet(wb, ws, "NFSe");
   }
-  (await getXLSX()).writeFile(wb, `${tipo === "nfe" ? "nfes-recebidas" : "nfses-tomadas"}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${tipo === "nfe" ? "nfes-recebidas" : "nfses-tomadas"}_${new Date().toISOString().slice(0,10)}.xlsx`, { compression: true });
   toast.success("Excel gerado com sucesso.");
 };
 

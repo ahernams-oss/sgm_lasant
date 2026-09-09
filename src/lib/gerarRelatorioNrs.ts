@@ -103,5 +103,5 @@ export async function gerarExcelNrs(nrs: NrCatalogo[]) {
     (await getXLSX()).utils.book_append_sheet(wb, wsRev, "Revisões");
   }
 
-  (await getXLSX()).writeFile(wb, "relatorio-nrs.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-nrs.xlsx", { compression: true });
 }

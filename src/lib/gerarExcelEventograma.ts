@@ -35,5 +35,5 @@ export async function gerarExcelEventograma(ev: Eventograma) {
 
   const ws = (await getXLSX()).utils.aoa_to_sheet([...cabec, head, ...rows]);
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Eventograma");
-  (await getXLSX()).writeFile(wb, `eventograma-${ev.numero}.xlsx`);
+  (await getXLSX()).writeFile(wb, `eventograma-${ev.numero}.xlsx`, { compression: true });
 }

@@ -49,7 +49,7 @@ export default function Sco() {
     ws["!cols"] = [{ wch: 16 }, { wch: 40 }, { wch: 10 }, { wch: 22 }];
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, "Modelo SCO");
-    (await getXLSX()).writeFile(wb, "modelo_sco.xlsx");
+    (await getXLSX()).writeFile(wb, "modelo_sco.xlsx", { compression: true });
     toast({ title: "Modelo baixado com sucesso" });
   };
 

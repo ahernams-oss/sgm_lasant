@@ -38,5 +38,5 @@ export async function gerarExcelAvaliacoesDesempenho(
 
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Avaliações");
-  (await getXLSX()).writeFile(wb, "relatorio-avaliacoes-desempenho.xlsx");
+  (await getXLSX()).writeFile(wb, "relatorio-avaliacoes-desempenho.xlsx", { compression: true });
 }

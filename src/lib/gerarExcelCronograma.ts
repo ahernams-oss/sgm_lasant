@@ -79,5 +79,5 @@ export async function gerarExcelCronograma(cronograma: Cronograma) {
   const wsFin = (await getXLSX()).utils.aoa_to_sheet(bodyFin);
   (await getXLSX()).utils.book_append_sheet(wb, wsFin, "Financeiro (R$)");
 
-  (await getXLSX()).writeFile(wb, `Cronograma_${cronograma.numero}_${(cronograma.cliente_nome || "").replace(/\s+/g, "_")}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Cronograma_${cronograma.numero}_${(cronograma.cliente_nome || "").replace(/\s+/g, "_")}.xlsx`, { compression: true });
 }

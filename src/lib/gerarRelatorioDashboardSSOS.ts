@@ -334,5 +334,5 @@ export async function gerarExcelDashboardSSOS(data: DashboardSSOSReport): Promis
 export async function downloadExcelDashboardSSOS(data: DashboardSSOSReport) {
   const wb = await gerarExcelDashboardSSOS(data);
   const dt = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
-  (await getXLSX()).writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`);
+  (await getXLSX()).writeFile(wb, `Dashboard_SS_OS_${dt}.xlsx`, { compression: true });
 }

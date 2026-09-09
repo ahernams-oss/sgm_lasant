@@ -148,5 +148,5 @@ export async function gerarExcelEstoque(title: string, columns: string[], rows: 
   ws["!merges"] = [merge];
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, title.substring(0, 31));
-  (await getXLSX()).writeFile(wb, `${title.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+  (await getXLSX()).writeFile(wb, `${title.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
 }

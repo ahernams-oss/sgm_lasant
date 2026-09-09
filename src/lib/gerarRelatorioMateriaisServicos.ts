@@ -74,5 +74,5 @@ export async function gerarExcelMateriaisServicos({ materiais, getCatNome }: Exp
 
   const wb = (await getXLSX()).utils.book_new();
   (await getXLSX()).utils.book_append_sheet(wb, ws, "Materiais e Serviços");
-  (await getXLSX()).writeFile(wb, "materiais_servicos.xlsx");
+  (await getXLSX()).writeFile(wb, "materiais_servicos.xlsx", { compression: true });
 }

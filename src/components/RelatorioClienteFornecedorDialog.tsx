@@ -133,7 +133,7 @@ export default function RelatorioClienteFornecedorDialog({ open, onOpenChange, t
     ws["!cols"] = campos.map(c => ({ wch: c.width || 20 }));
     const wb = (await getXLSX()).utils.book_new();
     (await getXLSX()).utils.book_append_sheet(wb, ws, titulo.substring(0, 31));
-    (await getXLSX()).writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`);
+    (await getXLSX()).writeFile(wb, `${titulo.replace(/\s+/g, "_").toLowerCase()}.xlsx`, { compression: true });
     toast.success("Excel gerado!");
     onOpenChange(false);
   };
