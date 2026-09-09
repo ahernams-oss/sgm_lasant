@@ -116,19 +116,46 @@ async function buscarKB(query: string): Promise<string> {
 }
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash";
+const MODEL_PADRAO = "google/gemini-2.5-flash";
+const MODEL_ANALISE = "openai/gpt-5.5"; // ChatGPT para análises pesadas
 const MAX_TOOL_ROUNDS = 6;
 
+// Heurística: perguntas analíticas/complexas vão para o ChatGPT
+const PALAVRAS_ANALISE = [
+  "analis", "análise", "compare", "comparar", "comparativo", "tendência", "tendencia",
+  "por que", "porque", "causa", "diagnóstic", "diagnostic", "projeç", "projec",
+  "previsão", "previsao", "estratég", "estrateg", "recomend", "sugira", "sugestão",
+  "otimiz", "cenário", "cenario", "simul", "avalie", "avaliação", "avaliacao",
+  "consolidad", "cruz", "correlac", "correlaç", "indicador", "kpi", "margem",
+  "rentabilidade", "saldo de empenho", "desvio", "risco", "auditor", "resumo executivo",
+  "parecer", "explique detalhad", "detalhadamente", "relatório gerencial", "relatorio gerencial",
+];
+
+function escolherModelo(texto: string, forcado?: string): string {
+  if (forcado === "chatgpt") return MODEL_ANALISE;
+  if (forcado === "gemini") return MODEL_PADRAO;
+  const t = (texto || "").toLowerCase();
+  if (PALAVRAS_ANALISE.some((p) => t.includes(p))) return MODEL_ANALISE;
+  if (t.length > 320) return MODEL_ANALISE; // perguntas longas/complexas
+  return MODEL_PADRAO;
+}
+
 async function callAI(payload: any) {
+  const body: any = { ...payload };
+  // Modelos GPT-5.6 exigem reasoning_effort explícito quando há ferramentas
+  if (typeof body.model === "string" && body.model.startsWith("openai/gpt-5.6")) {
+    body.reasoning_effort = "none";
+  }
   return fetch(GATEWAY, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
