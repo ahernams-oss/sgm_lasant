@@ -249,13 +249,12 @@ export default function RequisicaoComprasPage() {
     if (itemAnexoInputRef.current) itemAnexoInputRef.current.value = "";
   };
 
-  const handleItemAnexoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleItemAnexoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) { toast({ title: `${file.name} excede 2MB`, variant: "destructive" }); e.target.value = ""; return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => setItemAnexo({ nome: file.name, tipo: file.type, base64: ev.target?.result as string });
-    reader.readAsDataURL(file);
+    const base64 = await lerArquivoBase64(file);
+    setItemAnexo({ nome: file.name, tipo: file.type, base64 });
   };
 
   const grupoTravado = useMemo(() => {
