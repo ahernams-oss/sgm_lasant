@@ -161,7 +161,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages: userMessages } = await req.json();
+    const { messages: userMessages, modelo } = await req.json();
     if (!Array.isArray(userMessages)) {
       return new Response(JSON.stringify({ error: "messages é obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -170,6 +170,9 @@ serve(async (req) => {
     const lastUser = [...userMessages].reverse().find((m: any) => m.role === "user");
     const kbContext = lastUser?.content && typeof lastUser.content === "string" && lastUser.content.length > 5
       ? await buscarKB(lastUser.content) : "";
+
+    const MODEL = escolherModelo(typeof lastUser?.content === "string" ? lastUser.content : "", modelo);
+    console.log("[duda] modelo:", MODEL);
 
     const messages: any[] = [
       { role: "system", content: SYSTEM_PROMPT + kbContext },
@@ -220,7 +223,7 @@ serve(async (req) => {
       console.error("AI final stream error:", finalResp.status, t);
       return new Response(JSON.stringify({ error: "Erro ao gerar resposta final" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    return new Response(finalResp.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+    return new Response(finalResp.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-Duda-Model": MODEL } });
   } catch (e) {
     console.error("chat-duda error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
