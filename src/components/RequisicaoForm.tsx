@@ -44,13 +44,6 @@ interface Indicado {
 const emptyIndicado = (): Indicado => ({ nome: "", telefone: "", email: "", cpf: "", dataNascimento: "", arquivo: null });
 
 const fileToBase64 = (file: File) => lerArquivoBase64(file);
-const _unusedFileToBase64 = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 
 const RequisicaoForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { cargos } = useCargos();
