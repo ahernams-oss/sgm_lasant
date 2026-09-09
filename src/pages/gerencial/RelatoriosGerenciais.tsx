@@ -23,7 +23,7 @@ type Periodo = "semanal" | "quinzenal" | "mensal" | "personalizado";
 type TipoRel =
   | "os_status" | "os_cliente" | "ss_status" | "compras_pedidos"
   | "requisicoes_status" | "funcionarios_cliente" | "funcionarios_cargo" | "fin_resumo"
-  | "faturamento_cliente_mes";
+  | "faturamento_cliente_mes" | "empenhos_saldo";
 
 const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
   { value: "semanal", label: "Semanal", desc: "Últimos 7 dias." },
