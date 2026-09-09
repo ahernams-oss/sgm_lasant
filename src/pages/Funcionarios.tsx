@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import React, { useState, useMemo, useEffect, ReactNode } from "react";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";

@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import React, { useState, useRef } from "react";
 import { DoubleConfirmDelete, useDoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
 import { Plus, AlertTriangle, Trash2, FileDown, Upload, FileText } from "lucide-react";

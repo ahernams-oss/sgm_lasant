@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, Paperclip, Send, Check, ChevronsUpDown } from "lucide-react";

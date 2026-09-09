@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FileSpreadsheet } from "lucide-react";

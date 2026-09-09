@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

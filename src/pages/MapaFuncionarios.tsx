@@ -1,3 +1,4 @@
+import { lerArquivoBase64 } from "@/lib/compressFile";
 import { useState, useMemo, useRef, useEffect, ReactNode } from "react";
 import { MUNICIPIOS_RJ, percentualHoraExtra, motivoPercentual } from "@/lib/feriadosRJ";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
