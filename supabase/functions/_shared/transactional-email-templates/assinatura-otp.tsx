@@ -38,6 +38,7 @@ const AssinaturaOtpEmail = ({ nomeUsuario, codigo, documento, papel }: Assinatur
         </Text>
 
         <Section style={codeBox}>
+          <Text style={codeLabel}>CÓDIGO DE VERIFICAÇÃO</Text>
           <Text style={code}>{codigo}</Text>
         </Section>
 
