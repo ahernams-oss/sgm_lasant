@@ -116,25 +116,52 @@ async function buscarKB(query: string): Promise<string> {
 }
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash";
+const MODEL_PADRAO = "google/gemini-2.5-flash";
+const MODEL_ANALISE = "openai/gpt-5.5"; // ChatGPT para análises pesadas
 const MAX_TOOL_ROUNDS = 6;
 
+// Heurística: perguntas analíticas/complexas vão para o ChatGPT
+const PALAVRAS_ANALISE = [
+  "analis", "análise", "compare", "comparar", "comparativo", "tendência", "tendencia",
+  "por que", "porque", "causa", "diagnóstic", "diagnostic", "projeç", "projec",
+  "previsão", "previsao", "estratég", "estrateg", "recomend", "sugira", "sugestão",
+  "otimiz", "cenário", "cenario", "simul", "avalie", "avaliação", "avaliacao",
+  "consolidad", "cruz", "correlac", "correlaç", "indicador", "kpi", "margem",
+  "rentabilidade", "saldo de empenho", "desvio", "risco", "auditor", "resumo executivo",
+  "parecer", "explique detalhad", "detalhadamente", "relatório gerencial", "relatorio gerencial",
+];
+
+function escolherModelo(texto: string, forcado?: string): string {
+  if (forcado === "chatgpt") return MODEL_ANALISE;
+  if (forcado === "gemini") return MODEL_PADRAO;
+  const t = (texto || "").toLowerCase();
+  if (PALAVRAS_ANALISE.some((p) => t.includes(p))) return MODEL_ANALISE;
+  if (t.length > 320) return MODEL_ANALISE; // perguntas longas/complexas
+  return MODEL_PADRAO;
+}
+
 async function callAI(payload: any) {
+  const body: any = { ...payload };
+  // Modelos GPT-5.6 exigem reasoning_effort explícito quando há ferramentas
+  if (typeof body.model === "string" && body.model.startsWith("openai/gpt-5.6")) {
+    body.reasoning_effort = "none";
+  }
   return fetch(GATEWAY, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages: userMessages } = await req.json();
+    const { messages: userMessages, modelo } = await req.json();
     if (!Array.isArray(userMessages)) {
       return new Response(JSON.stringify({ error: "messages é obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -143,6 +170,9 @@ serve(async (req) => {
     const lastUser = [...userMessages].reverse().find((m: any) => m.role === "user");
     const kbContext = lastUser?.content && typeof lastUser.content === "string" && lastUser.content.length > 5
       ? await buscarKB(lastUser.content) : "";
+
+    const MODEL = escolherModelo(typeof lastUser?.content === "string" ? lastUser.content : "", modelo);
+    console.log("[duda] modelo:", MODEL);
 
     const messages: any[] = [
       { role: "system", content: SYSTEM_PROMPT + kbContext },
@@ -193,7 +223,7 @@ serve(async (req) => {
       console.error("AI final stream error:", finalResp.status, t);
       return new Response(JSON.stringify({ error: "Erro ao gerar resposta final" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    return new Response(finalResp.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+    return new Response(finalResp.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-Duda-Model": MODEL } });
   } catch (e) {
     console.error("chat-duda error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
