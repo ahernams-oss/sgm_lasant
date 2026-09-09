@@ -38,6 +38,7 @@ const AssinaturaOtpEmail = ({ nomeUsuario, codigo, documento, papel }: Assinatur
         </Text>
 
         <Section style={codeBox}>
+          <Text style={codeLabel}>CÓDIGO DE VERIFICAÇÃO</Text>
           <Text style={code}>{codigo}</Text>
         </Section>
 
@@ -79,12 +80,17 @@ const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', padding: 
 const textMuted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px', padding: '0 32px', margin: '16px 0' }
 const codeBox = {
   backgroundColor: '#f5f3ff', borderRadius: '8px',
-  margin: '24px 32px', padding: '20px', textAlign: 'center' as const,
+  margin: '24px 32px', padding: '20px 16px', textAlign: 'center' as const,
   border: '2px dashed #673ab7',
 }
+const codeLabel = {
+  color: '#6b7280', fontSize: '11px', fontWeight: 600,
+  letterSpacing: '2px', margin: '0 0 10px', textTransform: 'uppercase' as const,
+}
 const code = {
-  color: '#673ab7', fontSize: '30px', fontWeight: 700,
-  letterSpacing: '8px', margin: 0, fontFamily: 'monospace',
+  color: '#673ab7', fontSize: '28px', fontWeight: 700, lineHeight: '36px',
+  letterSpacing: '6px', textIndent: '6px', margin: 0,
+  fontFamily: 'Consolas, Menlo, monospace', whiteSpace: 'nowrap' as const,
 }
 const footer = {
   color: '#9ca3af', fontSize: '12px', textAlign: 'center' as const,
