@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFuncionarios } from "@/contexts/FuncionariosContext";
 import { useCargos } from "@/contexts/CargosContext";
 import { useClientes } from "@/contexts/ClientesContext";
@@ -29,6 +30,7 @@ export default function RelatorioRecebimentoEpis() {
   const { clientes } = useClientes();
   const [rows, setRows] = useState<Recebimento[]>([]);
   const [filtro, setFiltro] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [preview, setPreview] = useState<{ urls: string[]; row: Recebimento } | null>(null);
   const [loading, setLoading] = useState(false);
   const [gerandoPdf, setGerandoPdf] = useState<string | null>(null);
