@@ -542,6 +542,15 @@ function PlanoDetailDialog({
             </TabsList>
 
             <TabsContent value="atividades" className="space-y-4">
+              <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/40 px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  Gera automaticamente as Ordens de Serviço de todas as atividades, conforme a periodicidade,
+                  até {plano.vigencia_fim ? new Date(plano.vigencia_fim).toLocaleDateString("pt-BR") : "12 meses à frente"}.
+                </p>
+                <Button onClick={gerarOsProgramadas} disabled={gerando}>
+                  <Calendar className="h-4 w-4 mr-2" /> {gerando ? "Gerando..." : "Gerar OS Programadas"}
+                </Button>
+              </div>
               <Card>
                 <CardHeader><CardTitle className="text-base">{editAtvId ? "Editar Atividade" : "Nova Atividade"}</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
