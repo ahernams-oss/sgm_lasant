@@ -391,6 +391,8 @@ function PlanoDetailDialog({
     responsavel: "", observacoes: "", percentual_conformidade: 100, gerar_os: false,
   });
 
+  const [gerando, setGerando] = useState(false);
+
   if (!plano) return null;
 
   const equipamentosCliente = equipamentos.filter(e => e.cliente_id === plano.cliente_id);
