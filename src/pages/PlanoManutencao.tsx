@@ -41,13 +41,16 @@ function calcularProximaData(ultima: string, periodicidade: string): string {
   return data.toISOString().slice(0, 10);
 }
 
+/** Marcador usado para identificar OS geradas automaticamente pelo plano. */
+const marcadorOs = (atividadeId: string, data: string) => `[PM:${atividadeId}:${data}]`;
+
 function PlanoManutencaoContent() {
   const { planos, atividades, execucoes, addPlano, updatePlano, deletePlano,
     addAtividade, updateAtividade, deleteAtividade, addExecucao } = usePlanosManutencao();
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
   const { responsaveis } = useResponsaveisTecnicos();
-  const { addOrdem } = useOrdensServico();
+  const { addOrdem, ordens } = useOrdensServico();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { tem } = usePermissao();
   const podeExcluir = tem("plano_manutencao.excluir");
@@ -336,6 +339,7 @@ function PlanoManutencaoContent() {
         }}
         onAddExecucao={addExecucao}
         addOrdemServico={addOrdem}
+        ordens={ordens}
       />
 
       <DoubleConfirmDelete
@@ -358,7 +362,7 @@ function PlanoManutencaoContent() {
 // ====================== Detail Dialog ======================
 function PlanoDetailDialog({
   plano, onClose, atividades, execucoes, equipamentos,
-  onAddAtividade, onUpdateAtividade, onDeleteAtividade, onAddExecucao, addOrdemServico,
+  onAddAtividade, onUpdateAtividade, onDeleteAtividade, onAddExecucao, addOrdemServico, ordens,
 }: {
   plano: PlanoManutencao | null;
   onClose: () => void;
@@ -370,6 +374,7 @@ function PlanoDetailDialog({
   onDeleteAtividade: (id: string) => Promise<any>;
   onAddExecucao: (e: any) => Promise<any>;
   addOrdemServico: any;
+  ordens?: any[];
 }) {
   const [tab, setTab] = useState("atividades");
   const [atvForm, setAtvForm] = useState<Partial<PlanoAtividade>>({
@@ -430,14 +435,16 @@ function PlanoDetailDialog({
     if (execForm.gerar_os && addOrdemServico) {
       try {
         const os = await addOrdemServico({
-          clienteId: plano.cliente_id,
-          clienteNome: plano.cliente_nome,
-          tipo: "Preventiva",
-          descricao: `[Plano: ${plano.titulo}] ${execAtividade.descricao}`,
-          status: "Concluída",
-          dataAbertura: execForm.data_execucao,
-          dataConclusao: execForm.data_execucao,
-          tecnicoResponsavel: execForm.responsavel,
+          cliente_id: plano.cliente_id,
+          cliente_nome: plano.cliente_nome,
+          tipo_os: { cod: 2, descricao: "Preventiva", sigla: "P" },
+          categoria: "Manutenção Preventiva",
+          servico: execAtividade.descricao,
+          descricao_servicos: `[Plano: ${plano.titulo}] ${execAtividade.descricao}`,
+          situacao: "Aberta",
+          prioridade: "C: NORMAL",
+          data_inicio: execForm.data_execucao,
+          solicitante: execForm.responsavel || plano.responsavel_tecnico_nome || "",
         });
         if (os) { osNumero = os.numero || 0; osId = os.id || ""; }
       } catch (e) { console.warn("OS não gerada:", e); }
@@ -463,6 +470,60 @@ function PlanoDetailDialog({
     setExecForm({ data_execucao: new Date().toISOString().slice(0, 10), responsavel: "", observacoes: "", percentual_conformidade: 100, gerar_os: false });
   };
 
+  const [gerando, setGerando] = useState(false);
+
+  /** Abre automaticamente as OS de todas as atividades, conforme a periodicidade e a vigência do plano. */
+  const gerarOsProgramadas = async () => {
+    if (!addOrdemServico) return;
+    if (atividades.length === 0) { toast.error("Cadastre ao menos uma atividade."); return; }
+    const hoje = new Date().toISOString().slice(0, 10);
+    const fim = plano.vigencia_fim || calcularProximaData(hoje, "Anual");
+    if (fim < hoje) { toast.error("A vigência do plano já está encerrada."); return; }
+
+    const existentes = new Set(
+      (ordens || []).map((o: any) => String(o.descricaoServicos || ""))
+        .flatMap((d: string) => d.match(/\[PM:[^\]]+\]/g) || [])
+    );
+
+    setGerando(true);
+    let criadas = 0;
+    try {
+      for (const a of atividades) {
+        let data = a.proxima_execucao || plano.vigencia_inicio || hoje;
+        if (data < hoje) data = hoje;
+        let guard = 0;
+        while (data && data <= fim && guard < 120) {
+          guard++;
+          const marca = marcadorOs(a.id, data);
+          if (!existentes.has(marca)) {
+            await addOrdemServico({
+              cliente_id: plano.cliente_id,
+              cliente_nome: plano.cliente_nome,
+              tipo_os: { cod: 2, descricao: "Preventiva", sigla: "P" },
+              categoria: "Manutenção Preventiva",
+              servico: a.descricao,
+              descricao_servicos: `${marca} [Plano: ${plano.titulo}] ${a.descricao}${a.equipamento_nome ? ` — Equipamento: ${a.equipamento_nome}` : ""} (${a.periodicidade})`,
+              situacao: "Aberta",
+              prioridade: a.prioridade === "Crítica" || a.prioridade === "Alta" ? "A: URGENTE" : "C: NORMAL",
+              data_inicio: data,
+              solicitante: a.responsavel || plano.responsavel_tecnico_nome || "",
+            });
+            existentes.add(marca);
+            criadas++;
+          }
+          data = calcularProximaData(data, a.periodicidade);
+        }
+        const primeira = a.proxima_execucao && a.proxima_execucao >= hoje ? a.proxima_execucao : hoje;
+        if (!a.proxima_execucao) await onUpdateAtividade(a.id, { proxima_execucao: primeira });
+      }
+      toast.success(criadas > 0 ? `${criadas} ordem(ns) de serviço programada(s) gerada(s).` : "Nenhuma OS nova a gerar — já estão todas criadas.");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao gerar as ordens de serviço.");
+    } finally {
+      setGerando(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={!!plano} onOpenChange={(o) => !o && onClose()}>
@@ -481,6 +542,15 @@ function PlanoDetailDialog({
             </TabsList>
 
             <TabsContent value="atividades" className="space-y-4">
+              <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/40 px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  Gera automaticamente as Ordens de Serviço de todas as atividades, conforme a periodicidade,
+                  até {plano.vigencia_fim ? new Date(plano.vigencia_fim).toLocaleDateString("pt-BR") : "12 meses à frente"}.
+                </p>
+                <Button onClick={gerarOsProgramadas} disabled={gerando}>
+                  <Calendar className="h-4 w-4 mr-2" /> {gerando ? "Gerando..." : "Gerar OS Programadas"}
+                </Button>
+              </div>
               <Card>
                 <CardHeader><CardTitle className="text-base">{editAtvId ? "Editar Atividade" : "Nova Atividade"}</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
