@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_next_requisicao_compras_numero() FROM PUBLIC, anon, authenticated;

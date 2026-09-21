@@ -48,7 +48,7 @@ const rowToReq = (r: any): RequisicaoCompras => ({
 });
 
 const reqToRow = (r: RequisicaoCompras) => ({
-  numero: r.numero, data_criacao: r.dataCriacao, solicitante: r.solicitante,
+  data_criacao: r.dataCriacao, solicitante: r.solicitante,
   centro_custo: r.centroCusto, centro_custo_nome: r.centroCustoNome,
   local_entrega: r.localEntrega, justificativa: r.justificativa,
   urgencia: r.urgencia, prazo_desejado: r.prazoDesejado, status: r.status,
@@ -70,9 +70,9 @@ export function RequisicaoComprasProvider({ children }: { children: ReactNode })
 
   const addRequisicao = async (data: Omit<RequisicaoCompras, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
     const now = new Date().toISOString();
-    const maxNum = requisicoes.length > 0 ? Math.max(...requisicoes.map(r => r.numero)) : 0;
+    // O número é gerado pelo banco (trigger com trava), evitando duplicidade
     const req: RequisicaoCompras = {
-      ...data, id: "", numero: maxNum + 1, dataCriacao: now, status: "Enviada",
+      ...data, id: "", numero: 0, dataCriacao: now, status: "Enviada",
       historicoStatus: [{ status: "Enviada", dataHora: now, usuario: data.solicitante, observacao: "Solicitação criada" }],
     };
     await insertRow("requisicoes_compras", reqToRow(req));
