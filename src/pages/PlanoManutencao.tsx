@@ -339,6 +339,7 @@ function PlanoManutencaoContent() {
         }}
         onAddExecucao={addExecucao}
         addOrdemServico={addOrdem}
+        ordens={ordens}
       />
 
       <DoubleConfirmDelete
