@@ -470,7 +470,6 @@ function PlanoDetailDialog({
     setExecForm({ data_execucao: new Date().toISOString().slice(0, 10), responsavel: "", observacoes: "", percentual_conformidade: 100, gerar_os: false });
   };
 
-  const [gerando, setGerando] = useState(false);
 
   /** Abre automaticamente as OS de todas as atividades, conforme a periodicidade e a vigência do plano. */
   const gerarOsProgramadas = async () => {
