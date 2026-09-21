@@ -374,6 +374,7 @@ function PlanoDetailDialog({
   onDeleteAtividade: (id: string) => Promise<any>;
   onAddExecucao: (e: any) => Promise<any>;
   addOrdemServico: any;
+  ordens?: any[];
 }) {
   const [tab, setTab] = useState("atividades");
   const [atvForm, setAtvForm] = useState<Partial<PlanoAtividade>>({
