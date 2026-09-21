@@ -50,7 +50,7 @@ function PlanoManutencaoContent() {
   const { clientes } = useClientes();
   const { equipamentos } = useEquipamentos();
   const { responsaveis } = useResponsaveisTecnicos();
-  const { addOrdem } = useOrdensServico();
+  const { addOrdem, ordens } = useOrdensServico();
   const { deleteId, requestDelete, cancelDelete } = useDoubleConfirmDelete();
   const { tem } = usePermissao();
   const podeExcluir = tem("plano_manutencao.excluir");
