@@ -444,7 +444,6 @@ function PlanoDetailDialog({
           situacao: "Aberta",
           prioridade: "C: NORMAL",
           data_inicio: execForm.data_execucao,
-          equipamento_id: execAtividade.equipamento_id || null,
           solicitante: execForm.responsavel || plano.responsavel_tecnico_nome || "",
         });
         if (os) { osNumero = os.numero || 0; osId = os.id || ""; }
