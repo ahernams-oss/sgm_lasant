@@ -34,7 +34,10 @@ interface RdosContextType {
 }
 
 const RdosContext = createContext<RdosContextType>({} as RdosContextType);
-export const useRdos = () => useContext(RdosContext);
+export const useRdos = () => {
+  useActivateProvider("Rdos");
+  return useContext(RdosContext);
+};
 const QK = ["rdos"] as const;
 
 export function RdosProvider({ children }: { children: ReactNode }) {

@@ -43,7 +43,10 @@ const LaudosAssinaturasContext = createContext<Ctx>({
   refresh: async () => {},
 });
 
-export const useLaudosAssinaturas = () => useContext(LaudosAssinaturasContext);
+export const useLaudosAssinaturas = () => {
+  useActivateProvider("LaudosAssinaturas");
+  return useContext(LaudosAssinaturasContext);
+};
 const QK = ["laudos_assinaturas"] as const;
 
 export function LaudosAssinaturasProvider({ children }: { children: ReactNode }) {

@@ -47,7 +47,10 @@ interface Ctx {
 }
 
 const EventogramasContext = createContext<Ctx>({} as Ctx);
-export const useEventogramas = () => useContext(EventogramasContext);
+export const useEventogramas = () => {
+  useActivateProvider("Eventogramas");
+  return useContext(EventogramasContext);
+};
 
 const QK = ["eventogramas"] as const;
 
