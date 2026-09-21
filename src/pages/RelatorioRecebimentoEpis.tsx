@@ -116,9 +116,13 @@ export default function RelatorioRecebimentoEpis() {
     }
   };
 
+  const statusOptions = Array.from(new Set(rows.map((r) => r.status).filter(Boolean)));
+
   const filtered = rows.filter((r) => {
     const nome = nomeFunc(r.funcionario_id).toLowerCase();
-    return !filtro || nome.includes(filtro.toLowerCase()) || r.status.includes(filtro.toLowerCase());
+    const matchTexto = !filtro || nome.includes(filtro.toLowerCase()) || r.status.includes(filtro.toLowerCase());
+    const matchStatus = filtroStatus === "todos" || r.status === filtroStatus;
+    return matchTexto && matchStatus;
   });
 
   const { paginated, safePage } = paginate(filtered, page, pageSize);
@@ -136,6 +140,17 @@ export default function RelatorioRecebimentoEpis() {
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input className="pl-8" placeholder="Buscar funcionário/status..." value={filtro} onChange={(e) => { setFiltro(e.target.value); setPage(1); }} />
             </div>
+            <Select value={filtroStatus} onValueChange={(v) => { setFiltroStatus(v); setPage(1); }}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os status</SelectItem>
+                {statusOptions.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button variant="outline" size="sm" onClick={carregar} disabled={loading}>Atualizar</Button>
           </div>
 
