@@ -470,6 +470,60 @@ function PlanoDetailDialog({
     setExecForm({ data_execucao: new Date().toISOString().slice(0, 10), responsavel: "", observacoes: "", percentual_conformidade: 100, gerar_os: false });
   };
 
+  const [gerando, setGerando] = useState(false);
+
+  /** Abre automaticamente as OS de todas as atividades, conforme a periodicidade e a vigência do plano. */
+  const gerarOsProgramadas = async () => {
+    if (!addOrdemServico) return;
+    if (atividades.length === 0) { toast.error("Cadastre ao menos uma atividade."); return; }
+    const hoje = new Date().toISOString().slice(0, 10);
+    const fim = plano.vigencia_fim || calcularProximaData(hoje, "Anual");
+    if (fim < hoje) { toast.error("A vigência do plano já está encerrada."); return; }
+
+    const existentes = new Set(
+      (ordens || []).map((o: any) => String(o.descricaoServicos || ""))
+        .flatMap((d: string) => d.match(/\[PM:[^\]]+\]/g) || [])
+    );
+
+    setGerando(true);
+    let criadas = 0;
+    try {
+      for (const a of atividades) {
+        let data = a.proxima_execucao || plano.vigencia_inicio || hoje;
+        if (data < hoje) data = hoje;
+        let guard = 0;
+        while (data && data <= fim && guard < 120) {
+          guard++;
+          const marca = marcadorOs(a.id, data);
+          if (!existentes.has(marca)) {
+            await addOrdemServico({
+              cliente_id: plano.cliente_id,
+              cliente_nome: plano.cliente_nome,
+              tipo_os: { cod: 2, descricao: "Preventiva", sigla: "P" },
+              categoria: "Manutenção Preventiva",
+              servico: a.descricao,
+              descricao_servicos: `${marca} [Plano: ${plano.titulo}] ${a.descricao}${a.equipamento_nome ? ` — Equipamento: ${a.equipamento_nome}` : ""} (${a.periodicidade})`,
+              situacao: "Aberta",
+              prioridade: a.prioridade === "Crítica" || a.prioridade === "Alta" ? "A: URGENTE" : "C: NORMAL",
+              data_inicio: data,
+              solicitante: a.responsavel || plano.responsavel_tecnico_nome || "",
+            });
+            existentes.add(marca);
+            criadas++;
+          }
+          data = calcularProximaData(data, a.periodicidade);
+        }
+        const primeira = a.proxima_execucao && a.proxima_execucao >= hoje ? a.proxima_execucao : hoje;
+        if (!a.proxima_execucao) await onUpdateAtividade(a.id, { proxima_execucao: primeira });
+      }
+      toast.success(criadas > 0 ? `${criadas} ordem(ns) de serviço programada(s) gerada(s).` : "Nenhuma OS nova a gerar — já estão todas criadas.");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao gerar as ordens de serviço.");
+    } finally {
+      setGerando(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={!!plano} onOpenChange={(o) => !o && onClose()}>
