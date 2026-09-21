@@ -362,7 +362,7 @@ function PlanoManutencaoContent() {
 // ====================== Detail Dialog ======================
 function PlanoDetailDialog({
   plano, onClose, atividades, execucoes, equipamentos,
-  onAddAtividade, onUpdateAtividade, onDeleteAtividade, onAddExecucao, addOrdemServico,
+  onAddAtividade, onUpdateAtividade, onDeleteAtividade, onAddExecucao, addOrdemServico, ordens,
 }: {
   plano: PlanoManutencao | null;
   onClose: () => void;
