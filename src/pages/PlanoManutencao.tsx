@@ -435,14 +435,17 @@ function PlanoDetailDialog({
     if (execForm.gerar_os && addOrdemServico) {
       try {
         const os = await addOrdemServico({
-          clienteId: plano.cliente_id,
-          clienteNome: plano.cliente_nome,
-          tipo: "Preventiva",
-          descricao: `[Plano: ${plano.titulo}] ${execAtividade.descricao}`,
-          status: "Concluída",
-          dataAbertura: execForm.data_execucao,
-          dataConclusao: execForm.data_execucao,
-          tecnicoResponsavel: execForm.responsavel,
+          cliente_id: plano.cliente_id,
+          cliente_nome: plano.cliente_nome,
+          tipo_os: { cod: 2, descricao: "Preventiva", sigla: "P" },
+          categoria: "Manutenção Preventiva",
+          servico: execAtividade.descricao,
+          descricao_servicos: `[Plano: ${plano.titulo}] ${execAtividade.descricao}`,
+          situacao: "Aberta",
+          prioridade: "C: NORMAL",
+          data_inicio: execForm.data_execucao,
+          equipamento_id: execAtividade.equipamento_id || null,
+          solicitante: execForm.responsavel || plano.responsavel_tecnico_nome || "",
         });
         if (os) { osNumero = os.numero || 0; osId = os.id || ""; }
       } catch (e) { console.warn("OS não gerada:", e); }
