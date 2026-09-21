@@ -48,7 +48,7 @@ const rowToReq = (r: any): RequisicaoCompras => ({
 });
 
 const reqToRow = (r: RequisicaoCompras) => ({
-  numero: r.numero, data_criacao: r.dataCriacao, solicitante: r.solicitante,
+  data_criacao: r.dataCriacao, solicitante: r.solicitante,
   centro_custo: r.centroCusto, centro_custo_nome: r.centroCustoNome,
   local_entrega: r.localEntrega, justificativa: r.justificativa,
   urgencia: r.urgencia, prazo_desejado: r.prazoDesejado, status: r.status,
