@@ -41,6 +41,9 @@ function calcularProximaData(ultima: string, periodicidade: string): string {
   return data.toISOString().slice(0, 10);
 }
 
+/** Marcador usado para identificar OS geradas automaticamente pelo plano. */
+const marcadorOs = (atividadeId: string, data: string) => `[PM:${atividadeId}:${data}]`;
+
 function PlanoManutencaoContent() {
   const { planos, atividades, execucoes, addPlano, updatePlano, deletePlano,
     addAtividade, updateAtividade, deleteAtividade, addExecucao } = usePlanosManutencao();
