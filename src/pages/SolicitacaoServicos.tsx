@@ -123,7 +123,7 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
-  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterCliente: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; filterPrioridade: string; filterSetorCritico: string; }>("solicitacao_servicos_filters_v1");
+  const _ssSavedFilters = loadPersistedFilters<{ search: string; filterCliente: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; filterPrioridade: string; filterSetorCritico: string; filterDataInicio: string; filterDataFim: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
   const [filterTipo, setFilterTipo] = useState(_ssSavedFilters?.filterTipo ?? "all");
@@ -133,7 +133,9 @@ export default function SolicitacaoServicosPage() {
   const [filterImpresso, setFilterImpresso] = useState(_ssSavedFilters?.filterImpresso ?? "all");
   const [filterPrioridade, setFilterPrioridade] = useState(_ssSavedFilters?.filterPrioridade ?? "all");
   const [filterSetorCritico, setFilterSetorCritico] = useState(_ssSavedFilters?.filterSetorCritico ?? "all");
-  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, filterPrioridade, filterSetorCritico });
+  const [filterDataInicio, setFilterDataInicio] = useState(_ssSavedFilters?.filterDataInicio ?? "");
+  const [filterDataFim, setFilterDataFim] = useState(_ssSavedFilters?.filterDataFim ?? "");
+  usePersistFilters("solicitacao_servicos_filters_v1", { search, filterTipo, filterSituacao, filterVisitado, filterOrigem, filterImpresso, filterPrioridade, filterSetorCritico, filterDataInicio, filterDataFim });
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const numero = searchParams.get("numero");
@@ -716,6 +718,16 @@ export default function SolicitacaoServicosPage() {
     if (filterSetorCritico !== "all") {
       result = result.filter(s => filterSetorCritico === "sim" ? setoresCriticosIds.has(s.setorId) : !setoresCriticosIds.has(s.setorId));
     }
+    if (filterDataInicio || filterDataFim) {
+      const ini = filterDataInicio ? new Date(filterDataInicio + "T00:00:00").getTime() : -Infinity;
+      const fim = filterDataFim ? new Date(filterDataFim + "T23:59:59").getTime() : Infinity;
+      result = result.filter(s => {
+        const ref = s.dataHoraSolicitacao || s.createdAt;
+        if (!ref) return false;
+        const t = new Date(ref).getTime();
+        return !isNaN(t) && t >= ini && t <= fim;
+      });
+    }
 
     // Ordenação por coluna (padrão: prioridade → número decrescente)
     result = [...result].sort((a, b) => {
@@ -780,7 +792,7 @@ export default function SolicitacaoServicosPage() {
     });
 
     return result;
-  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterPrioridade, filterVisitado, filterOrigem, filterImpresso, filterSetorCritico, setoresCriticosIds, orcamentos, sortField, sortDir]);
+  }, [solicitacoes, search, filterCliente, filterTipo, filterSituacao, filterPrioridade, filterVisitado, filterOrigem, filterImpresso, filterSetorCritico, filterDataInicio, filterDataFim, setoresCriticosIds, orcamentos, sortField, sortDir]);
 
   const clientesUnicos = useMemo(() => {
     const map = new Map<string, string>();
@@ -1081,6 +1093,22 @@ export default function SolicitacaoServicosPage() {
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           className="max-w-xs"
         />
+        <div className="flex items-center gap-1">
+          <Label className="text-xs text-muted-foreground whitespace-nowrap">De</Label>
+          <Input
+            type="date"
+            value={filterDataInicio}
+            onChange={e => { setFilterDataInicio(e.target.value); setPage(1); }}
+            className="w-[150px]"
+          />
+          <Label className="text-xs text-muted-foreground whitespace-nowrap">até</Label>
+          <Input
+            type="date"
+            value={filterDataFim}
+            onChange={e => { setFilterDataFim(e.target.value); setPage(1); }}
+            className="w-[150px]"
+          />
+        </div>
         <Select value={filterCliente} onValueChange={v => { setFilterCliente(v); localStorage.setItem("ss_filtroCliente", v); setPage(1); }}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="Cliente" /></SelectTrigger>
           <SelectContent>
