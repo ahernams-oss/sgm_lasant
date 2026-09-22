@@ -13,7 +13,7 @@ export interface Lancamento {
   id: string; funcionarioId: string; tipo: TipoLancamento; data: string;
   tipoFalta?: TipoFalta; diasFalta?: number; anexos?: AnexoFalta[];
   horasExtras?: number; percentual?: number; observacao: string; criadoEm: string;
-  unidadeHe?: string; valorVa?: number; valorVt?: number;
+  unidadeHe?: string; valorVa?: number; valorVt?: number; valorTotal?: number;
   tipoAdvertencia?: TipoAdvertencia; motivo?: string;
   dataFim?: string;
 }
@@ -41,6 +41,7 @@ const rowToLancamento = (r: any): Lancamento => ({
   unidadeHe: r.unidade_he || undefined,
   valorVa: r.valor_va != null ? Number(r.valor_va) : undefined,
   valorVt: r.valor_vt != null ? Number(r.valor_vt) : undefined,
+  valorTotal: r.valor_total != null ? Number(r.valor_total) : undefined,
 });
 
 const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
@@ -53,6 +54,7 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
   unidade_he: l.unidadeHe ?? null,
   valor_va: l.valorVa ?? null,
   valor_vt: l.valorVt ?? null,
+  valor_total: l.valorTotal ?? ((l.valorVa ?? 0) + (l.valorVt ?? 0) || null),
 });
 
 

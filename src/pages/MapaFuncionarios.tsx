@@ -98,7 +98,7 @@ const MapaFuncionarios = () => {
     horas_extras: {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
       horas: { label: "Horas" }, percentual: { label: "Percentual" }, unidadeHe: { label: "Unidade de H.E" },
-      valorVa: { label: "Valor VA" }, valorVt: { label: "Valor VT" }, observacao: { label: "Observação" },
+      valorVa: { label: "Valor VA" }, valorVt: { label: "Valor VT" }, valorTotal: { label: "Total VA+VT" }, observacao: { label: "Observação" },
     },
     advertencias: {
       data: { label: "Data" }, funcionario: { label: "Funcionário" }, cargo: { label: "Cargo" }, cliente: { label: "Cliente" },
@@ -111,7 +111,7 @@ const MapaFuncionarios = () => {
   };
   const defaultsByTab: Record<string, string[]> = {
     faltas: ["data", "funcionario", "cargo", "cliente", "tipo", "anexos", "observacao"],
-    horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "unidadeHe", "valorVa", "valorVt", "observacao"],
+    horas_extras: ["data", "funcionario", "cargo", "cliente", "horas", "percentual", "unidadeHe", "valorVa", "valorVt", "valorTotal", "observacao"],
     advertencias: ["data", "funcionario", "cargo", "cliente", "tipo", "motivo", "anexos", "observacao"],
     atestados: ["data", "dataFim", "funcionario", "cargo", "cliente", "dias", "anexos", "observacao"],
   };
@@ -196,6 +196,7 @@ const MapaFuncionarios = () => {
         unidadeHe: unidadeHe.trim() || undefined,
         valorVa: valorVa ? Number(valorVa.replace(",", ".")) : undefined,
         valorVt: valorVt ? Number(valorVt.replace(",", ".")) : undefined,
+        valorTotal: (valorVa ? Number(valorVa.replace(",", ".")) : 0) + (valorVt ? Number(valorVt.replace(",", ".")) : 0) || undefined,
       };
       if (editingId) {
         updateLancamento(editingId, payload);
@@ -987,6 +988,7 @@ const MapaFuncionarios = () => {
                       cellMap.unidadeHe = { node: l.unidadeHe || "—" };
                       cellMap.valorVa = { node: l.valorVa != null ? l.valorVa.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—" };
                       cellMap.valorVt = { node: l.valorVt != null ? l.valorVt.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—" };
+                      cellMap.valorTotal = { node: l.valorTotal != null ? l.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—" };
                     } else if (l.tipo === "advertencia") {
                       cellMap.tipo = { node: (
                         <Badge variant={l.tipoAdvertencia === "escrita" ? "destructive" : "secondary"} className="text-xs">
