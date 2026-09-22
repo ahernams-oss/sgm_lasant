@@ -588,10 +588,19 @@ export default function RequisicaoComprasPage() {
           <Label className="text-xs">Data final</Label>
           <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
         </div>
-        <Button variant="outline" onClick={limparFiltros} className="w-full sm:w-auto">
-          <X className="mr-2 h-4 w-4" />Limpar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={limparFiltros}>
+            <X className="mr-2 h-4 w-4" />Limpar
+          </Button>
+          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarPdfFinanceiro(buildRelatorioRequisicoes(), "landscape")}>
+            <FileText className="mr-2 h-4 w-4" />PDF
+          </Button>
+          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarExcelFinanceiro(buildRelatorioRequisicoes())}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel
+          </Button>
+        </div>
       </div>
+
 
       <div className="border rounded-lg">
         <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
