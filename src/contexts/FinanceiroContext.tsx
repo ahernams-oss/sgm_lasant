@@ -221,10 +221,13 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
   const invCR = () => qc.invalidateQueries({ queryKey: QK_CR });
   const invLN = () => qc.invalidateQueries({ queryKey: QK_LN });
   const invOFX = () => qc.invalidateQueries({ queryKey: QK_OFX });
+  const invFAJ = () => qc.invalidateQueries({ queryKey: QK_FAJ });
+  const invFSI = () => qc.invalidateQueries({ queryKey: QK_FSI });
 
   const reload = async () => {
-    invCB(); invPC(); invCC(); invCP(); invCR(); invLN(); invOFX();
+    invCB(); invPC(); invCC(); invCP(); invCR(); invLN(); invOFX(); invFAJ(); invFSI();
   };
+
 
   const saldoConta = (contaId: string) => {
     const conta = contasBancarias.find((c) => c.id === contaId);
