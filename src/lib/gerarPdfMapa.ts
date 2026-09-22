@@ -18,6 +18,10 @@ const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
   escrita: "Escrita",
 };
 
+const fmtBRL = (v?: number) =>
+  (v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+
 interface MapaPdfParams {
   lancamentos: Lancamento[];
   funcionarios: Funcionario[];
