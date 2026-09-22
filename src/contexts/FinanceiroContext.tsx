@@ -1,6 +1,8 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { supabase } from "@/integrations/supabase/client";
+
 import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada";
