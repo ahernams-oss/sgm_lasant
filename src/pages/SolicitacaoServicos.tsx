@@ -802,6 +802,114 @@ export default function SolicitacaoServicosPage() {
 
   const { paginated, totalPages } = paginate(filtered, page, pageSize);
 
+  // ===== Relatórios (PDF / Excel) =====
+  const fmtBRL = (v: number) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const fmtData = (d?: string) => {
+    if (!d) return "-";
+    const t = new Date(d);
+    return isNaN(t.getTime()) ? "-" : t.toLocaleDateString("pt-BR");
+  };
+  const valorOrc = (id: string) => Number(orcamentos.find(o => o.solicitacaoId === id)?.valorTotal ?? 0);
+
+  const filtrosTexto = () => {
+    const f: string[] = [];
+    if (search.trim()) f.push(`Busca: ${search.trim()}`);
+    if (filterCliente !== "all") f.push(`Cliente: ${clientesUnicos.find(([id]) => id === filterCliente)?.[1] || filterCliente}`);
+    if (filterTipo !== "all") f.push(`Tipo: ${filterTipo}`);
+    if (filterSituacao !== "all") f.push(`Situação: ${filterSituacao}`);
+    if (filterPrioridade !== "all") f.push(`Prioridade: ${filterPrioridade}`);
+    if (filterSetorCritico !== "all") f.push(`Setor crítico: ${filterSetorCritico === "sim" ? "Sim" : "Não"}`);
+    if (filterVisitado !== "all") f.push(`Visitado: ${filterVisitado === "sim" ? "Sim" : "Não"}`);
+    if (filterOrigem !== "all") f.push(`Origem: ${filterOrigem === "orcamento" ? "De Orçamento" : "Direta"}`);
+    if (filterImpresso !== "all") f.push(`Impressão: ${filterImpresso === "sim" ? "Somente impressas" : "Não impressas"}`);
+    if (filterDataInicio || filterDataFim) f.push(`Período: ${filterDataInicio ? fmtData(filterDataInicio + "T00:00:00") : "início"} a ${filterDataFim ? fmtData(filterDataFim + "T00:00:00") : "hoje"}`);
+    return f.length ? f.join(" | ") : "Sem filtros aplicados";
+  };
+
+  const buildRelatorioSS = (tipo: "analitico" | "cliente" | "situacao" | "tipo" | "prioridade") => {
+    const base = { subtitulo: "SGM Lasant", filtros: filtrosTexto() };
+    const totalValor = filtered.reduce((acc, s) => acc + valorOrc(s.id), 0);
+
+    if (tipo === "analitico") {
+      return {
+        ...base,
+        titulo: "Solicitacoes de Servico - Analitico",
+        colunas: ["Nº", "Data", "Solicitante", "Cliente", "Local", "Pavimento", "Setor", "Equipamento", "Tipo", "Prioridade", "Situação", "OS", "Valor Orçamento"],
+        linhas: filtered.map(s => [
+          formatNumeroAno(s.numero, s.createdAt),
+          fmtData(s.dataHoraSolicitacao || s.createdAt),
+          s.solicitanteNome || "-",
+          s.clienteNome || "-",
+          s.localDescricao || "-",
+          s.pavimentoDescricao || "-",
+          s.setorDescricao || "-",
+          s.equipamentoNome || "-",
+          s.tipo || "-",
+          s.prioridade || "-",
+          s.situacao || "-",
+          ordens.find(o => o.solicitacaoId === s.id)?.numero ?? "-",
+          fmtBRL(valorOrc(s.id)),
+        ]),
+        totais: [
+          { label: "Solicitações", valor: String(filtered.length) },
+          { label: "Valor total de orçamentos", valor: fmtBRL(totalValor) },
+        ],
+      };
+    }
+
+    const keyOf = (s: SolicitacaoServico) =>
+      tipo === "cliente" ? (s.clienteNome || "Sem cliente")
+        : tipo === "situacao" ? (s.situacao || "Sem situação")
+        : tipo === "tipo" ? (s.tipo || "Sem tipo")
+        : (s.prioridade || "Sem prioridade");
+
+    const map = new Map<string, { qtd: number; valor: number; abertas: number; concluidas: number }>();
+    filtered.forEach(s => {
+      const k = keyOf(s);
+      const cur = map.get(k) || { qtd: 0, valor: 0, abertas: 0, concluidas: 0 };
+      cur.qtd += 1;
+      cur.valor += valorOrc(s.id);
+      if ((s.situacao || "").toLowerCase().includes("conclu")) cur.concluidas += 1;
+      else cur.abertas += 1;
+      map.set(k, cur);
+    });
+
+    const rotulo = tipo === "cliente" ? "Cliente" : tipo === "situacao" ? "Situação" : tipo === "tipo" ? "Tipo" : "Prioridade";
+    const linhas = Array.from(map.entries())
+      .sort((a, b) => b[1].qtd - a[1].qtd)
+      .map(([k, v]) => [
+        k,
+        v.qtd,
+        `${filtered.length ? ((v.qtd / filtered.length) * 100).toFixed(1) : "0.0"}%`,
+        v.abertas,
+        v.concluidas,
+        fmtBRL(v.valor),
+      ]);
+
+    return {
+      ...base,
+      titulo: `Solicitacoes de Servico - Resumo por ${rotulo}`,
+      colunas: [rotulo, "Qtd.", "% do total", "Em aberto", "Concluídas", "Valor Orçamentos"],
+      linhas,
+      totais: [
+        { label: "Solicitações", valor: String(filtered.length) },
+        { label: rotulo === "Cliente" ? "Clientes" : "Grupos", valor: String(linhas.length) },
+        { label: "Valor total de orçamentos", valor: fmtBRL(totalValor) },
+      ],
+    };
+  };
+
+  const exportarRelatorio = async (tipo: "analitico" | "cliente" | "situacao" | "tipo" | "prioridade", formato: "pdf" | "excel") => {
+    if (!filtered.length) {
+      toast({ title: "Nada para exportar", description: "Nenhuma solicitação na grid com os filtros atuais.", variant: "destructive" });
+      return;
+    }
+    const rel = buildRelatorioSS(tipo);
+    const { gerarPdfFinanceiro, gerarExcelFinanceiro } = await import("@/lib/gerarRelatoriosFinanceiros");
+    if (formato === "pdf") await gerarPdfFinanceiro(rel, tipo === "analitico" ? "landscape" : "portrait");
+    else await gerarExcelFinanceiro(rel);
+  };
+
   const colDefs: Record<string, { label: ReactNode; className?: string }> = {
     numero: { label: <SortHeader field="numero">Nº</SortHeader>, className: "w-[100px] whitespace-nowrap" },
     dataHora: { label: <SortHeader field="dataHora">Data/Hora</SortHeader>, className: "whitespace-nowrap" },
@@ -1170,6 +1278,29 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="nao">Não impressas</SelectItem>
           </SelectContent>
         </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" disabled={!filtered.length}>
+              <FileText className="mr-2 h-4 w-4" />Relatórios
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuItem onClick={() => exportarRelatorio("analitico", "pdf")}>Analítico (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("analitico", "excel")}>Analítico (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("cliente", "pdf")}>Resumo por Cliente (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("cliente", "excel")}>Resumo por Cliente (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("situacao", "pdf")}>Resumo por Situação (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("situacao", "excel")}>Resumo por Situação (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("tipo", "pdf")}>Resumo por Tipo (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("tipo", "excel")}>Resumo por Tipo (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("prioridade", "pdf")}>Resumo por Prioridade (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("prioridade", "excel")}>Resumo por Prioridade (Excel)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Batch action bar */}
