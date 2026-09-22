@@ -13,6 +13,7 @@ export interface Lancamento {
   id: string; funcionarioId: string; tipo: TipoLancamento; data: string;
   tipoFalta?: TipoFalta; diasFalta?: number; anexos?: AnexoFalta[];
   horasExtras?: number; percentual?: number; observacao: string; criadoEm: string;
+  unidadeHe?: string; valorVa?: number; valorVt?: number;
   tipoAdvertencia?: TipoAdvertencia; motivo?: string;
   dataFim?: string;
 }
