@@ -60,7 +60,7 @@ const rowToReq = (r: any): Requisicao => ({
 });
 
 const reqToRow = (r: Requisicao) => ({
-  numero: r.numero, data_criacao: r.dataCriacao,
+  data_criacao: r.dataCriacao,
   headcount: r.headcount, orcamento: r.orcamento, tipo_vaga: r.tipoVaga,
   unidade: r.unidade,
   cargo_nome: r.cargoNome, cargo_id: r.cargoId, jornada: r.jornada,
@@ -94,20 +94,20 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
   const load = async () => { await qc.invalidateQueries({ queryKey: QK }); };
 
   const addRequisicao = async (req: Omit<Requisicao, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus">) => {
-    const maxNum = requisicoes.length > 0 ? Math.max(...requisicoes.map(r => r.numero)) : 0;
     const agora = new Date().toLocaleString("pt-BR");
+    // o número é gerado pelo banco (trigger com trava), evitando duplicidade
     const full: Requisicao = {
-      ...req, id: "", numero: maxNum + 1,
+      ...req, id: "", numero: 0,
       dataCriacao: new Date().toLocaleDateString("pt-BR"),
       status: "Pendente",
       historicoStatus: [{ status: "Pendente", dataHora: agora }],
     };
-    await insertRow("requisicoes", reqToRow(full));
+    const inserido = await insertRow("requisicoes", reqToRow(full));
     await load();
 
     const msg =
       `*Nova Requisição de Pessoal*\n\n` +
-      `RP Nº: ${full.numero}\n` +
+      `RP Nº: ${inserido?.numero ?? "-"}\n` +
       `Cargo: ${full.cargoNome || "-"}\n` +
       `Unidade: ${full.unidade || "-"}\n` +
       `Solicitante: ${full.solicitante || "-"}\n` +
