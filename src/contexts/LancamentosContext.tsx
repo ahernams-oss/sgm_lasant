@@ -50,6 +50,9 @@ const lancamentoToRow = (l: Omit<Lancamento, "id">) => ({
   percentual: l.percentual ?? 0, observacao: l.observacao, criado_em: l.criadoEm,
   tipo_advertencia: l.tipoAdvertencia ?? "", motivo: l.motivo ?? "",
   data_fim: l.dataFim ?? null,
+  unidade_he: l.unidadeHe ?? null,
+  valor_va: l.valorVa ?? null,
+  valor_vt: l.valorVt ?? null,
 });
 
 
