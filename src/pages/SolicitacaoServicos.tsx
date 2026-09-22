@@ -1278,6 +1278,29 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="nao">Não impressas</SelectItem>
           </SelectContent>
         </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" disabled={!filtered.length}>
+              <FileText className="mr-2 h-4 w-4" />Relatórios
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuItem onClick={() => exportarRelatorio("analitico", "pdf")}>Analítico (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("analitico", "excel")}>Analítico (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("cliente", "pdf")}>Resumo por Cliente (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("cliente", "excel")}>Resumo por Cliente (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("situacao", "pdf")}>Resumo por Situação (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("situacao", "excel")}>Resumo por Situação (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("tipo", "pdf")}>Resumo por Tipo (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("tipo", "excel")}>Resumo por Tipo (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("prioridade", "pdf")}>Resumo por Prioridade (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("prioridade", "excel")}>Resumo por Prioridade (Excel)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Batch action bar */}
