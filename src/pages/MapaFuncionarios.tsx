@@ -74,6 +74,9 @@ const MapaFuncionarios = () => {
   const [horasExtras, setHorasExtras] = useState("");
   const [percentual, setPercentual] = useState("50");
   const [municipioHE, setMunicipioHE] = useState("Rio de Janeiro");
+  const [unidadeHe, setUnidadeHe] = useState("");
+  const [valorVa, setValorVa] = useState("");
+  const [valorVt, setValorVt] = useState("");
   const [observacao, setObservacao] = useState("");
   const [anexos, setAnexos] = useState<AnexoFalta[]>([]);
   const [tipoAdvertencia, setTipoAdvertencia] = useState<TipoAdvertencia>("verbal");
