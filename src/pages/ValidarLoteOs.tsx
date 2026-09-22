@@ -33,10 +33,12 @@ export default function ValidarLoteOs() {
   const { tem } = usePermissao();
   const podeValidarLote = tem("os.validar_lote");
 
-  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; }>("validar_lote_os_filters_v1");
+  const _saved = loadPersistedFilters<{ search: string; filterCliente: string; filterDataInicio: string; filterDataFim: string; }>("validar_lote_os_filters_v1");
   const [search, setSearch] = useState(_saved?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(_saved?.filterCliente ?? "all");
-  usePersistFilters("validar_lote_os_filters_v1", { search, filterCliente });
+  const [filterDataInicio, setFilterDataInicio] = useState(_saved?.filterDataInicio ?? "");
+  const [filterDataFim, setFilterDataFim] = useState(_saved?.filterDataFim ?? "");
+  usePersistFilters("validar_lote_os_filters_v1", { search, filterCliente, filterDataInicio, filterDataFim });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -67,8 +69,21 @@ export default function ValidarLoteOs() {
           s.localDescricao?.toLowerCase().includes(q)
       );
     }
+    if (filterDataInicio || filterDataFim) {
+      const ini = filterDataInicio ? new Date(`${filterDataInicio}T00:00:00`) : null;
+      const fim = filterDataFim ? new Date(`${filterDataFim}T23:59:59`) : null;
+      result = result.filter((s) => {
+        const raw = s.dataInicio || s.createdAt;
+        if (!raw) return false;
+        const d = new Date(raw.length === 10 ? `${raw}T12:00:00` : raw);
+        if (isNaN(d.getTime())) return false;
+        if (ini && d < ini) return false;
+        if (fim && d > fim) return false;
+        return true;
+      });
+    }
     return result;
-  }, [disponiveis, search, filterCliente]);
+  }, [disponiveis, search, filterCliente, filterDataInicio, filterDataFim]);
 
   const { paginated } = paginate(filtered, page, pageSize);
   const allPageIds = paginated.map((s) => s.id);
@@ -180,6 +195,19 @@ export default function ValidarLoteOs() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-[160px]">
+          <Label className="text-xs">De</Label>
+          <Input type="date" value={filterDataInicio} onChange={(e) => { setFilterDataInicio(e.target.value); setPage(1); }} />
+        </div>
+        <div className="w-[160px]">
+          <Label className="text-xs">até</Label>
+          <Input type="date" value={filterDataFim} onChange={(e) => { setFilterDataFim(e.target.value); setPage(1); }} />
+        </div>
+        {(filterDataInicio || filterDataFim) && (
+          <Button variant="ghost" size="sm" onClick={() => { setFilterDataInicio(""); setFilterDataFim(""); setPage(1); }}>
+            Limpar datas
+          </Button>
+        )}
       </div>
 
       {selectedIds.size > 0 && (
