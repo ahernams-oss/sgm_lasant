@@ -156,7 +156,7 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
-      head: [["Data", "Funcionário", "Cargo", "Cliente", "Horas", "Percentual", "Observação"]],
+      head: [["Data", "Funcionário", "Cargo", "Cliente", "Horas", "%", "Unidade de H.E", "VA", "VT", "Total VA+VT", "Observação"]],
       body: horasExtras.map((l) => [
         formatData(l.data),
         getFuncNome(l.funcionarioId),
@@ -164,13 +164,18 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
         getClienteNome(l.funcionarioId),
         `${l.horasExtras}h`,
         `${l.percentual}%`,
+        l.unidadeHe || "—",
+        fmtBRL(l.valorVa),
+        fmtBRL(l.valorVt),
+        fmtBRL(l.valorTotal ?? ((l.valorVa ?? 0) + (l.valorVt ?? 0))),
         l.observacao || "—",
       ]),
       theme: "striped",
-      styles: { fontSize: 8, cellPadding: 2.5 },
+      styles: { fontSize: 7, cellPadding: 2 },
       headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-      columnStyles: { 6: { cellWidth: 60 } },
+      columnStyles: { 10: { cellWidth: 35 } },
     });
+
   }
 
   // Advertências table
