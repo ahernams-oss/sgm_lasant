@@ -102,12 +102,12 @@ export function RequisicaoProvider({ children }: { children: ReactNode }) {
       status: "Pendente",
       historicoStatus: [{ status: "Pendente", dataHora: agora }],
     };
-    await insertRow("requisicoes", reqToRow(full));
+    const inserido = await insertRow("requisicoes", reqToRow(full));
     await load();
 
     const msg =
       `*Nova Requisição de Pessoal*\n\n` +
-      `RP Nº: ${full.numero}\n` +
+      `RP Nº: ${inserido?.numero ?? "-"}\n` +
       `Cargo: ${full.cargoNome || "-"}\n` +
       `Unidade: ${full.unidade || "-"}\n` +
       `Solicitante: ${full.solicitante || "-"}\n` +
