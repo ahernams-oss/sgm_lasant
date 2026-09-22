@@ -571,6 +571,15 @@ const MapaFuncionarios = () => {
                       <Label className="text-xs font-semibold text-foreground/80">Valor VT (R$)</Label>
                       <Input type="number" min="0" step="0.01" value={valorVt} onChange={(e) => setValorVt(e.target.value.replace(",", "."))} placeholder="Ex: 12,50" />
                     </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground/80">Total VA + VT (R$)</Label>
+                      <Input
+                        readOnly
+                        disabled
+                        value={((valorVa ? Number(valorVa.replace(",", ".")) : 0) + (valorVt ? Number(valorVt.replace(",", ".")) : 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        className="bg-muted font-semibold"
+                      />
+                    </div>
                   </>
                 )}
                 {activeTab === "atestados" && (
