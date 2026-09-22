@@ -18,6 +18,10 @@ const TIPO_ADVERTENCIA_LABELS: Record<TipoAdvertencia, string> = {
   escrita: "Escrita",
 };
 
+const fmtBRL = (v?: number) =>
+  (v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+
 interface MapaPdfParams {
   lancamentos: Lancamento[];
   funcionarios: Funcionario[];
@@ -93,6 +97,8 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const faltasInjust = faltas.filter((l) => l.tipoFalta === "injustificada").length;
   const faltasSusp = faltas.filter((l) => l.tipoFalta === "suspensao").length;
   const totalHE = horasExtras.reduce((s, l) => s + (l.horasExtras || 0), 0);
+  const totalVaVt = horasExtras.reduce((s, l) => s + (l.valorTotal ?? ((l.valorVa ?? 0) + (l.valorVt ?? 0))), 0);
+
   const funcComFalta = new Set(faltas.map((l) => l.funcionarioId)).size;
   const funcComHE = new Set(horasExtras.map((l) => l.funcionarioId)).size;
   const totalAdv = advertencias.length;
@@ -106,6 +112,8 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     body: [
       [`Total de Faltas: ${totalFaltas}`, `Justificadas: ${faltasJust}`, `Injustificadas: ${faltasInjust}`, `Suspensões: ${faltasSusp}`],
       [`Total Horas Extras: ${totalHE.toFixed(1)}h`, `Funcionários c/ HE: ${funcComHE}`, `Total Advertências: ${totalAdv}`, `Funcionários c/ adv: ${funcComAdv}`],
+      [`Total VA + VT: ${fmtBRL(totalVaVt)}`, "", "", ""],
+
     ],
     theme: "plain",
     styles: { fontSize: 8.5, cellPadding: 3 },
@@ -156,7 +164,7 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
     (await getAutoTable())(doc, {
       startY: y,
       margin: { left: 14, right: 14 },
-      head: [["Data", "Funcionário", "Cargo", "Cliente", "Horas", "Percentual", "Observação"]],
+      head: [["Data", "Funcionário", "Cargo", "Cliente", "Horas", "%", "Unidade de H.E", "VA", "VT", "Total VA+VT", "Observação"]],
       body: horasExtras.map((l) => [
         formatData(l.data),
         getFuncNome(l.funcionarioId),
@@ -164,13 +172,18 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
         getClienteNome(l.funcionarioId),
         `${l.horasExtras}h`,
         `${l.percentual}%`,
+        l.unidadeHe || "—",
+        fmtBRL(l.valorVa),
+        fmtBRL(l.valorVt),
+        fmtBRL(l.valorTotal ?? ((l.valorVa ?? 0) + (l.valorVt ?? 0))),
         l.observacao || "—",
       ]),
       theme: "striped",
-      styles: { fontSize: 8, cellPadding: 2.5 },
+      styles: { fontSize: 7, cellPadding: 2 },
       headStyles: { fillColor: [30, 58, 107], textColor: [255, 255, 255], fontStyle: "bold" },
-      columnStyles: { 6: { cellWidth: 60 } },
+      columnStyles: { 10: { cellWidth: 35 } },
     });
+
   }
 
   // Advertências table
