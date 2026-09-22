@@ -112,6 +112,23 @@ export interface MovimentoOfx {
   lancamento_id?: string | null;
 }
 
+export interface FluxoAjuste {
+  id: string;
+  data: string;
+  tipo: "entrada" | "saida";
+  descricao: string;
+  valor: number;
+  conta_bancaria_id?: string | null;
+  observacao?: string;
+}
+
+export interface FluxoSaldoInicial {
+  chave: string;
+  valor: number;
+  ativo: boolean;
+}
+
+
 interface Ctx {
   loading: boolean;
   contasBancarias: ContaBancaria[];
