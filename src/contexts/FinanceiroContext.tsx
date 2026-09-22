@@ -1,6 +1,8 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { supabase } from "@/integrations/supabase/client";
+
 import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
 export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada";
@@ -112,6 +114,23 @@ export interface MovimentoOfx {
   lancamento_id?: string | null;
 }
 
+export interface FluxoAjuste {
+  id: string;
+  data: string;
+  tipo: "entrada" | "saida";
+  descricao: string;
+  valor: number;
+  conta_bancaria_id?: string | null;
+  observacao?: string;
+}
+
+export interface FluxoSaldoInicial {
+  chave: string;
+  valor: number;
+  ativo: boolean;
+}
+
+
 interface Ctx {
   loading: boolean;
   contasBancarias: ContaBancaria[];
@@ -121,7 +140,14 @@ interface Ctx {
   contasReceber: ContaReceber[];
   lancamentos: Lancamento[];
   movimentosOfx: MovimentoOfx[];
+  fluxoAjustes: FluxoAjuste[];
+  fluxoSaldoInicial: FluxoSaldoInicial[];
+  addFluxoAjuste: (a: Omit<FluxoAjuste, "id">) => Promise<void>;
+  updateFluxoAjuste: (id: string, a: Partial<FluxoAjuste>) => Promise<void>;
+  deleteFluxoAjuste: (id: string) => Promise<void>;
+  setFluxoSaldoInicial: (chave: string, valor: number, ativo: boolean) => Promise<void>;
   reload: () => Promise<void>;
+
   // CRUD
   addContaBancaria: (c: Omit<ContaBancaria, "id">) => Promise<ContaBancaria | null>;
   updateContaBancaria: (id: string, c: Partial<ContaBancaria>) => Promise<void>;
@@ -155,6 +181,9 @@ const QK_CP = ["fin_contas_pagar"] as const;
 const QK_CR = ["fin_contas_receber"] as const;
 const QK_LN = ["fin_lancamentos"] as const;
 const QK_OFX = ["fin_movimentos_ofx"] as const;
+const QK_FAJ = ["fin_fluxo_ajustes"] as const;
+const QK_FSI = ["fin_fluxo_saldo_inicial"] as const;
+
 
 export function FinanceiroProvider({ children }: { children: ReactNode }) {
   const __active = useProviderGate("Financeiro");
@@ -169,6 +198,9 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
       { queryKey: QK_CR, queryFn: async () => fetchAll("fin_contas_receber", "data_vencimento"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_LN, queryFn: async () => fetchAll("fin_lancamentos", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
       { queryKey: QK_OFX, queryFn: async () => fetchAll("fin_movimentos_ofx", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_FAJ, queryFn: async () => fetchAll("fin_fluxo_ajustes", "data"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+      { queryKey: QK_FSI, queryFn: async () => fetchAll("fin_fluxo_saldo_inicial", "chave"), staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 },
+
     ], __active),
   });
 
@@ -179,6 +211,9 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
   const contasReceber = (results[4].data as ContaReceber[]) || [];
   const lancamentos = (results[5].data as Lancamento[]) || [];
   const movimentosOfx = (results[6].data as MovimentoOfx[]) || [];
+  const fluxoAjustes = (results[7].data as FluxoAjuste[]) || [];
+  const fluxoSaldoInicial = (results[8].data as FluxoSaldoInicial[]) || [];
+
   const loading = results.some((r) => r.isLoading);
 
   const invCB = () => qc.invalidateQueries({ queryKey: QK_CB });
@@ -188,10 +223,13 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
   const invCR = () => qc.invalidateQueries({ queryKey: QK_CR });
   const invLN = () => qc.invalidateQueries({ queryKey: QK_LN });
   const invOFX = () => qc.invalidateQueries({ queryKey: QK_OFX });
+  const invFAJ = () => qc.invalidateQueries({ queryKey: QK_FAJ });
+  const invFSI = () => qc.invalidateQueries({ queryKey: QK_FSI });
 
   const reload = async () => {
-    invCB(); invPC(); invCC(); invCP(); invCR(); invLN(); invOFX();
+    invCB(); invPC(); invCC(); invCP(); invCR(); invLN(); invOFX(); invFAJ(); invFSI();
   };
+
 
   const saldoConta = (contaId: string) => {
     const conta = contasBancarias.find((c) => c.id === contaId);
@@ -214,7 +252,15 @@ export function FinanceiroProvider({ children }: { children: ReactNode }) {
     <FinanceiroContext.Provider
       value={{
         loading, contasBancarias, planoContas, centrosCusto,
-        contasPagar, contasReceber, lancamentos, movimentosOfx, reload,
+        contasPagar, contasReceber, lancamentos, movimentosOfx, fluxoAjustes, fluxoSaldoInicial, reload,
+        addFluxoAjuste: async (r) => { await insertRow("fin_fluxo_ajustes", r); invFAJ(); },
+        updateFluxoAjuste: async (id, r) => { await updateRow("fin_fluxo_ajustes", id, r); invFAJ(); },
+        deleteFluxoAjuste: async (id) => { await deleteRow("fin_fluxo_ajustes", id); invFAJ(); },
+        setFluxoSaldoInicial: async (chave, valor, ativo) => {
+          await (supabase as any).from("fin_fluxo_saldo_inicial").upsert({ chave, valor, ativo }, { onConflict: "chave" });
+          invFSI();
+        },
+
         addContaBancaria: async (r) => { const created = await insertRow("fin_contas_bancarias", r); invCB(); return created as ContaBancaria | null; },
         updateContaBancaria: async (id, r) => { await updateRow("fin_contas_bancarias", id, r); invCB(); },
         deleteContaBancaria: async (id) => { await deleteRow("fin_contas_bancarias", id); invCB(); },
