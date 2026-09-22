@@ -93,6 +93,8 @@ export async function gerarPdfMapaFuncionarios(params: MapaPdfParams) {
   const faltasInjust = faltas.filter((l) => l.tipoFalta === "injustificada").length;
   const faltasSusp = faltas.filter((l) => l.tipoFalta === "suspensao").length;
   const totalHE = horasExtras.reduce((s, l) => s + (l.horasExtras || 0), 0);
+  const totalVaVt = horasExtras.reduce((s, l) => s + (l.valorTotal ?? ((l.valorVa ?? 0) + (l.valorVt ?? 0))), 0);
+
   const funcComFalta = new Set(faltas.map((l) => l.funcionarioId)).size;
   const funcComHE = new Set(horasExtras.map((l) => l.funcionarioId)).size;
   const totalAdv = advertencias.length;
