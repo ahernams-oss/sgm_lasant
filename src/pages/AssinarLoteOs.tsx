@@ -326,6 +326,19 @@ export default function AssinarLoteOs() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-[160px]">
+          <Label className="text-xs">De</Label>
+          <Input type="date" value={filterDataInicio} onChange={(e) => { setFilterDataInicio(e.target.value); setPage(1); }} />
+        </div>
+        <div className="w-[160px]">
+          <Label className="text-xs">até</Label>
+          <Input type="date" value={filterDataFim} onChange={(e) => { setFilterDataFim(e.target.value); setPage(1); }} />
+        </div>
+        {(filterDataInicio || filterDataFim) && (
+          <Button variant="ghost" size="sm" onClick={() => { setFilterDataInicio(""); setFilterDataFim(""); setPage(1); }}>
+            Limpar datas
+          </Button>
+        )}
       </div>
 
       {!podePapel && (
