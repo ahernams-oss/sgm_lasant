@@ -38,6 +38,8 @@ import { fetchAll, insertRow, deleteRow } from "@/lib/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarWhatsApp } from "@/lib/whatsapp";
 import { notificarCompras, formatarPrioridade, formatarDataHora, formatarData, formatarPedido } from "@/lib/notificacoesCompras";
+import { gerarPdfFinanceiro, gerarExcelFinanceiro } from "@/lib/gerarRelatoriosFinanceiros";
+
 
 const statusColors: Record<StatusRequisicaoCompras, string> = {
   Rascunho: "bg-muted text-muted-foreground",
@@ -237,6 +239,46 @@ export default function RequisicaoComprasPage() {
     setFilterUrgencia("Todas"); setFilterSolicitante("Todos");
     setFilterDataIni(""); setFilterDataFim("");
   };
+
+  const buildRelatorioRequisicoes = () => {
+    const fmtData = (d?: string) => {
+      if (!d) return "—";
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? d : format(dt, "dd/MM/yyyy");
+    };
+    const partes: string[] = [];
+    if (search) partes.push(`Busca: ${search}`);
+    if (filterCentroCusto !== "Todos") partes.push(`Centro de Custo: ${centrosUnicos.find(c => c[0] === filterCentroCusto)?.[1] || filterCentroCusto}`);
+    if (filterStatus !== "Todos") partes.push(`Status: ${filterStatus}`);
+    if (filterUrgencia !== "Todas") partes.push(`Urgência: ${filterUrgencia}`);
+    if (filterSolicitante !== "Todos") partes.push(`Solicitante: ${filterSolicitante}`);
+    if (filterDataIni || filterDataFim) partes.push(`Período: ${filterDataIni ? fmtData(filterDataIni) : "—"} a ${filterDataFim ? fmtData(filterDataFim) : "—"}`);
+
+    const totalItens = filtered.reduce((s, r) => s + (r.itens?.length || 0), 0);
+
+    return {
+      titulo: "Requisições de Compras e Serviços",
+      subtitulo: "SGM Lasant",
+      filtros: partes.join(" • "),
+      colunas: ["Nº", "Data", "Solicitante", "Centro de Custo", "Local de Entrega", "Urgência", "Prazo Desejado", "Itens", "Status"],
+      linhas: filtered.map(r => [
+        `RCS-${String(r.numero).padStart(4, "0")}`,
+        fmtData(r.dataCriacao),
+        r.solicitante || "—",
+        r.centroCustoNome || "—",
+        r.localEntrega || "—",
+        r.urgencia || "—",
+        fmtData(r.prazoDesejado),
+        r.itens?.length || 0,
+        r.status || "—",
+      ]),
+      totais: [
+        { label: "Requisições", valor: String(filtered.length) },
+        { label: "Itens no total", valor: String(totalItens) },
+      ],
+    };
+  };
+
 
   const resetForm = () => {
     setCentroCusto(""); setLocalEntrega(""); setJustificativa(""); setUrgencia("Baixa"); setPrazoDesejado("");
@@ -546,10 +588,19 @@ export default function RequisicaoComprasPage() {
           <Label className="text-xs">Data final</Label>
           <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
         </div>
-        <Button variant="outline" onClick={limparFiltros} className="w-full sm:w-auto">
-          <X className="mr-2 h-4 w-4" />Limpar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={limparFiltros}>
+            <X className="mr-2 h-4 w-4" />Limpar
+          </Button>
+          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarPdfFinanceiro(buildRelatorioRequisicoes(), "landscape")}>
+            <FileText className="mr-2 h-4 w-4" />PDF
+          </Button>
+          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarExcelFinanceiro(buildRelatorioRequisicoes())}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel
+          </Button>
+        </div>
       </div>
+
 
       <div className="border rounded-lg">
         <SortableHeaderRow order={colOrder} onReorder={setColOrder}>
