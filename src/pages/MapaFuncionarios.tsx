@@ -556,7 +556,7 @@ const MapaFuncionarios = () => {
                       <Select value={unidadeHe} onValueChange={setUnidadeHe}>
                         <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
                         <SelectContent className="max-h-72">
-                          {[...clientes].sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")).map((c) => (
+                          {clientes.filter((c) => c.tipo === "Cliente").sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")).map((c) => (
                             <SelectItem key={c.id} value={c.nome}>{c.nome}</SelectItem>
                           ))}
                         </SelectContent>
