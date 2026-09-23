@@ -185,14 +185,14 @@ export default function RecebimentoComprasPage() {
   const pedidosRecebimento = useMemo(() => {
     // Pedidos que podem receber: status ativo OU "Entregue" com itens ainda pendentes
     return pedidos.filter(p =>
-      ["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) ||
+      ["Comprado", "Em Entrega", "Entregue Parcial", "Rejeição Parcial"].includes(p.status) ||
       (p.status === "Entregue" && pedidoTemItensPendentes(p))
     );
   }, [pedidos, recebimentos]);
 
   const filtered = useMemo(() => {
     let list = filterStatus === "Pendentes"
-      ? pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)))
+      ? pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial", "Rejeição Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)))
       : filterStatus === "Recebidos"
         ? pedidos.filter(p => p.status === "Entregue" && !pedidoTemItensPendentes(p))
         : pedidos.filter(p => p.status !== "Cancelado");
@@ -326,7 +326,7 @@ export default function RecebimentoComprasPage() {
   });
 
   const buildRelPendencias = (): FinReport => {
-    const pendentes = pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)));
+    const pendentes = pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial", "Rejeição Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)));
     return {
       titulo: "Pedidos Pendentes de Recebimento",
       subtitulo: "SGM Lasant — Recebimento de Materiais",
@@ -381,7 +381,7 @@ export default function RecebimentoComprasPage() {
   };
 
   // Stats
-  const totalPendentes = pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status)).length;
+  const totalPendentes = pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial", "Rejeição Parcial"].includes(p.status)).length;
   const totalRecebidosHoje = recebimentos.filter(r => {
     const hoje = new Date().toDateString();
     return new Date(r.dataRecebimento).toDateString() === hoje;
@@ -515,7 +515,7 @@ export default function RecebimentoComprasPage() {
                             <History className="mr-2 h-4 w-4" />Histórico de Recebimentos
                           </DropdownMenuItem>
                         )}
-                        {podeRegistrar && (["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
+                        {podeRegistrar && (["Comprado", "Em Entrega", "Entregue Parcial", "Rejeição Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p))) && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => openRecebimentoDialog(p)}>
