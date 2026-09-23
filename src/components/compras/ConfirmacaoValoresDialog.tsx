@@ -124,19 +124,22 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
   const [fullscreen, setFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [condicoes, setCondicoes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!open) return;
     const p: Record<string, string> = {};
     const c: Record<string, CategoriaVariacao> = {};
     const f: Record<string, string> = {};
+    const cond: Record<string, string> = {};
     itens.forEach(i => {
       p[i.key] = String(i.precoAprovado).replace(".", ",");
       c[i.key] = "Cost Avoidance";
       f[i.key] = i.fornecedorId;
+      if (!(i.fornecedorId in cond)) cond[i.fornecedorId] = i.condicaoPagamento ?? "";
     });
     setPrecos(p); setCategorias(c); setJustificativas({}); setManualCategoria({});
-    setFornecedores(f); setMotivos({});
+    setFornecedores(f); setMotivos({}); setCondicoes(cond);
     setSalvando(false); setAceiteDiretoria(false);
   }, [open, itens]);
 
