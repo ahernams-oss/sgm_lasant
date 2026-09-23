@@ -72,7 +72,8 @@ export default function PortalHolerites() {
 
   return (
     <PortalLayout requireTipo="funcionario">
-      <h1 className="text-2xl font-semibold mb-4">Holerites e Comprovantes</h1>
+      <h1 className="text-2xl font-semibold mb-1">Holerites e Comprovantes</h1>
+      <p className="text-sm text-muted-foreground mb-4">A assinatura eletrônica é obrigatória para baixar ou imprimir cada holerite.</p>
       {loading && <p className="text-sm text-muted-foreground">Carregando...</p>}
       {!loading && list.length === 0 && (
         <Card><CardContent className="p-6 text-center text-muted-foreground">Nenhum documento disponível ainda.</CardContent></Card>
@@ -107,10 +108,10 @@ export default function PortalHolerites() {
                     <PenLine className="w-4 h-4 mr-1" />Assinar
                   </Button>
                 )}
-                <Button size="sm" variant="outline" disabled={busy === h.id + "p"} onClick={() => imprimir(h)}>
+                <Button size="sm" variant="outline" disabled={!h.assinado_em || busy === h.id + "p"} title={!h.assinado_em ? "Assine o holerite para liberar" : undefined} onClick={() => imprimir(h)}>
                   {busy === h.id + "p" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Printer className="w-4 h-4 mr-1" />}Imprimir
                 </Button>
-                <Button size="sm" disabled={busy === h.id + "d"} onClick={() => download(h)}>
+                <Button size="sm" disabled={!h.assinado_em || busy === h.id + "d"} title={!h.assinado_em ? "Assine o holerite para liberar" : undefined} onClick={() => download(h)}>
                   {busy === h.id + "d" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}Baixar
                 </Button>
               </div>
