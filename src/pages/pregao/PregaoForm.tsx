@@ -219,7 +219,10 @@ export default function PregaoForm() {
                   type="text"
                   inputMode="decimal"
                   value={form.valorEstimado ? formatMilharBR(form.valorEstimado) : ""}
-                  onChange={e => setForm({ ...form, valorEstimado: parseMilharBR(e.target.value) })}
+                  onChange={e => {
+                    const digitos = e.target.value.replace(/\D/g, "").slice(0, 15);
+                    setForm({ ...form, valorEstimado: digitos ? Number(digitos) / 100 : 0 });
+                  }}
                   disabled={!podeEditar}
                   placeholder="0,00"
                 />
