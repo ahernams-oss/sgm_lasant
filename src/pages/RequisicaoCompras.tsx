@@ -599,6 +599,16 @@ export default function RequisicaoComprasPage() {
           </Select>
         </div>
         <div className="min-w-0">
+          <Label className="text-xs">Grupo de Mercadoria</Label>
+          <Select value={filterGrupo} onValueChange={v => { setFilterGrupo(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-72">
+              <SelectItem value="Todos">Todos</SelectItem>
+              {gruposUnicos.map(g => <SelectItem key={g} value={g}>{nomeGrupo(g)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="min-w-0">
           <Label className="text-xs">Data inicial</Label>
           <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageReq(1); }} />
         </div>
