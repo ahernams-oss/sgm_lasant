@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ALCADA_BADGE, Alcada, LIMITE_ALCADA_PERCENTUAL, classificarAlcada } from "@/lib/alcadaReajuste";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAll } from "@/lib/supabaseHelper";
 import { toast } from "sonner";
 import { useColumnVisibility, ColumnDef } from "@/hooks/useColumnVisibility";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -125,6 +126,15 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const [fullscreen, setFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [condicoes, setCondicoes] = useState<Record<string, string>>({});
+  const [condicoesCadastradas, setCondicoesCadastradas] = useState<string[]>([]);
+
+  // Condições de pagamento cadastradas no módulo Financeiro.
+  useEffect(() => {
+    if (!open) return;
+    fetchAll("fin_condicoes_pagamento", "nome").then(rows => {
+      setCondicoesCadastradas(rows.map((r: any) => String(r.nome ?? "")).filter(Boolean));
+    });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
