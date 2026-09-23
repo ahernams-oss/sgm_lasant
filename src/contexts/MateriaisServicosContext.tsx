@@ -4,7 +4,7 @@ import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper"
 import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface MaterialServico {
-  id: string; codigo: string; descricao: string; tipo: "Material" | "Serviço";
+  id: string; codigo: string; descricao: string; nomePratico: string; tipo: "Material" | "Serviço";
   unidadeMedida: string; categoriaId: string; fabricanteId: string; estoqueMinimo: number;
   fotos: string[];
 }
