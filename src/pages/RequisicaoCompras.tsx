@@ -213,6 +213,7 @@ export default function RequisicaoComprasPage() {
     if (filterCentroCusto !== "Todos") list = list.filter(r => r.centroCusto === filterCentroCusto);
     if (filterUrgencia !== "Todas") list = list.filter(r => r.urgencia === filterUrgencia);
     if (filterSolicitante !== "Todos") list = list.filter(r => r.solicitante === filterSolicitante);
+    if (filterGrupo !== "Todos") list = list.filter(r => gruposDaReq(r).includes(filterGrupo));
     if (filterDataIni) list = list.filter(r => r.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(r => r.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
