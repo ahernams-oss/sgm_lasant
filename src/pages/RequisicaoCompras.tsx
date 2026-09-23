@@ -231,7 +231,8 @@ export default function RequisicaoComprasPage() {
     }
 
     return list.sort((a, b) => b.numero - a.numero);
-  }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterGrupo, filterDataIni, filterDataFim, materiais]);
 
   const solicitantesUnicos = useMemo(() =>
     Array.from(new Set(requisicoes.map(r => r.solicitante).filter(Boolean))).sort(),
