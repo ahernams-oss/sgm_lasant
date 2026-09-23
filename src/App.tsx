@@ -102,6 +102,7 @@ const PropostaFornecedorPage = lazy(() => import("./pages/PropostaFornecedor.tsx
 const PortalFornecedorPage = lazy(() => import("./pages/PortalFornecedor.tsx"));
 const PregaoSalaFornecedorPage = lazy(() => import("./pages/portal-fornecedor/PregaoSalaFornecedor.tsx"));
 const RecebimentoComprasPage = lazy(() => import("./pages/RecebimentoCompras.tsx"));
+const MateriaisRejeitadosPage = lazy(() => import("./pages/MateriaisRejeitados.tsx"));
 const EstoquePage = lazy(() => import("./pages/Estoque.tsx"));
 const RelatoriosEstoquePage = lazy(() => import("./pages/RelatoriosEstoque.tsx"));
 const PerfisAcessoPage = lazy(() => import("./pages/PerfisAcesso.tsx"));
