@@ -1861,7 +1861,19 @@ export default function CotacaoComprasPage() {
               </div>
               <div>
                 <Label>Condição de Pagamento</Label>
-                <Input value={propCondicao} onChange={e => setPropCondicao(e.target.value)} placeholder="Ex: 30/60/90 dias" />
+                <Select value={propCondicao} onValueChange={setPropCondicao}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {(() => {
+                      const opcoes = propCondicao && !condicoesCadastradas.includes(propCondicao)
+                        ? [propCondicao, ...condicoesCadastradas]
+                        : condicoesCadastradas;
+                      return opcoes.length > 0
+                        ? opcoes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
+                        : <div className="px-2 py-4 text-sm text-muted-foreground text-center">Nenhuma condição cadastrada no Financeiro</div>;
+                    })()}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Prazo de Entrega</Label>
