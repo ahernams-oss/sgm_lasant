@@ -550,8 +550,9 @@ export default function RequisicaoComprasPage() {
         {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 items-end">
-        <div className="relative sm:col-span-2 md:col-span-3 lg:col-span-2 xl:col-span-2 min-w-0">
+      <div className="rounded-lg border bg-card p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+        <div className="relative sm:col-span-2 min-w-0">
           <Label className="text-xs">Buscar</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -616,18 +617,26 @@ export default function RequisicaoComprasPage() {
           <Label className="text-xs">Data final</Label>
           <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={limparFiltros}>
-            <X className="mr-2 h-4 w-4" />Limpar
-          </Button>
-          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarPdfFinanceiro(buildRelatorioRequisicoes(), "landscape")}>
-            <FileText className="mr-2 h-4 w-4" />PDF
-          </Button>
-          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarExcelFinanceiro(buildRelatorioRequisicoes())}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel
-          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+          <span className="text-xs text-muted-foreground">
+            {filtered.length} requisição(ões) encontrada(s)
+          </span>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" size="sm" onClick={limparFiltros}>
+              <X className="mr-2 h-4 w-4" />Limpar filtros
+            </Button>
+            <Button variant="outline" size="sm" disabled={filtered.length === 0} onClick={() => gerarPdfFinanceiro(buildRelatorioRequisicoes(), "landscape")}>
+              <FileText className="mr-2 h-4 w-4" />PDF
+            </Button>
+            <Button variant="outline" size="sm" disabled={filtered.length === 0} onClick={() => gerarExcelFinanceiro(buildRelatorioRequisicoes())}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />Excel
+            </Button>
+          </div>
         </div>
       </div>
+
 
 
       <div className="border rounded-lg">
