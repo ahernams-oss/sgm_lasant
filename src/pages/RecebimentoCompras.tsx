@@ -854,7 +854,7 @@ export default function RecebimentoComprasPage() {
                         <TableCell className="text-center text-sm">{qtdJaRejeitada(rejPedido, i.itemId)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Input className="h-8" inputMode="decimal" disabled={disp <= 0} value={rejQtd[i.itemId] ?? ""} placeholder="0"
+                            <Input className="h-8 min-w-[15rem]" inputMode="decimal" disabled={disp <= 0} value={rejQtd[i.itemId] ?? ""} placeholder="0"
                               onChange={(e) => setRejQtd(q => ({ ...q, [i.itemId]: e.target.value.replace(",", ".") }))} />
                             <Button type="button" size="sm" variant="outline" className="h-8 px-2" disabled={disp <= 0}
                               onClick={() => setRejQtd(q => ({ ...q, [i.itemId]: String(disp) }))}>Tudo</Button>
