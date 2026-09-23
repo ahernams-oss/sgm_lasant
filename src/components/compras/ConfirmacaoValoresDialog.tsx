@@ -177,6 +177,13 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const semMotivo = useMemo(() => linhasRedirecionadas.some(l => !(motivos[l.key] ?? "").trim()), [linhasRedirecionadas, motivos]);
   const bloqueado = (linhasDiretoria.length > 0 && (!aceiteDiretoria || semJustificativa)) || semMotivo;
 
+  /** Fornecedores finais (após redirecionamentos) — cada um gera uma OC com sua condição de pagamento. */
+  const fornecedoresFinais = useMemo(() => {
+    const map = new Map<string, string>();
+    linhas.forEach(l => { if (!map.has(l.fornecedorIdFinal)) map.set(l.fornecedorIdFinal, l.fornecedorNomeFinal); });
+    return [...map.entries()].map(([id, nome]) => ({ id, nome }));
+  }, [linhas]);
+
   /** Redireciona o item a outro fornecedor que cotou, adotando o preço dele. */
   const setFornecedor = (key: string, fornecedorId: string) => {
     setFornecedores(prev => ({ ...prev, [key]: fornecedorId }));
@@ -287,7 +294,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
       };
     });
     try {
-      await onConfirm(ajustes, { aceiteDiretoria, aprovadoPorAlcada: responsavel });
+      await onConfirm(ajustes, { aceiteDiretoria, aprovadoPorAlcada: responsavel, condicoesPagamento: condicoes });
     } finally {
       setSalvando(false);
     }
