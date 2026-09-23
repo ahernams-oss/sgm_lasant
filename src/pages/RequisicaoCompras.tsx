@@ -550,7 +550,8 @@ export default function RequisicaoComprasPage() {
         {podeCriar && <Button onClick={() => { resetForm(); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nova Requisição</Button>}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 items-end">
+      <div className="rounded-lg border bg-card p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
         <div className="relative sm:col-span-2 md:col-span-3 lg:col-span-2 xl:col-span-2 min-w-0">
           <Label className="text-xs">Buscar</Label>
           <div className="relative">
