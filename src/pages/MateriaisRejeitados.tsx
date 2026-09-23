@@ -105,7 +105,7 @@ export default function MateriaisRejeitadosPage() {
   const totalValor = filtradas.reduce((sum, l) => sum + (l.valor || 0), 0);
   const pedidosAfetados = new Set(filtradas.map(l => l.pedidoId)).size;
 
-  const { pageItems, totalPages } = paginate(filtradas, page, pageSize);
+  const { paginated } = paginate(filtradas, page, pageSize);
 
   const buildReport = (): FinReport => ({
     titulo: "Materiais Rejeitados",
@@ -114,7 +114,7 @@ export default function MateriaisRejeitadosPage() {
       search ? `Busca: ${search}` : "",
       `Status: ${filterStatus}`,
       ini || fim ? `Período: ${ini || "..."} a ${fim || "..."}` : "",
-    ].filter(Boolean) as string[],
+    ].filter(Boolean).join(" | "),
     colunas: ["Ordem de Compra", "RC", "Fornecedor", "Item", "Qtd", "Valor rejeitado", "Motivo", "Rejeitado por", "Data", "Status"],
     linhas: filtradas.map(l => [
       `OC-${String(l.pedidoNumero).padStart(4, "0")}`,
@@ -204,10 +204,10 @@ export default function MateriaisRejeitadosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pageItems.length === 0 && (
+                {paginated.length === 0 && (
                   <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Nenhum material rejeitado encontrado.</TableCell></TableRow>
                 )}
-                {pageItems.map(l => (
+                {paginated.map(l => (
                   <TableRow key={l.key}>
                     <TableCell className="font-medium">OC-{String(l.pedidoNumero).padStart(4, "0")}</TableCell>
                     <TableCell>RC-{String(l.requisicaoNumero).padStart(4, "0")}</TableCell>
@@ -225,7 +225,7 @@ export default function MateriaisRejeitadosPage() {
             </Table>
           </div>
 
-          <PaginationControls page={page} totalPages={totalPages} pageSize={pageSize} total={filtradas.length} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
+          <PaginationControls currentPage={page} totalItems={filtradas.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
         </CardContent>
       </Card>
     </div>
