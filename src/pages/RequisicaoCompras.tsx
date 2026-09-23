@@ -609,13 +609,15 @@ export default function RequisicaoComprasPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-0">
-          <Label className="text-xs">Data inicial</Label>
-          <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageReq(1); }} />
-        </div>
-        <div className="min-w-0">
-          <Label className="text-xs">Data final</Label>
-          <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
+        <div className="grid grid-cols-2 gap-2 sm:col-span-2 min-w-0">
+          <div className="min-w-0">
+            <Label className="text-xs">Data inicial</Label>
+            <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageReq(1); }} />
+          </div>
+          <div className="min-w-0">
+            <Label className="text-xs">Data final</Label>
+            <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
+          </div>
         </div>
         </div>
 
