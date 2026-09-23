@@ -1790,6 +1790,7 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Adicionar Proposta */}
       <Dialog open={propostaDialogOpen} onOpenChange={setPropostaDialogOpen}>
+        {/* carrega condições do Financeiro ao abrir */}
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPropostaId ? "Editar Proposta de Fornecedor" : "Adicionar Proposta de Fornecedor"}</DialogTitle>
