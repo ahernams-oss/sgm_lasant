@@ -27,12 +27,15 @@ export interface ItemConfirmacao {
   fornecedorNome: string;
   /** Fornecedores que cotaram este item (permite redirecionamento pós-aprovação). */
   alternativas?: AlternativaFornecedor[];
+  /** Condição de pagamento da proposta aprovada deste fornecedor. */
+  condicaoPagamento?: string;
 }
 
 export interface AlternativaFornecedor {
   fornecedorId: string;
   fornecedorNome: string;
   precoUnitario: number;
+  condicaoPagamento?: string;
 }
 
 export type MotivoRedirecionamento =
@@ -65,6 +68,8 @@ export interface MetaConfirmacao {
   /** Diretoria notificada para aceite do aditivo de verba. */
   aceiteDiretoria: boolean;
   aprovadoPorAlcada: string;
+  /** Condição de pagamento final por fornecedor (editável na confirmação). */
+  condicoesPagamento?: Record<string, string>;
 }
 
 const CATEGORIAS: CategoriaVariacao[] = ["Saving", "Cost Avoidance", "Reajuste"];
@@ -119,19 +124,22 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const { visibility: visibilidadeColunas, toggle: toggleColuna, reset: resetColunas } = useColumnVisibility("confirmacao-valores", COLUNAS);
   const [fullscreen, setFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [condicoes, setCondicoes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!open) return;
     const p: Record<string, string> = {};
     const c: Record<string, CategoriaVariacao> = {};
     const f: Record<string, string> = {};
+    const cond: Record<string, string> = {};
     itens.forEach(i => {
       p[i.key] = String(i.precoAprovado).replace(".", ",");
       c[i.key] = "Cost Avoidance";
       f[i.key] = i.fornecedorId;
+      if (!(i.fornecedorId in cond)) cond[i.fornecedorId] = i.condicaoPagamento ?? "";
     });
     setPrecos(p); setCategorias(c); setJustificativas({}); setManualCategoria({});
-    setFornecedores(f); setMotivos({});
+    setFornecedores(f); setMotivos({}); setCondicoes(cond);
     setSalvando(false); setAceiteDiretoria(false);
   }, [open, itens]);
 
@@ -169,6 +177,13 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
   const semMotivo = useMemo(() => linhasRedirecionadas.some(l => !(motivos[l.key] ?? "").trim()), [linhasRedirecionadas, motivos]);
   const bloqueado = (linhasDiretoria.length > 0 && (!aceiteDiretoria || semJustificativa)) || semMotivo;
 
+  /** Fornecedores finais (após redirecionamentos) — cada um gera uma OC com sua condição de pagamento. */
+  const fornecedoresFinais = useMemo(() => {
+    const map = new Map<string, string>();
+    linhas.forEach(l => { if (!map.has(l.fornecedorIdFinal)) map.set(l.fornecedorIdFinal, l.fornecedorNomeFinal); });
+    return [...map.entries()].map(([id, nome]) => ({ id, nome }));
+  }, [linhas]);
+
   /** Redireciona o item a outro fornecedor que cotou, adotando o preço dele. */
   const setFornecedor = (key: string, fornecedorId: string) => {
     setFornecedores(prev => ({ ...prev, [key]: fornecedorId }));
@@ -181,6 +196,11 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
       if (!manualCategoria[key]) {
         setCategorias(prev => ({ ...prev, [key]: classificarVariacao(item.precoAprovado, preco) }));
       }
+    }
+    // Ao redirecionar, adota a condição de pagamento da proposta do fornecedor de destino.
+    const condDestino = fornecedorId === item.fornecedorId ? item.condicaoPagamento : alt?.condicaoPagamento;
+    if (condDestino) {
+      setCondicoes(prev => (prev[fornecedorId] ? prev : { ...prev, [fornecedorId]: condDestino }));
     }
     if (fornecedorId === item.fornecedorId) setMotivos(prev => ({ ...prev, [key]: "" }));
   };
@@ -274,7 +294,7 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
       };
     });
     try {
-      await onConfirm(ajustes, { aceiteDiretoria, aprovadoPorAlcada: responsavel });
+      await onConfirm(ajustes, { aceiteDiretoria, aprovadoPorAlcada: responsavel, condicoesPagamento: condicoes });
     } finally {
       setSalvando(false);
     }
@@ -404,6 +424,24 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
             </AlertDescription>
           </Alert>
         )}
+
+        <div className="rounded-lg border p-3 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase">Condição de pagamento por fornecedor</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {fornecedoresFinais.map(f => (
+              <div key={f.id} className="flex items-center gap-2">
+                <span className="text-xs w-48 truncate shrink-0" title={f.nome}>{f.nome}</span>
+                <Input
+                  value={condicoes[f.id] ?? ""}
+                  onChange={e => setCondicoes(p => ({ ...p, [f.id]: e.target.value }))}
+                  placeholder="Ex.: 30/60/90, À vista..."
+                  className="h-8 text-sm"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted-foreground">A condição informada aqui será gravada na Ordem de Compra e usada para gerar as parcelas no Contas a Pagar.</p>
+        </div>
 
         <div className="rounded-md border overflow-x-auto" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
           <Table>
