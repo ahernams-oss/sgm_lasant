@@ -4883,6 +4883,7 @@ export type Database = {
           fabricante_id: string | null
           fotos: Json | null
           id: string
+          nome_pratico: string | null
           tipo: string | null
           unidade_medida: string | null
         }
@@ -4895,6 +4896,7 @@ export type Database = {
           fabricante_id?: string | null
           fotos?: Json | null
           id?: string
+          nome_pratico?: string | null
           tipo?: string | null
           unidade_medida?: string | null
         }
@@ -4907,6 +4909,7 @@ export type Database = {
           fabricante_id?: string | null
           fotos?: Json | null
           id?: string
+          nome_pratico?: string | null
           tipo?: string | null
           unidade_medida?: string | null
         }
