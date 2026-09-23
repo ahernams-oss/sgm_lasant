@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
-export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado" | "Recebimento Rejeitado";
+export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado" | "Recebimento Rejeitado" | "Rejeição Parcial";
 
 export interface ItemPedidoCompra {
   itemId: string; descricao: string; quantidade: number; unidadeMedida: string;
@@ -18,12 +18,18 @@ export interface PedidoCompra {
   condicaoPagamento: string; prazoEntrega: string; localEntrega: string;
   observacoes: string; valorTotal: number; status: StatusPedido;
   historicoStatus: HistoricoPedido[];
+  itensRejeitados?: ItemRejeitado[];
+}
+
+export interface ItemRejeitado {
+  itemId: string; descricao: string; quantidade: number; unidadeMedida: string;
+  precoUnitario: number; valor: number; motivo: string; usuario: string; dataHora: string;
 }
 
 interface PedidoCompraContextType {
   pedidos: PedidoCompra[];
   addPedido: (data: Omit<PedidoCompra, "id" | "numero" | "dataCriacao" | "status" | "historicoStatus" | "valorTotal">) => PedidoCompra;
-  updateStatus: (id: string, status: StatusPedido, usuario: string, observacao?: string) => void;
+  updateStatus: (id: string, status: StatusPedido, usuario: string, observacao?: string, novosRejeitados?: ItemRejeitado[]) => Promise<void>;
   cancelarPedido: (id: string, usuario: string, motivo: string) => void;
 }
 
@@ -39,6 +45,7 @@ const rowToPedido = (r: any): PedidoCompra => ({
   prazoEntrega: r.prazo_entrega ?? "", localEntrega: r.local_entrega ?? "",
   observacoes: r.observacoes ?? "", valorTotal: Number(r.valor_total) || 0,
   status: r.status ?? "Emitido", historicoStatus: r.historico_status ?? [],
+  itensRejeitados: r.itens_rejeitados ?? [],
 });
 
 const pedidoToRow = (p: PedidoCompra) => ({
@@ -49,6 +56,7 @@ const pedidoToRow = (p: PedidoCompra) => ({
   prazo_entrega: p.prazoEntrega, local_entrega: p.localEntrega,
   observacoes: p.observacoes, valor_total: p.valorTotal,
   status: p.status, historico_status: p.historicoStatus as any,
+  itens_rejeitados: (p.itensRejeitados ?? []) as any,
 });
 
 export function PedidoCompraProvider({ children }: { children: ReactNode }) {
@@ -80,11 +88,12 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
     return pedido;
   };
 
-  const updateStatus = async (id: string, status: StatusPedido, usuario: string, observacao = "") => {
+  const updateStatus = async (id: string, status: StatusPedido, usuario: string, observacao = "", novosRejeitados: ItemRejeitado[] = []) => {
     const current = pedidos.find(p => p.id === id);
     if (!current) return;
     const updated = {
       ...current, status,
+      itensRejeitados: [...(current.itensRejeitados ?? []), ...novosRejeitados],
       historicoStatus: [...current.historicoStatus, { status, dataHora: new Date().toISOString(), usuario, observacao }],
     };
     await updateRow("pedidos_compra", id, pedidoToRow(updated));

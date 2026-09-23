@@ -5981,6 +5981,7 @@ export type Database = {
           historico_status: Json | null
           id: string
           itens: Json | null
+          itens_rejeitados: Json
           local_entrega: string | null
           notificado_atraso_entrega: string | null
           numero: number
@@ -6002,6 +6003,7 @@ export type Database = {
           historico_status?: Json | null
           id?: string
           itens?: Json | null
+          itens_rejeitados?: Json
           local_entrega?: string | null
           notificado_atraso_entrega?: string | null
           numero?: number
@@ -6023,6 +6025,7 @@ export type Database = {
           historico_status?: Json | null
           id?: string
           itens?: Json | null
+          itens_rejeitados?: Json
           local_entrega?: string | null
           notificado_atraso_entrega?: string | null
           numero?: number
