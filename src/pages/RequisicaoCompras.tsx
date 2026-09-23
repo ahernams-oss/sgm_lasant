@@ -243,10 +243,16 @@ export default function RequisicaoComprasPage() {
     requisicoes.forEach(r => { if (r.centroCusto) map.set(r.centroCusto, r.centroCustoNome); });
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [requisicoes]);
+  const gruposUnicos = useMemo(() => {
+    const set = new Set<string>();
+    requisicoes.forEach(r => gruposDaReq(r).forEach(g => set.add(g)));
+    return Array.from(set).sort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requisicoes, materiais, grupos]);
 
   const limparFiltros = () => {
     setSearch(""); setFilterStatus("Todos"); setFilterCentroCusto("Todos");
-    setFilterUrgencia("Todas"); setFilterSolicitante("Todos");
+    setFilterUrgencia("Todas"); setFilterSolicitante("Todos"); setFilterGrupo("Todos");
     setFilterDataIni(""); setFilterDataFim("");
   };
 
