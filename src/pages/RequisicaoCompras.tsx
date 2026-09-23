@@ -166,14 +166,15 @@ export default function RequisicaoComprasPage() {
     data: { label: "Data", className: "text-center" },
     solicitante: { label: "Solicitante" },
     centroCusto: { label: "Centro de Custo" },
+    grupo: { label: "Grupo de Mercadoria" },
     urgencia: { label: "Urgência", className: "text-center" },
     itens: { label: "Itens", className: "text-center" },
     status: { label: "Status", className: "text-center" },
     ordemCompra: { label: "Ordem de Compra", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
-    "compras.requisicoes",
-    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status", "ordemCompra"]
+    "compras.requisicoes.v2",
+    ["numero", "data", "solicitante", "centroCusto", "grupo", "urgencia", "itens", "status", "ordemCompra"]
   );
 
 
