@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { useEmpresa } from "@/contexts/EmpresaContext";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAll } from "@/lib/supabaseHelper";
 import { enviarEmailCompras } from "@/lib/emailCompras";
 import { useCargos } from "@/contexts/CargosContext";
 import { usePcAssinaturas } from "@/contexts/PcAssinaturasContext";
@@ -227,6 +228,7 @@ export default function CotacaoComprasPage() {
   // Proposta form
   const [propFornecedorId, setPropFornecedorId] = useState("");
   const [propCondicao, setPropCondicao] = useState("");
+  const [condicoesCadastradas, setCondicoesCadastradas] = useState<string[]>([]);
   const [propPrazo, setPropPrazo] = useState("");
   const [propValidade, setPropValidade] = useState("");
   const [propObs, setPropObs] = useState("");
