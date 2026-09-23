@@ -433,6 +433,7 @@ Deno.serve(async (req) => {
       const id = String(body.id || "");
       const { data: h } = await sb.from("portal_holerites").select("*").eq("id", id).eq("funcionario_id", cred.funcionario_id).maybeSingle();
       if (!h) return json({ error: "Não encontrado." }, 404);
+      if (!h.assinado_em) return json({ error: "Assine eletronicamente o holerite antes de abrir, baixar ou imprimir." }, 403);
       const { data: url } = await sb.storage.from("portal-holerites").createSignedUrl(h.arquivo_path, 60);
       await sb.from("portal_holerites").update({ visualizado_em: new Date().toISOString() }).eq("id", id);
       await log(cred.cpf, cred.id, "download-holerite", true, { id }, req);
