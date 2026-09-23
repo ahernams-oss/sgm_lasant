@@ -229,6 +229,14 @@ export default function CotacaoComprasPage() {
   const [propFornecedorId, setPropFornecedorId] = useState("");
   const [propCondicao, setPropCondicao] = useState("");
   const [condicoesCadastradas, setCondicoesCadastradas] = useState<string[]>([]);
+
+  // Condições de pagamento cadastradas no módulo Financeiro.
+  useEffect(() => {
+    if (!propostaDialogOpen) return;
+    fetchAll("fin_condicoes_pagamento", "nome").then(rows => {
+      setCondicoesCadastradas(rows.map((r: any) => String(r.nome ?? "")).filter(Boolean));
+    });
+  }, [propostaDialogOpen]);
   const [propPrazo, setPropPrazo] = useState("");
   const [propValidade, setPropValidade] = useState("");
   const [propObs, setPropObs] = useState("");
@@ -1790,7 +1798,6 @@ export default function CotacaoComprasPage() {
 
       {/* Dialog Adicionar Proposta */}
       <Dialog open={propostaDialogOpen} onOpenChange={setPropostaDialogOpen}>
-        {/* carrega condições do Financeiro ao abrir */}
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPropostaId ? "Editar Proposta de Fornecedor" : "Adicionar Proposta de Fornecedor"}</DialogTitle>
