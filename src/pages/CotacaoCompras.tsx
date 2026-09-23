@@ -198,13 +198,13 @@ export default function CotacaoComprasPage() {
     const propostas = planoEmissao.propostas ?? [];
     return planoEmissao.grupos.flatMap(g => g.itens.map(i => {
       const alternativas: AlternativaFornecedor[] = [
-        { fornecedorId: g.fornecedorId, fornecedorNome: g.fornecedorNome, precoUnitario: i.precoUnitario },
+        { fornecedorId: g.fornecedorId, fornecedorNome: g.fornecedorNome, precoUnitario: i.precoUnitario, condicaoPagamento: g.condicaoPagamento },
         ...propostas
           .filter(p => p.fornecedorId !== g.fornecedorId)
           .map(p => {
             const li = p.itens.find(x => x.itemId === i.itemId);
             return li && li.precoUnitario > 0
-              ? { fornecedorId: p.fornecedorId, fornecedorNome: p.fornecedorNome, precoUnitario: li.precoUnitario }
+              ? { fornecedorId: p.fornecedorId, fornecedorNome: p.fornecedorNome, precoUnitario: li.precoUnitario, condicaoPagamento: p.condicaoPagamento }
               : null;
           })
           .filter(Boolean) as AlternativaFornecedor[],
@@ -219,6 +219,7 @@ export default function CotacaoComprasPage() {
         fornecedorId: g.fornecedorId,
         fornecedorNome: g.fornecedorNome,
         alternativas,
+        condicaoPagamento: g.condicaoPagamento,
       };
     }));
   }, [planoEmissao]);
@@ -746,7 +747,7 @@ export default function CotacaoComprasPage() {
         fornecedorId: ref.fornecedorId,
         fornecedorNome: ref.fornecedorNome,
         itens: itensPedido,
-        condicaoPagamento: ref.condicaoPagamento,
+        condicaoPagamento: (meta.condicoesPagamento?.[fornId] ?? "").trim() || ref.condicaoPagamento,
         prazoEntrega: ref.prazoEntrega,
         localEntrega: plano.localEntrega,
         observacoes: linhasForn.some(l => l.aj?.redirecionado)
