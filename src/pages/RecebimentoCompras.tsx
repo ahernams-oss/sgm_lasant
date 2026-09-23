@@ -834,7 +834,7 @@ export default function RecebimentoComprasPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="max-h-64 overflow-auto rounded-md border">
+            <div className={`${rejExpandido ? "max-h-[55vh]" : "max-h-64"} overflow-auto rounded-md border`}>
               <Table>
                 <TableHeader>
                   <TableRow>
