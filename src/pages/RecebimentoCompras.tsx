@@ -26,6 +26,9 @@ import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
 import { usePermissao } from "@/hooks/usePermissao";
+import { verificarSenhaUsuario } from "@/lib/verifySenha";
+import { supabase } from "@/integrations/supabase/client";
+import { Ban } from "lucide-react";
 
 const statusColors: Record<string, string> = {
   Emitido: "bg-blue-100 text-blue-800",
@@ -33,6 +36,7 @@ const statusColors: Record<string, string> = {
   "Em Entrega": "bg-purple-100 text-purple-800",
   "Entregue Parcial": "bg-amber-100 text-amber-800",
   Entregue: "bg-green-100 text-green-800",
+  "Recebimento Rejeitado": "bg-red-100 text-red-800",
   Cancelado: "bg-red-200 text-red-900",
 };
 
@@ -77,6 +81,41 @@ export default function RecebimentoComprasPage() {
 
   // View dialog
   const [viewPedido, setViewPedido] = useState<PedidoCompra | null>(null);
+  const [rejPedido, setRejPedido] = useState<PedidoCompra | null>(null);
+  const [rejJust, setRejJust] = useState("");
+  const [rejSenha, setRejSenha] = useState("");
+  const [rejLoading, setRejLoading] = useState(false);
+
+  const confirmarRejeicao = async () => {
+    if (!rejPedido) return;
+    if (rejJust.trim().length < 10) { toast({ title: "Informe a justificativa (mínimo 10 caracteres).", variant: "destructive" }); return; }
+    if (!rejSenha) { toast({ title: "Confirme sua senha.", variant: "destructive" }); return; }
+    if (!usuarioLogado?.email) { toast({ title: "Usuário não identificado.", variant: "destructive" }); return; }
+    setRejLoading(true);
+    try {
+      const ok = await verificarSenhaUsuario(usuarioLogado.email, rejSenha);
+      if (!ok) { toast({ title: "Senha incorreta.", variant: "destructive" }); return; }
+      const nome = usuarioLogado.nome || usuarioLogado.email;
+      const quando = format(new Date(), "dd/MM/yyyy, HH:mm");
+      await updatePedidoStatus(rejPedido.id, "Recebimento Rejeitado", nome, `Recebimento rejeitado: ${rejJust.trim()}`);
+      const obs = `NÃO PAGAR — Recebimento do pedido OC-${String(rejPedido.numero).padStart(4, "0")} rejeitado por ${nome} em ${quando}. Motivo: ${rejJust.trim()}`;
+      const { data: contas } = await supabase.from("fin_contas_pagar").select("id,status").eq("pedido_compra_id", rejPedido.id);
+      const abertas = (contas || []).filter((c: any) => c.status !== "paga" && c.status !== "cancelada");
+      for (const c of abertas) {
+        await supabase.from("fin_contas_pagar").update({ status: "bloqueada", observacao: obs }).eq("id", c.id);
+      }
+      const pagas = (contas || []).length - abertas.length;
+      toast({
+        title: "Recebimento rejeitado",
+        description: `${abertas.length} conta(s) a pagar bloqueada(s) no Financeiro.${pagas > 0 ? ` Atenção: ${pagas} já paga(s)/cancelada(s).` : ""}`,
+      });
+      setRejPedido(null);
+    } catch (e: any) {
+      toast({ title: "Erro ao rejeitar", description: e?.message, variant: "destructive" });
+    } finally {
+      setRejLoading(false);
+    }
+  };
 
   // Histórico dialog
   const [histPedidoId, setHistPedidoId] = useState<string | null>(null);
@@ -429,6 +468,11 @@ export default function RecebimentoComprasPage() {
                             </DropdownMenuItem>
                           </>
                         )}
+                        {podeRegistrar && ["Comprado", "Em Entrega", "Entregue Parcial", "Entregue"].includes(p.status) && (
+                          <DropdownMenuItem className="text-destructive" onClick={() => { setRejPedido(p); setRejJust(""); setRejSenha(""); }}>
+                            <Ban className="mr-2 h-4 w-4" />Rejeitar Recebimento
+                          </DropdownMenuItem>
+                        )}
                         {p.status === "Entregue" && pedidoTemItensPendentes(p) && (
                           <DropdownMenuItem onClick={() => {
                             updatePedidoStatus(p.id, "Entregue Parcial", usuarioLogado?.nome || "Sistema", "Status corrigido - itens pendentes de recebimento");
@@ -717,6 +761,30 @@ export default function RecebimentoComprasPage() {
               </Card>
             ))}
           </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!rejPedido} onOpenChange={(v) => { if (!v && !rejLoading) setRejPedido(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive"><Ban className="h-5 w-5" />Rejeitar Recebimento</DialogTitle>
+            <DialogDescription>
+              Pedido OC-{String(rejPedido?.numero ?? 0).padStart(4, "0")} — {rejPedido?.fornecedorNome}. As contas a pagar deste pedido serão bloqueadas e o Financeiro será orientado a não pagar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Justificativa *</Label>
+              <Textarea rows={3} value={rejJust} onChange={(e) => setRejJust(e.target.value)} placeholder="Ex.: Material avariado, divergente da NF, fora da especificação..." />
+            </div>
+            <div>
+              <Label>Confirme sua senha *</Label>
+              <Input type="password" autoComplete="new-password" value={rejSenha} onChange={(e) => setRejSenha(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") confirmarRejeicao(); }} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={rejLoading} onClick={() => setRejPedido(null)}>Cancelar</Button>
+            <Button variant="destructive" disabled={rejLoading} onClick={confirmarRejeicao}>{rejLoading ? "Verificando..." : "Rejeitar recebimento"}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
