@@ -88,6 +88,7 @@ export default function RecebimentoComprasPage() {
   const [rejLoading, setRejLoading] = useState(false);
 
   const [rejQtd, setRejQtd] = useState<Record<string, string>>({});
+  const [rejExpandido, setRejExpandido] = useState(false);
   const qtdJaRejeitada = (p: PedidoCompra, itemId: string) =>
     (p.itensRejeitados ?? []).filter(r => r.itemId === itemId).reduce((a, r) => a + r.quantidade, 0);
   const qtdRejeitavel = (p: PedidoCompra, itemId: string, qtd: number) => Math.max(0, qtd - qtdJaRejeitada(p, itemId));
