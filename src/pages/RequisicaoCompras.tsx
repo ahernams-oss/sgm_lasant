@@ -670,6 +670,9 @@ export default function RequisicaoComprasPage() {
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
+                grupo: gruposDaReq(r).length > 0
+                  ? <span className="text-xs">{gruposDaReq(r).map(nomeGrupo).join(", ")}</span>
+                  : <span className="text-muted-foreground text-xs">-</span>,
                 urgencia: (
                   <Badge title={alertaTitle} className={`${r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"} ${alertaUrgente || alertaAtrasoCotacao ? "animate-blink-urgent" : ""}`}>{r.urgencia}</Badge>
                 ),
