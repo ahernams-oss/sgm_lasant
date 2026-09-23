@@ -27,12 +27,15 @@ export interface ItemConfirmacao {
   fornecedorNome: string;
   /** Fornecedores que cotaram este item (permite redirecionamento pós-aprovação). */
   alternativas?: AlternativaFornecedor[];
+  /** Condição de pagamento da proposta aprovada deste fornecedor. */
+  condicaoPagamento?: string;
 }
 
 export interface AlternativaFornecedor {
   fornecedorId: string;
   fornecedorNome: string;
   precoUnitario: number;
+  condicaoPagamento?: string;
 }
 
 export type MotivoRedirecionamento =
@@ -65,6 +68,8 @@ export interface MetaConfirmacao {
   /** Diretoria notificada para aceite do aditivo de verba. */
   aceiteDiretoria: boolean;
   aprovadoPorAlcada: string;
+  /** Condição de pagamento final por fornecedor (editável na confirmação). */
+  condicoesPagamento?: Record<string, string>;
 }
 
 const CATEGORIAS: CategoriaVariacao[] = ["Saving", "Cost Avoidance", "Reajuste"];
