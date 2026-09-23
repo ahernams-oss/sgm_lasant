@@ -425,6 +425,24 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
           </Alert>
         )}
 
+        <div className="rounded-lg border p-3 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase">Condição de pagamento por fornecedor</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {fornecedoresFinais.map(f => (
+              <div key={f.id} className="flex items-center gap-2">
+                <span className="text-xs w-48 truncate shrink-0" title={f.nome}>{f.nome}</span>
+                <Input
+                  value={condicoes[f.id] ?? ""}
+                  onChange={e => setCondicoes(p => ({ ...p, [f.id]: e.target.value }))}
+                  placeholder="Ex.: 30/60/90, À vista..."
+                  className="h-8 text-sm"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted-foreground">A condição informada aqui será gravada na Ordem de Compra e usada para gerar as parcelas no Contas a Pagar.</p>
+        </div>
+
         <div className="rounded-md border overflow-x-auto" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
           <Table>
             <TableHeader>
