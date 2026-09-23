@@ -268,6 +268,7 @@ export default function RequisicaoComprasPage() {
     if (filterStatus !== "Todos") partes.push(`Status: ${filterStatus}`);
     if (filterUrgencia !== "Todas") partes.push(`Urgência: ${filterUrgencia}`);
     if (filterSolicitante !== "Todos") partes.push(`Solicitante: ${filterSolicitante}`);
+    if (filterGrupo !== "Todos") partes.push(`Grupo de Mercadoria: ${nomeGrupo(filterGrupo)}`);
     if (filterDataIni || filterDataFim) partes.push(`Período: ${filterDataIni ? fmtData(filterDataIni) : "—"} a ${filterDataFim ? fmtData(filterDataFim) : "—"}`);
 
     const totalItens = filtered.reduce((s, r) => s + (r.itens?.length || 0), 0);
