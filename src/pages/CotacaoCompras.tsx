@@ -1923,7 +1923,14 @@ export default function CotacaoComprasPage() {
                     {propItens.map((item, idx) => (
                       <TableRow key={item.itemId}>
                         <TableCell className="text-sm">{item.descricao}</TableCell>
-                        <TableCell>{item.quantidade}</TableCell>
+                        <TableCell>
+                          {tem("cotacoes.alterar_quantidade") ? (
+                            <Input type="number" min="0" step="0.01" value={item.quantidade || ""} onChange={e => {
+                              const val = Number(e.target.value.replace(",", "."));
+                              setPropItens(prev => prev.map((it, i) => i === idx ? { ...it, quantidade: isNaN(val) ? 0 : val } : it));
+                            }} className="h-8 w-24" title="Alterar quantidade" />
+                          ) : item.quantidade}
+                        </TableCell>
                         <TableCell>{item.unidadeMedida}</TableCell>
                         <TableCell>
                           <Input type="number" min="0" step="0.01" value={item.precoUnitario || ""} onChange={e => {
