@@ -65,7 +65,7 @@ export default function RequisicaoComprasPage() {
   const { pedidos } = usePedidoCompra();
 
   const { materiais } = useMateriaisServicos();
-  const { getCodigoCompleto } = useCategoriasCompras();
+  const { getCodigoCompleto, grupos } = useCategoriasCompras();
   const codigoComposto = (m: any) => {
     const cat = m?.categoriaId ? getCodigoCompleto(m.categoriaId) : "";
     return cat ? `${cat}.${m.codigo}` : m.codigo;
@@ -75,6 +75,12 @@ export default function RequisicaoComprasPage() {
     if (!m?.categoriaId) return "";
     const full = getCodigoCompleto(m.categoriaId);
     return full.split(".")[0] || "";
+  };
+  const gruposDaReq = (r: RequisicaoCompras): string[] =>
+    Array.from(new Set((r.itens || []).map(i => getGrupoCodigo(i.materialId)).filter(Boolean)));
+  const nomeGrupo = (codigo: string) => {
+    const g = grupos.find(x => x.codigo === codigo);
+    return g ? `${g.codigo} - ${g.nome}` : codigo;
   };
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
