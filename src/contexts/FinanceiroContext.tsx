@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { useProviderGate, useActivateProvider, gateQueries } from "@/lib/providerGate";
 
-export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada";
+export type StatusPagar = "aberta" | "paga" | "parcial" | "cancelada" | "bloqueada";
 export type StatusReceber = "aberta" | "recebida" | "parcial" | "cancelada";
 
 export interface ContaBancaria {
