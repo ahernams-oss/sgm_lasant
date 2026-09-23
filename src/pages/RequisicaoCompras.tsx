@@ -65,7 +65,7 @@ export default function RequisicaoComprasPage() {
   const { pedidos } = usePedidoCompra();
 
   const { materiais } = useMateriaisServicos();
-  const { getCodigoCompleto } = useCategoriasCompras();
+  const { getCodigoCompleto, grupos } = useCategoriasCompras();
   const codigoComposto = (m: any) => {
     const cat = m?.categoriaId ? getCodigoCompleto(m.categoriaId) : "";
     return cat ? `${cat}.${m.codigo}` : m.codigo;
@@ -75,6 +75,12 @@ export default function RequisicaoComprasPage() {
     if (!m?.categoriaId) return "";
     const full = getCodigoCompleto(m.categoriaId);
     return full.split(".")[0] || "";
+  };
+  const gruposDaReq = (r: RequisicaoCompras): string[] =>
+    Array.from(new Set((r.itens || []).map(i => getGrupoCodigo(i.materialId)).filter(Boolean)));
+  const nomeGrupo = (codigo: string) => {
+    const g = grupos.find(x => x.codigo === codigo);
+    return g ? `${g.codigo} - ${g.nome}` : codigo;
   };
   const { fabricantes } = useFabricantes();
   const { clientes } = useClientes();
@@ -103,7 +109,7 @@ export default function RequisicaoComprasPage() {
       return JSON.parse(raw) as {
         search: string; filterStatus: string; filterCentroCusto: string;
         filterUrgencia: string; filterSolicitante: string;
-        filterDataIni: string; filterDataFim: string;
+        filterDataIni: string; filterDataFim: string; filterGrupo?: string;
       };
     } catch { return null; }
   };
@@ -113,6 +119,7 @@ export default function RequisicaoComprasPage() {
   const [filterCentroCusto, setFilterCentroCusto] = useState<string>(_savedFilters?.filterCentroCusto ?? "Todos");
   const [filterUrgencia, setFilterUrgencia] = useState<string>(_savedFilters?.filterUrgencia ?? "Todas");
   const [filterSolicitante, setFilterSolicitante] = useState<string>(_savedFilters?.filterSolicitante ?? "Todos");
+  const [filterGrupo, setFilterGrupo] = useState<string>(_savedFilters?.filterGrupo ?? "Todos");
   const [filterDataIni, setFilterDataIni] = useState(_savedFilters?.filterDataIni ?? "");
   const [filterDataFim, setFilterDataFim] = useState(_savedFilters?.filterDataFim ?? "");
 
@@ -140,10 +147,10 @@ export default function RequisicaoComprasPage() {
     try {
       localStorage.setItem(FILTERS_KEY, JSON.stringify({
         search, filterStatus, filterCentroCusto, filterUrgencia,
-        filterSolicitante, filterDataIni, filterDataFim,
+        filterSolicitante, filterDataIni, filterDataFim, filterGrupo,
       }));
     } catch { /* ignore */ }
-  }, [search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+  }, [search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim, filterGrupo]);
 
 
   const loadJustificativas = async () => {
@@ -159,14 +166,15 @@ export default function RequisicaoComprasPage() {
     data: { label: "Data", className: "text-center" },
     solicitante: { label: "Solicitante" },
     centroCusto: { label: "Centro de Custo" },
+    grupo: { label: "Grupo de Mercadoria" },
     urgencia: { label: "Urgência", className: "text-center" },
     itens: { label: "Itens", className: "text-center" },
     status: { label: "Status", className: "text-center" },
     ordemCompra: { label: "Ordem de Compra", className: "text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
-    "compras.requisicoes",
-    ["numero", "data", "solicitante", "centroCusto", "urgencia", "itens", "status", "ordemCompra"]
+    "compras.requisicoes.v2",
+    ["numero", "data", "solicitante", "centroCusto", "grupo", "urgencia", "itens", "status", "ordemCompra"]
   );
 
 
@@ -205,6 +213,7 @@ export default function RequisicaoComprasPage() {
     if (filterCentroCusto !== "Todos") list = list.filter(r => r.centroCusto === filterCentroCusto);
     if (filterUrgencia !== "Todas") list = list.filter(r => r.urgencia === filterUrgencia);
     if (filterSolicitante !== "Todos") list = list.filter(r => r.solicitante === filterSolicitante);
+    if (filterGrupo !== "Todos") list = list.filter(r => gruposDaReq(r).includes(filterGrupo));
     if (filterDataIni) list = list.filter(r => r.dataCriacao >= filterDataIni);
     if (filterDataFim) list = list.filter(r => r.dataCriacao <= filterDataFim + "T23:59:59");
     if (search) {
@@ -222,7 +231,8 @@ export default function RequisicaoComprasPage() {
     }
 
     return list.sort((a, b) => b.numero - a.numero);
-  }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterDataIni, filterDataFim]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requisicoes, search, filterStatus, filterCentroCusto, filterUrgencia, filterSolicitante, filterGrupo, filterDataIni, filterDataFim, materiais]);
 
   const solicitantesUnicos = useMemo(() =>
     Array.from(new Set(requisicoes.map(r => r.solicitante).filter(Boolean))).sort(),
@@ -233,10 +243,16 @@ export default function RequisicaoComprasPage() {
     requisicoes.forEach(r => { if (r.centroCusto) map.set(r.centroCusto, r.centroCustoNome); });
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [requisicoes]);
+  const gruposUnicos = useMemo(() => {
+    const set = new Set<string>();
+    requisicoes.forEach(r => gruposDaReq(r).forEach(g => set.add(g)));
+    return Array.from(set).sort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requisicoes, materiais, grupos]);
 
   const limparFiltros = () => {
     setSearch(""); setFilterStatus("Todos"); setFilterCentroCusto("Todos");
-    setFilterUrgencia("Todas"); setFilterSolicitante("Todos");
+    setFilterUrgencia("Todas"); setFilterSolicitante("Todos"); setFilterGrupo("Todos");
     setFilterDataIni(""); setFilterDataFim("");
   };
 
@@ -252,6 +268,7 @@ export default function RequisicaoComprasPage() {
     if (filterStatus !== "Todos") partes.push(`Status: ${filterStatus}`);
     if (filterUrgencia !== "Todas") partes.push(`Urgência: ${filterUrgencia}`);
     if (filterSolicitante !== "Todos") partes.push(`Solicitante: ${filterSolicitante}`);
+    if (filterGrupo !== "Todos") partes.push(`Grupo de Mercadoria: ${nomeGrupo(filterGrupo)}`);
     if (filterDataIni || filterDataFim) partes.push(`Período: ${filterDataIni ? fmtData(filterDataIni) : "—"} a ${filterDataFim ? fmtData(filterDataFim) : "—"}`);
 
     const totalItens = filtered.reduce((s, r) => s + (r.itens?.length || 0), 0);
@@ -260,12 +277,13 @@ export default function RequisicaoComprasPage() {
       titulo: "Requisições de Compras e Serviços",
       subtitulo: "SGM Lasant",
       filtros: partes.join(" • "),
-      colunas: ["Nº", "Data", "Solicitante", "Centro de Custo", "Local de Entrega", "Urgência", "Prazo Desejado", "Itens", "Status"],
+      colunas: ["Nº", "Data", "Solicitante", "Centro de Custo", "Grupo de Mercadoria", "Local de Entrega", "Urgência", "Prazo Desejado", "Itens", "Status"],
       linhas: filtered.map(r => [
         `RCS-${String(r.numero).padStart(4, "0")}`,
         fmtData(r.dataCriacao),
         r.solicitante || "—",
         r.centroCustoNome || "—",
+        gruposDaReq(r).map(nomeGrupo).join(", ") || "—",
         r.localEntrega || "—",
         r.urgencia || "—",
         fmtData(r.prazoDesejado),
@@ -581,6 +599,16 @@ export default function RequisicaoComprasPage() {
           </Select>
         </div>
         <div className="min-w-0">
+          <Label className="text-xs">Grupo de Mercadoria</Label>
+          <Select value={filterGrupo} onValueChange={v => { setFilterGrupo(v); setPageReq(1); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-72">
+              <SelectItem value="Todos">Todos</SelectItem>
+              {gruposUnicos.map(g => <SelectItem key={g} value={g}>{nomeGrupo(g)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="min-w-0">
           <Label className="text-xs">Data inicial</Label>
           <Input type="date" value={filterDataIni} onChange={e => { setFilterDataIni(e.target.value); setPageReq(1); }} />
         </div>
@@ -652,6 +680,9 @@ export default function RequisicaoComprasPage() {
                 data: format(new Date(r.dataCriacao), "dd/MM/yyyy HH:mm"),
                 solicitante: r.solicitante,
                 centroCusto: r.centroCustoNome,
+                grupo: gruposDaReq(r).length > 0
+                  ? <span className="text-xs">{gruposDaReq(r).map(nomeGrupo).join(", ")}</span>
+                  : <span className="text-muted-foreground text-xs">-</span>,
                 urgencia: (
                   <Badge title={alertaTitle} className={`${r.urgencia === "Urgente" ? "bg-red-500 text-white hover:bg-red-500" : r.urgencia === "Alta" ? "bg-orange-500 text-white hover:bg-orange-500" : r.urgencia === "Normal" ? "bg-green-600 text-white hover:bg-green-600" : "bg-muted text-muted-foreground"} ${alertaUrgente || alertaAtrasoCotacao ? "animate-blink-urgent" : ""}`}>{r.urgencia}</Badge>
                 ),
