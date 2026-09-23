@@ -59,7 +59,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
     if (!current) return;
     const merged = { ...current, ...data };
     await updateRow("materiais_servicos", id, {
-      codigo: merged.codigo, descricao: merged.descricao, tipo: merged.tipo,
+      codigo: merged.codigo, descricao: merged.descricao, nome_pratico: merged.nomePratico || null, tipo: merged.tipo,
       unidade_medida: merged.unidadeMedida, categoria_id: merged.categoriaId,
       fabricante_id: merged.fabricanteId, estoque_minimo: merged.estoqueMinimo,
       fotos: merged.fotos || [],
