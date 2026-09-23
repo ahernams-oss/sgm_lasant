@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, PackageCheck, Eye, ClipboardList, MoreHorizontal, History, Paperclip, FileText, X, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { gerarPdfFinanceiro, gerarExcelFinanceiro, FinReport } from "@/lib/gerarRelatoriosFinanceiros";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import { SortableHeaderRow, SortableTableHead } from "@/components/SortableTableHead";
 import type { ReactNode } from "react";
@@ -204,6 +205,87 @@ export default function RecebimentoComprasPage() {
 
   const recebimentosDoPedido = histPedidoId ? getRecebimentosByPedido(histPedidoId) : [];
 
+  // ===== Relatórios =====
+  const buildRelRecebimentos = (): FinReport => ({
+    titulo: "Recebimentos Realizados",
+    subtitulo: "SGM Lasant — Recebimento de Materiais",
+    filtros: `Busca: ${search || "-"} | Status: ${filterStatus}`,
+    colunas: ["Data", "Pedido", "RC", "Fornecedor", "Local Entrega", "NF", "Tipo", "Itens", "Recebido por"],
+    linhas: recebimentos
+      .slice()
+      .sort((a, b) => new Date(b.dataRecebimento).getTime() - new Date(a.dataRecebimento).getTime())
+      .map(r => [
+        format(new Date(r.dataRecebimento), "dd/MM/yyyy HH:mm"),
+        `OC-${String(r.pedidoNumero).padStart(4, "0")}`,
+        `RCS-${String(r.requisicaoNumero).padStart(4, "0")}`,
+        r.fornecedorNome,
+        r.localEntrega || "-",
+        r.notaFiscal || "-",
+        r.tipo,
+        r.itens.reduce((s, i) => s + i.quantidadeRecebida, 0),
+        r.usuario,
+      ]),
+    totais: [
+      { label: "Total de recebimentos", valor: String(recebimentos.length) },
+      { label: "Itens recebidos", valor: String(recebimentos.reduce((s, r) => s + r.itens.reduce((x, i) => x + i.quantidadeRecebida, 0), 0)) },
+    ],
+  });
+
+  const buildRelPendencias = (): FinReport => {
+    const pendentes = pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status) || (p.status === "Entregue" && pedidoTemItensPendentes(p)));
+    return {
+      titulo: "Pedidos Pendentes de Recebimento",
+      subtitulo: "SGM Lasant — Recebimento de Materiais",
+      colunas: ["Pedido", "RC", "Fornecedor", "Local Entrega", "Status", "Itens Pendentes", "Valor"],
+      linhas: pendentes.sort((a, b) => b.numero - a.numero).map(p => {
+        const itensPend = p.itens.filter(i => getTotalRecebidoPorItem(p.id, i.itemId) < i.quantidade).length;
+        return [
+          `OC-${String(p.numero).padStart(4, "0")}`,
+          `RCS-${String(p.requisicaoNumero).padStart(4, "0")}`,
+          p.fornecedorNome,
+          p.localEntrega || "-",
+          p.status,
+          `${itensPend}/${p.itens.length}`,
+          formatCurrency(p.valorTotal),
+        ];
+      }),
+      totais: [
+        { label: "Pedidos pendentes", valor: String(pendentes.length) },
+        { label: "Valor total", valor: formatCurrency(pendentes.reduce((s, p) => s + (p.valorTotal || 0), 0)) },
+      ],
+    };
+  };
+
+  const buildRelFornecedor = (): FinReport => {
+    const map = new Map<string, { recebimentos: number; itens: number; pedidos: Set<string> }>();
+    recebimentos.forEach(r => {
+      const k = r.fornecedorNome || "Sem fornecedor";
+      const cur = map.get(k) || { recebimentos: 0, itens: 0, pedidos: new Set<string>() };
+      cur.recebimentos += 1;
+      cur.itens += r.itens.reduce((s, i) => s + i.quantidadeRecebida, 0);
+      cur.pedidos.add(r.pedidoId);
+      map.set(k, cur);
+    });
+    const rows = Array.from(map.entries()).sort((a, b) => b[1].itens - a[1].itens);
+    return {
+      titulo: "Recebimentos por Fornecedor",
+      subtitulo: "SGM Lasant — Recebimento de Materiais",
+      colunas: ["Fornecedor", "Pedidos", "Recebimentos", "Itens Recebidos"],
+      linhas: rows.map(([f, v]) => [f, v.pedidos.size, v.recebimentos, v.itens]),
+      totais: [
+        { label: "Fornecedores", valor: String(rows.length) },
+        { label: "Itens recebidos", valor: String(rows.reduce((s, [, v]) => s + v.itens, 0)) },
+      ],
+    };
+  };
+
+  const exportarRelatorio = async (tipo: "recebimentos" | "pendencias" | "fornecedor", formato: "pdf" | "excel") => {
+    const rel = tipo === "recebimentos" ? buildRelRecebimentos() : tipo === "pendencias" ? buildRelPendencias() : buildRelFornecedor();
+    if (rel.linhas.length === 0) { toast({ title: "Sem dados para exportar", variant: "destructive" }); return; }
+    if (formato === "pdf") await gerarPdfFinanceiro(rel, rel.colunas.length > 6 ? "landscape" : "portrait");
+    else await gerarExcelFinanceiro(rel);
+  };
+
   // Stats
   const totalPendentes = pedidos.filter(p => ["Comprado", "Em Entrega", "Entregue Parcial"].includes(p.status)).length;
   const totalRecebidosHoje = recebimentos.filter(r => {
@@ -262,6 +344,21 @@ export default function RecebimentoComprasPage() {
             <SelectItem value="Todos">Todos</SelectItem>
           </SelectContent>
         </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline"><Download className="mr-2 h-4 w-4" />Relatórios</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => exportarRelatorio("recebimentos", "pdf")}>Recebimentos Realizados (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("recebimentos", "excel")}>Recebimentos Realizados (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("pendencias", "pdf")}>Pedidos Pendentes (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("pendencias", "excel")}>Pedidos Pendentes (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("fornecedor", "pdf")}>Recebimentos por Fornecedor (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("fornecedor", "excel")}>Recebimentos por Fornecedor (Excel)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <p className="text-sm text-muted-foreground">
