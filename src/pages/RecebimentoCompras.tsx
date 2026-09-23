@@ -88,6 +88,7 @@ export default function RecebimentoComprasPage() {
   const [rejLoading, setRejLoading] = useState(false);
 
   const [rejQtd, setRejQtd] = useState<Record<string, string>>({});
+  const [rejExpandido, setRejExpandido] = useState(false);
   const qtdJaRejeitada = (p: PedidoCompra, itemId: string) =>
     (p.itensRejeitados ?? []).filter(r => r.itemId === itemId).reduce((a, r) => a + r.quantidade, 0);
   const qtdRejeitavel = (p: PedidoCompra, itemId: string, qtd: number) => Math.max(0, qtd - qtdJaRejeitada(p, itemId));
@@ -819,15 +820,21 @@ export default function RecebimentoComprasPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={!!rejPedido} onOpenChange={(v) => { if (!v && !rejLoading) setRejPedido(null); }}>
-        <DialogContent>
+        <DialogContent className={rejExpandido ? "max-w-[95vw] w-[95vw] max-h-[92vh] overflow-y-auto" : "max-h-[90vh] overflow-y-auto"}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive"><Ban className="h-5 w-5" />Rejeitar Recebimento</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Ban className="h-5 w-5" />Rejeitar Recebimento
+              <Button type="button" size="sm" variant="ghost" className="ml-auto mr-6 h-7 px-2 text-muted-foreground"
+                onClick={() => setRejExpandido(v => !v)}>
+                {rejExpandido ? "Reduzir tela" : "Expandir tela"}
+              </Button>
+            </DialogTitle>
             <DialogDescription>
               Pedido OC-{String(rejPedido?.numero ?? 0).padStart(4, "0")} — {rejPedido?.fornecedorNome}. Informe a quantidade rejeitada de cada item. O valor rejeitado será bloqueado no Financeiro (não pagar); o restante segue normalmente.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="max-h-64 overflow-auto rounded-md border">
+            <div className={`${rejExpandido ? "max-h-[55vh]" : "max-h-64"} overflow-auto rounded-md border`}>
               <Table>
                 <TableHeader>
                   <TableRow>
