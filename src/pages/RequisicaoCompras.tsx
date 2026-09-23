@@ -109,7 +109,7 @@ export default function RequisicaoComprasPage() {
       return JSON.parse(raw) as {
         search: string; filterStatus: string; filterCentroCusto: string;
         filterUrgencia: string; filterSolicitante: string;
-        filterDataIni: string; filterDataFim: string;
+        filterDataIni: string; filterDataFim: string; filterGrupo?: string;
       };
     } catch { return null; }
   };
@@ -119,6 +119,7 @@ export default function RequisicaoComprasPage() {
   const [filterCentroCusto, setFilterCentroCusto] = useState<string>(_savedFilters?.filterCentroCusto ?? "Todos");
   const [filterUrgencia, setFilterUrgencia] = useState<string>(_savedFilters?.filterUrgencia ?? "Todas");
   const [filterSolicitante, setFilterSolicitante] = useState<string>(_savedFilters?.filterSolicitante ?? "Todos");
+  const [filterGrupo, setFilterGrupo] = useState<string>(_savedFilters?.filterGrupo ?? "Todos");
   const [filterDataIni, setFilterDataIni] = useState(_savedFilters?.filterDataIni ?? "");
   const [filterDataFim, setFilterDataFim] = useState(_savedFilters?.filterDataFim ?? "");
 
