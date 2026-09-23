@@ -9484,6 +9484,10 @@ export type Database = {
         | { Args: { _dias?: number; _lote?: number }; Returns: number }
       arquivar_auditoria_ciclo: { Args: { _dias?: number }; Returns: number }
       current_usuario_id: { Args: never; Returns: string }
+      gerar_contas_pagar_pedido: {
+        Args: { _pedido_id: string }
+        Returns: number
+      }
       has_module: { Args: { _modulo: string }; Returns: boolean }
       is_acesso_total: { Args: never; Returns: boolean }
       kb_buscar_semantico: {
