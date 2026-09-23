@@ -47,7 +47,7 @@ export function MateriaisServicosProvider({ children }: { children: ReactNode })
 
   const addMaterial = async (m: Omit<MaterialServico, "id" | "codigo">) => {
     await insertRow("materiais_servicos", {
-      codigo: nextCodigo(), descricao: m.descricao, tipo: m.tipo,
+      codigo: nextCodigo(), descricao: m.descricao, nome_pratico: m.nomePratico || null, tipo: m.tipo,
       unidade_medida: m.unidadeMedida, categoria_id: m.categoriaId, fabricante_id: m.fabricanteId,
       estoque_minimo: m.estoqueMinimo || 0, fotos: m.fotos || [],
     });
