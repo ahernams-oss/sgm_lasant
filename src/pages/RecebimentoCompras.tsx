@@ -344,6 +344,21 @@ export default function RecebimentoComprasPage() {
             <SelectItem value="Todos">Todos</SelectItem>
           </SelectContent>
         </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline"><Download className="mr-2 h-4 w-4" />Relatórios</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => exportarRelatorio("recebimentos", "pdf")}>Recebimentos Realizados (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("recebimentos", "excel")}>Recebimentos Realizados (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("pendencias", "pdf")}>Pedidos Pendentes (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("pendencias", "excel")}>Pedidos Pendentes (Excel)</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => exportarRelatorio("fornecedor", "pdf")}>Recebimentos por Fornecedor (PDF)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportarRelatorio("fornecedor", "excel")}>Recebimentos por Fornecedor (Excel)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <p className="text-sm text-muted-foreground">
