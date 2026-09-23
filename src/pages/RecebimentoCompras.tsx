@@ -37,6 +37,7 @@ const statusColors: Record<string, string> = {
   "Entregue Parcial": "bg-amber-100 text-amber-800",
   Entregue: "bg-green-100 text-green-800",
   "Recebimento Rejeitado": "bg-red-100 text-red-800",
+  "Rejeição Parcial": "bg-orange-100 text-orange-800",
   Cancelado: "bg-red-200 text-red-900",
 };
 
@@ -86,8 +87,23 @@ export default function RecebimentoComprasPage() {
   const [rejSenha, setRejSenha] = useState("");
   const [rejLoading, setRejLoading] = useState(false);
 
+  const [rejQtd, setRejQtd] = useState<Record<string, string>>({});
+  const qtdJaRejeitada = (p: PedidoCompra, itemId: string) =>
+    (p.itensRejeitados ?? []).filter(r => r.itemId === itemId).reduce((a, r) => a + r.quantidade, 0);
+  const qtdRejeitavel = (p: PedidoCompra, itemId: string, qtd: number) => Math.max(0, qtd - qtdJaRejeitada(p, itemId));
+  const abrirRejeicao = (p: PedidoCompra) => { setRejPedido(p); setRejJust(""); setRejSenha(""); setRejQtd({}); };
+  const valorRejeicao = rejPedido
+    ? rejPedido.itens.reduce((a, i) => a + (Number((rejQtd[i.itemId] || "0").replace(",", ".")) || 0) * i.precoUnitario, 0)
+    : 0;
+
   const confirmarRejeicao = async () => {
     if (!rejPedido) return;
+    const itens = rejPedido.itens
+      .map(i => ({ i, q: Number((rejQtd[i.itemId] || "0").replace(",", ".")) || 0 }))
+      .filter(x => x.q > 0);
+    if (itens.length === 0) { toast({ title: "Informe a quantidade rejeitada de pelo menos um item.", variant: "destructive" }); return; }
+    const excedido = itens.find(x => x.q > qtdRejeitavel(rejPedido, x.i.itemId, x.i.quantidade) + 1e-9);
+    if (excedido) { toast({ title: `Quantidade maior que a disponível: ${excedido.i.descricao}`, variant: "destructive" }); return; }
     if (rejJust.trim().length < 10) { toast({ title: "Informe a justificativa (mínimo 10 caracteres).", variant: "destructive" }); return; }
     if (!rejSenha) { toast({ title: "Confirme sua senha.", variant: "destructive" }); return; }
     if (!usuarioLogado?.email) { toast({ title: "Usuário não identificado.", variant: "destructive" }); return; }
@@ -96,18 +112,57 @@ export default function RecebimentoComprasPage() {
       const ok = await verificarSenhaUsuario(usuarioLogado.email, rejSenha);
       if (!ok) { toast({ title: "Senha incorreta.", variant: "destructive" }); return; }
       const nome = usuarioLogado.nome || usuarioLogado.email;
-      const quando = format(new Date(), "dd/MM/yyyy, HH:mm");
-      await updatePedidoStatus(rejPedido.id, "Recebimento Rejeitado", nome, `Recebimento rejeitado: ${rejJust.trim()}`);
-      const obs = `NÃO PAGAR — Recebimento do pedido OC-${String(rejPedido.numero).padStart(4, "0")} rejeitado por ${nome} em ${quando}. Motivo: ${rejJust.trim()}`;
-      const { data: contas } = await supabase.from("fin_contas_pagar").select("id,status").eq("pedido_compra_id", rejPedido.id);
-      const abertas = (contas || []).filter((c: any) => c.status !== "paga" && c.status !== "cancelada");
-      for (const c of abertas) {
-        await supabase.from("fin_contas_pagar").update({ status: "bloqueada", observacao: obs }).eq("id", c.id);
+      const agora = new Date();
+      const quando = format(agora, "dd/MM/yyyy, HH:mm");
+      const oc = `OC-${String(rejPedido.numero).padStart(4, "0")}`;
+      const novos = itens.map(({ i, q }) => ({
+        itemId: i.itemId, descricao: i.descricao, quantidade: q, unidadeMedida: i.unidadeMedida,
+        precoUnitario: i.precoUnitario, valor: +(q * i.precoUnitario).toFixed(2),
+        motivo: rejJust.trim(), usuario: nome, dataHora: agora.toISOString(),
+      }));
+      const valorRej = +novos.reduce((a, n) => a + n.valor, 0).toFixed(2);
+      const total = rejPedido.itens.every(i => qtdRejeitavel(rejPedido, i.itemId, i.quantidade) - (novos.find(n => n.itemId === i.itemId)?.quantidade || 0) <= 1e-9);
+      const resumo = novos.map(n => `${n.descricao}: ${n.quantidade} ${n.unidadeMedida}`).join("; ");
+      await updatePedidoStatus(
+        rejPedido.id,
+        total ? "Recebimento Rejeitado" : "Rejeição Parcial",
+        nome,
+        `${total ? "Recebimento rejeitado" : "Rejeição parcial"} (R$ ${valorRej.toFixed(2).replace(".", ",")}) — ${resumo}. Motivo: ${rejJust.trim()}`,
+        novos,
+      );
+
+      const obs = `NÃO PAGAR — ${total ? "Recebimento" : "Itens"} do pedido ${oc} rejeitado(s) por ${nome} em ${quando}. Itens: ${resumo}. Motivo: ${rejJust.trim()}`;
+      const { data: contas } = await supabase.from("fin_contas_pagar").select("*").eq("pedido_compra_id", rejPedido.id);
+      const abertas = (contas || []).filter((c: any) => c.status !== "paga" && c.status !== "cancelada" && c.status !== "bloqueada");
+      const saldo = (c: any) => Math.max(0, Number(c.valor_total) - Number(c.valor_pago || 0));
+      const totalAberto = abertas.reduce((a: number, c: any) => a + saldo(c), 0);
+      let bloqueado = 0;
+      if (total || valorRej >= totalAberto - 0.01) {
+        for (const c of abertas) {
+          await supabase.from("fin_contas_pagar").update({ status: "bloqueada", observacao: obs }).eq("id", c.id);
+        }
+        bloqueado = totalAberto;
+      } else if (totalAberto > 0) {
+        // Separa o valor rejeitado em contas bloqueadas, proporcionalmente ao saldo de cada parcela
+        let restante = valorRej;
+        for (let k = 0; k < abertas.length; k++) {
+          const c: any = abertas[k];
+          const parte = k === abertas.length - 1 ? restante : +(valorRej * saldo(c) / totalAberto).toFixed(2);
+          restante = +(restante - parte).toFixed(2);
+          if (parte <= 0) continue;
+          await supabase.from("fin_contas_pagar").update({ valor_total: +(Number(c.valor_total) - parte).toFixed(2) }).eq("id", c.id);
+          const { id, created_at, updated_at, ...rest } = c;
+          await supabase.from("fin_contas_pagar").insert({
+            ...rest, valor_total: parte, valor_pago: 0, data_pagamento: null, status: "bloqueada",
+            descricao: `[REJEITADO] ${c.descricao || oc}`, observacao: obs, origem: "rejeicao_recebimento",
+          });
+          bloqueado += parte;
+        }
       }
-      const pagas = (contas || []).length - abertas.length;
+      const faltou = +(valorRej - bloqueado).toFixed(2);
       toast({
-        title: "Recebimento rejeitado",
-        description: `${abertas.length} conta(s) a pagar bloqueada(s) no Financeiro.${pagas > 0 ? ` Atenção: ${pagas} já paga(s)/cancelada(s).` : ""}`,
+        title: total ? "Recebimento rejeitado" : "Rejeição parcial registrada",
+        description: `R$ ${bloqueado.toFixed(2).replace(".", ",")} bloqueado(s) no Financeiro.${faltou > 0.01 ? ` Atenção: R$ ${faltou.toFixed(2).replace(".", ",")} já estava pago — avise o Financeiro.` : ""}`,
       });
       setRejPedido(null);
     } catch (e: any) {
@@ -468,9 +523,9 @@ export default function RecebimentoComprasPage() {
                             </DropdownMenuItem>
                           </>
                         )}
-                        {podeRegistrar && ["Comprado", "Em Entrega", "Entregue Parcial", "Entregue"].includes(p.status) && (
-                          <DropdownMenuItem className="text-destructive" onClick={() => { setRejPedido(p); setRejJust(""); setRejSenha(""); }}>
-                            <Ban className="mr-2 h-4 w-4" />Rejeitar Recebimento
+                        {podeRegistrar && ["Comprado", "Em Entrega", "Entregue Parcial", "Entregue", "Rejeição Parcial"].includes(p.status) && (
+                          <DropdownMenuItem className="text-destructive" onClick={() => abrirRejeicao(p)}>
+                            <Ban className="mr-2 h-4 w-4" />Rejeitar Itens / Recebimento
                           </DropdownMenuItem>
                         )}
                         {p.status === "Entregue" && pedidoTemItensPendentes(p) && (
@@ -768,10 +823,43 @@ export default function RecebimentoComprasPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive"><Ban className="h-5 w-5" />Rejeitar Recebimento</DialogTitle>
             <DialogDescription>
-              Pedido OC-{String(rejPedido?.numero ?? 0).padStart(4, "0")} — {rejPedido?.fornecedorNome}. As contas a pagar deste pedido serão bloqueadas e o Financeiro será orientado a não pagar.
+              Pedido OC-{String(rejPedido?.numero ?? 0).padStart(4, "0")} — {rejPedido?.fornecedorNome}. Informe a quantidade rejeitada de cada item. O valor rejeitado será bloqueado no Financeiro (não pagar); o restante segue normalmente.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            <div className="max-h-64 overflow-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead className="text-center">Pedido</TableHead>
+                    <TableHead className="text-center">Já rejeitado</TableHead>
+                    <TableHead className="text-center w-28">Rejeitar</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rejPedido?.itens.map(i => {
+                    const disp = qtdRejeitavel(rejPedido, i.itemId, i.quantidade);
+                    return (
+                      <TableRow key={i.itemId}>
+                        <TableCell className="text-sm">{i.descricao}</TableCell>
+                        <TableCell className="text-center text-sm">{i.quantidade} {i.unidadeMedida}</TableCell>
+                        <TableCell className="text-center text-sm">{qtdJaRejeitada(rejPedido, i.itemId)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Input className="h-8" inputMode="decimal" disabled={disp <= 0} value={rejQtd[i.itemId] ?? ""} placeholder="0"
+                              onChange={(e) => setRejQtd(q => ({ ...q, [i.itemId]: e.target.value.replace(",", ".") }))} />
+                            <Button type="button" size="sm" variant="outline" className="h-8 px-2" disabled={disp <= 0}
+                              onClick={() => setRejQtd(q => ({ ...q, [i.itemId]: String(disp) }))}>Tudo</Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="text-sm">Valor rejeitado: <strong>{valorRejeicao.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></p>
             <div>
               <Label>Justificativa *</Label>
               <Textarea rows={3} value={rejJust} onChange={(e) => setRejJust(e.target.value)} placeholder="Ex.: Material avariado, divergente da NF, fora da especificação..." />

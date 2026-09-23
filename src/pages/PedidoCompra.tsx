@@ -44,6 +44,7 @@ const statusColors: Record<StatusPedido, string> = {
   Entregue: "bg-green-100 text-green-800",
   Cancelado: "bg-red-200 text-red-900",
   "Recebimento Rejeitado": "bg-red-100 text-red-800",
+  "Rejeição Parcial": "bg-orange-100 text-orange-800",
 };
 
 const statusFlow: StatusPedido[] = ["Emitido", "Comprado", "Em Entrega", "Entregue Parcial", "Entregue"];
