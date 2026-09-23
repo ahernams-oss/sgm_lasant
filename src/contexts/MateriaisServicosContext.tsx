@@ -21,6 +21,7 @@ const QK = ["materiais_servicos"] as const;
 
 const rowToMaterial = (r: any): MaterialServico => ({
   id: r.id, codigo: r.codigo ?? "", descricao: r.descricao ?? "",
+  nomePratico: r.nome_pratico ?? "",
   tipo: r.tipo ?? "Material", unidadeMedida: r.unidade_medida ?? "",
   categoriaId: r.categoria_id ?? "", fabricanteId: r.fabricante_id ?? "",
   estoqueMinimo: Number(r.estoque_minimo ?? 0),
