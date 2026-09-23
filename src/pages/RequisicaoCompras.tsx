@@ -552,7 +552,7 @@ export default function RequisicaoComprasPage() {
 
       <div className="rounded-lg border bg-card p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-        <div className="relative sm:col-span-2 md:col-span-3 lg:col-span-2 xl:col-span-2 min-w-0">
+        <div className="relative sm:col-span-2 min-w-0">
           <Label className="text-xs">Buscar</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
