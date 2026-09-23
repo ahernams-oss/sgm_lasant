@@ -182,6 +182,7 @@ export default function ContasPagar() {
   }), [filtradas]);
 
   const statusBadge = (c: ContaPagar) => {
+    if (c.status === "bloqueada") return <Badge variant="destructive" title={c.observacao || ""}>Bloqueada – não pagar</Badge>;
     if (isVencida(c)) return <Badge variant="destructive">Vencida</Badge>;
     if (c.status === "paga") return <Badge className="bg-emerald-600">Paga</Badge>;
     if (c.status === "parcial") return <Badge className="bg-amber-600">Parcial</Badge>;
@@ -299,6 +300,7 @@ export default function ContasPagar() {
                   <SelectItem value="parcial">Parcial</SelectItem>
                   <SelectItem value="paga">Pagas</SelectItem>
                   <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="bloqueada">Bloqueadas (não pagar)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -371,7 +373,7 @@ export default function ContasPagar() {
                   <TableCell className="text-right tabular-nums">{formatBRL(Number(c.valor_pago))}</TableCell>
                   <TableCell>{statusBadge(c)}</TableCell>
                   <TableCell className="text-right">
-                    {podeBaixar && c.status !== "paga" && c.status !== "cancelada" && (
+                    {podeBaixar && c.status !== "paga" && c.status !== "cancelada" && c.status !== "bloqueada" && (
                       <Button size="sm" variant="ghost" onClick={() => setBaixaConta(c)} title="Baixar"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /></Button>
                     )}
                     {podeBaixar && (c.status === "paga" || c.status === "parcial") && (

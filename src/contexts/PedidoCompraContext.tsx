@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
 import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
-export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado";
+export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado" | "Recebimento Rejeitado";
 
 export interface ItemPedidoCompra {
   itemId: string; descricao: string; quantidade: number; unidadeMedida: string;
