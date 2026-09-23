@@ -841,7 +841,7 @@ export default function RecebimentoComprasPage() {
                     <TableHead>Item</TableHead>
                     <TableHead className="text-center">Pedido</TableHead>
                     <TableHead className="text-center">Já rejeitado</TableHead>
-                    <TableHead className="text-center w-28">Rejeitar</TableHead>
+                    <TableHead className="text-center w-[21rem]">Rejeitar</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
