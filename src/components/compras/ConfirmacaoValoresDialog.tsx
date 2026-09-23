@@ -190,6 +190,11 @@ export default function ConfirmacaoValoresDialog({ open, onOpenChange, itens, on
         setCategorias(prev => ({ ...prev, [key]: classificarVariacao(item.precoAprovado, preco) }));
       }
     }
+    // Ao redirecionar, adota a condição de pagamento da proposta do fornecedor de destino.
+    const condDestino = fornecedorId === item.fornecedorId ? item.condicaoPagamento : alt?.condicaoPagamento;
+    if (condDestino) {
+      setCondicoes(prev => (prev[fornecedorId] ? prev : { ...prev, [fornecedorId]: condDestino }));
+    }
     if (fornecedorId === item.fornecedorId) setMotivos(prev => ({ ...prev, [key]: "" }));
   };
 
