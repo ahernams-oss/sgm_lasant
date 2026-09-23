@@ -289,6 +289,7 @@ function ProtectedAppRoutes() {
         <Route path="/compras/assinar-lote-pc" element={<RotaProtegida perm="pedidos_compra"><AssinarLotePcPage /></RotaProtegida>} />
         <Route path="/compras/aprovar-lote-cotacoes" element={<RotaProtegida perm="cotacoes"><AprovarLoteCotacoesPage /></RotaProtegida>} />
         <Route path="/compras/recebimento" element={<RotaProtegida perm="recebimento"><RecebimentoComprasPage /></RotaProtegida>} />
+        <Route path="/compras/materiais-rejeitados" element={<RotaProtegida perm="recebimento"><MateriaisRejeitadosPage /></RotaProtegida>} />
         <Route path="/compras/estoque" element={<RotaProtegida perm="estoque"><EstoquePage /></RotaProtegida>} />
         <Route path="/compras/relatorios-estoque" element={<RotaProtegida perm="estoque"><RelatoriosEstoquePage /></RotaProtegida>} />
         <Route path="/compras/dashboard" element={<RotaProtegida perm="dashboard_compras"><DashboardCompras /></RotaProtegida>} />
