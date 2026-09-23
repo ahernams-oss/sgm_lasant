@@ -1,7 +1,6 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow } from "@/lib/supabaseHelper";
-import { gerarContasPagarDePC } from "@/lib/financeiroFromPC";
 import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export type StatusPedido = "Emitido" | "Comprado" | "Em Entrega" | "Entregue Parcial" | "Entregue" | "Cancelado";
@@ -73,9 +72,10 @@ export function PedidoCompraProvider({ children }: { children: ReactNode }) {
       valorTotal, status: "Emitido",
       historicoStatus: [{ status: "Emitido", dataHora: now, usuario: data.comprador, observacao: "Pedido emitido" }],
     };
+    // Contas a Pagar são geradas automaticamente pelo banco (trigger trg_pedido_gera_contas_pagar)
     insertRow("pedidos_compra", pedidoToRow(pedido)).then(() => {
       invalidate();
-      gerarContasPagarDePC(pedido, { silent: false });
+      qc.invalidateQueries({ queryKey: ["fin_contas_pagar"] });
     });
     return pedido;
   };
