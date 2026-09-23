@@ -617,18 +617,26 @@ export default function RequisicaoComprasPage() {
           <Label className="text-xs">Data final</Label>
           <Input type="date" value={filterDataFim} onChange={e => { setFilterDataFim(e.target.value); setPageReq(1); }} />
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={limparFiltros}>
-            <X className="mr-2 h-4 w-4" />Limpar
-          </Button>
-          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarPdfFinanceiro(buildRelatorioRequisicoes(), "landscape")}>
-            <FileText className="mr-2 h-4 w-4" />PDF
-          </Button>
-          <Button variant="outline" disabled={filtered.length === 0} onClick={() => gerarExcelFinanceiro(buildRelatorioRequisicoes())}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel
-          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+          <span className="text-xs text-muted-foreground">
+            {filtered.length} requisição(ões) encontrada(s)
+          </span>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" size="sm" onClick={limparFiltros}>
+              <X className="mr-2 h-4 w-4" />Limpar filtros
+            </Button>
+            <Button variant="outline" size="sm" disabled={filtered.length === 0} onClick={() => gerarPdfFinanceiro(buildRelatorioRequisicoes(), "landscape")}>
+              <FileText className="mr-2 h-4 w-4" />PDF
+            </Button>
+            <Button variant="outline" size="sm" disabled={filtered.length === 0} onClick={() => gerarExcelFinanceiro(buildRelatorioRequisicoes())}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />Excel
+            </Button>
+          </div>
         </div>
       </div>
+
 
 
       <div className="border rounded-lg">
