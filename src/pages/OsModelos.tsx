@@ -125,8 +125,8 @@ const OsModelosPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportarModelosJson(modelos)}>JSON (padrão de integração)</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportarModelosExcel(modelos)}>Excel (.xlsx)</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarJson}>JSON (padrão de integração)</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarExcel}>Excel (.xlsx)</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             {!showForm && (
