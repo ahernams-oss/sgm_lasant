@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { comprimirArquivo, lerArquivoBase64 } from "@/lib/compressFile";
 import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import PaginationControls, { paginate } from "@/components/PaginationControls";
 import { matchNumero } from "@/lib/matchNumero";
