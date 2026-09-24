@@ -67,6 +67,40 @@ const OsModelosPage = () => {
 
   const filtered = modelos.filter(m => m.nome.toLowerCase().includes(search.toLowerCase()));
 
+  const toggleSelecao = (id: string) => {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const todosVisiveisSelecionados = filtered.length > 0 && filtered.every(m => selecionados.has(m.id));
+
+  const toggleTodos = () => {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      if (todosVisiveisSelecionados) filtered.forEach(m => next.delete(m.id));
+      else filtered.forEach(m => next.add(m.id));
+      return next;
+    });
+  };
+
+  const modelosParaExportar = selecionados.size > 0
+    ? modelos.filter(m => selecionados.has(m.id))
+    : modelos;
+
+  const exportarJson = () => {
+    exportarModelosJson(modelosParaExportar);
+    if (selecionados.size > 0) toast.success(`${selecionados.size} modelo(s) exportado(s) em JSON.`);
+  };
+
+  const exportarExcel = async () => {
+    await exportarModelosExcel(modelosParaExportar);
+    if (selecionados.size > 0) toast.success(`${selecionados.size} modelo(s) exportado(s) em Excel.`);
+  };
+
+
   return (
     <div className="bg-background">
       <div className="container max-w-full mx-auto px-4 py-8">
