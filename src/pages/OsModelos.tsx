@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, FileText, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useOsModelos } from "@/contexts/OsModelosContext";
@@ -19,6 +20,7 @@ const OsModelosPage = () => {
   const [search, setSearch] = useState("");
   const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => { setNome(""); setDescricao(""); setEditId(null); setShowForm(false); };
@@ -65,6 +67,40 @@ const OsModelosPage = () => {
 
   const filtered = modelos.filter(m => m.nome.toLowerCase().includes(search.toLowerCase()));
 
+  const toggleSelecao = (id: string) => {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const todosVisiveisSelecionados = filtered.length > 0 && filtered.every(m => selecionados.has(m.id));
+
+  const toggleTodos = () => {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      if (todosVisiveisSelecionados) filtered.forEach(m => next.delete(m.id));
+      else filtered.forEach(m => next.add(m.id));
+      return next;
+    });
+  };
+
+  const modelosParaExportar = selecionados.size > 0
+    ? modelos.filter(m => selecionados.has(m.id))
+    : modelos;
+
+  const exportarJson = () => {
+    exportarModelosJson(modelosParaExportar);
+    if (selecionados.size > 0) toast.success(`${selecionados.size} modelo(s) exportado(s) em JSON.`);
+  };
+
+  const exportarExcel = async () => {
+    await exportarModelosExcel(modelosParaExportar);
+    if (selecionados.size > 0) toast.success(`${selecionados.size} modelo(s) exportado(s) em Excel.`);
+  };
+
+
   return (
     <div className="bg-background">
       <div className="container max-w-full mx-auto px-4 py-8">
@@ -85,12 +121,12 @@ const OsModelosPage = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2" disabled={modelos.length === 0}>
-                  <Download className="h-4 w-4" /> Exportar
+                  <Download className="h-4 w-4" /> Exportar{selecionados.size > 0 ? ` (${selecionados.size})` : ""}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportarModelosJson(modelos)}>JSON (padrão de integração)</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportarModelosExcel(modelos)}>Excel (.xlsx)</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarJson}>JSON (padrão de integração)</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarExcel}>Excel (.xlsx)</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             {!showForm && (
@@ -131,6 +167,13 @@ const OsModelosPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={filtered.length > 0 && todosVisiveisSelecionados}
+                    onCheckedChange={toggleTodos}
+                    aria-label="Selecionar todos"
+                  />
+                </TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead className="w-[100px]">Ações</TableHead>
@@ -138,9 +181,16 @@ const OsModelosPage = () => {
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">Nenhum modelo encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">Nenhum modelo encontrado</TableCell></TableRow>
               ) : filtered.map(m => (
                 <TableRow key={m.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selecionados.has(m.id)}
+                      onCheckedChange={() => toggleSelecao(m.id)}
+                      aria-label={`Selecionar ${m.nome}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{m.nome}</TableCell>
                   <TableCell className="text-muted-foreground">{m.descricao || "—"}</TableCell>
                   <TableCell>
