@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, FileText } from "lucide-react";
+import { useRef, useState } from "react";
+import { Plus, Pencil, Trash2, FileText, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useOsModelos } from "@/contexts/OsModelosContext";
 import { toast } from "sonner";
 import { DoubleConfirmDelete } from "@/components/DoubleConfirmDelete";
+import { exportarModelosJson, exportarModelosExcel, lerArquivoModelos } from "@/lib/osModelosIO";
 
 const OsModelosPage = () => {
   const { modelos, addModelo, updateModelo, deleteModelo } = useOsModelos();
@@ -16,6 +18,8 @@ const OsModelosPage = () => {
   const [descricao, setDescricao] = useState("");
   const [search, setSearch] = useState("");
   const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => { setNome(""); setDescricao(""); setEditId(null); setShowForm(false); };
 
@@ -39,6 +43,26 @@ const OsModelosPage = () => {
     setEditId(m.id); setNome(m.nome); setDescricao(m.descricao); setShowForm(true);
   };
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    try {
+      const itens = await lerArquivoModelos(file);
+      if (itens.length === 0) { toast.error("Nenhum modelo válido encontrado no arquivo."); return; }
+      let novos = 0, atualizados = 0;
+      for (const it of itens) {
+        const ex = modelos.find(m => m.nome.trim().toLowerCase() === it.nome.toLowerCase());
+        if (ex) { await updateModelo(ex.id, { descricao: it.descricao }); atualizados++; }
+        else { await addModelo(it); novos++; }
+      }
+      toast.success(`Importação concluída: ${novos} novo(s), ${atualizados} atualizado(s).`);
+    } catch (err: any) {
+      toast.error("Arquivo inválido: " + (err?.message || "erro desconhecido"));
+    } finally { setImporting(false); }
+  };
+
   const filtered = modelos.filter(m => m.nome.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -53,11 +77,28 @@ const OsModelosPage = () => {
             <h1 className="text-xl font-bold text-foreground mb-1">Modelo de OS</h1>
             <p className="text-sm text-muted-foreground">Cadastre os modelos de Ordem de Serviço utilizados pelos clientes.</p>
           </div>
-          {!showForm && (
-            <Button onClick={() => setShowForm(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Novo Modelo
+          <div className="flex flex-wrap gap-2">
+            <input ref={fileRef} type="file" accept=".json,.xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+            <Button variant="outline" className="gap-2" disabled={importing} onClick={() => fileRef.current?.click()}>
+              <Upload className="h-4 w-4" /> {importing ? "Importando..." : "Importar"}
             </Button>
-          )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2" disabled={modelos.length === 0}>
+                  <Download className="h-4 w-4" /> Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => exportarModelosJson(modelos)}>JSON (padrão de integração)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportarModelosExcel(modelos)}>Excel (.xlsx)</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {!showForm && (
+              <Button onClick={() => setShowForm(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Novo Modelo
+              </Button>
+            )}
+          </div>
         </div>
 
         {showForm && (
