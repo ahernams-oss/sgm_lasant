@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, FileText, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useOsModelos } from "@/contexts/OsModelosContext";
@@ -19,6 +20,7 @@ const OsModelosPage = () => {
   const [search, setSearch] = useState("");
   const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => { setNome(""); setDescricao(""); setEditId(null); setShowForm(false); };
