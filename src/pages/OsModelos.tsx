@@ -167,6 +167,13 @@ const OsModelosPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={filtered.length > 0 && todosVisiveisSelecionados}
+                    onCheckedChange={toggleTodos}
+                    aria-label="Selecionar todos"
+                  />
+                </TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead className="w-[100px]">Ações</TableHead>
@@ -174,9 +181,16 @@ const OsModelosPage = () => {
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">Nenhum modelo encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">Nenhum modelo encontrado</TableCell></TableRow>
               ) : filtered.map(m => (
                 <TableRow key={m.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selecionados.has(m.id)}
+                      onCheckedChange={() => toggleSelecao(m.id)}
+                      aria-label={`Selecionar ${m.nome}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{m.nome}</TableCell>
                   <TableCell className="text-muted-foreground">{m.descricao || "—"}</TableCell>
                   <TableCell>
