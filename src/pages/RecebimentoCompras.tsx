@@ -213,6 +213,17 @@ export default function RecebimentoComprasPage() {
 
   const formatCurrency = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  const abrirAnexo = async (a: AnexoNF) => {
+    try {
+      const blob = await (await fetch(a.dados)).blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch {
+      toast({ title: "Não foi possível abrir o anexo", variant: "destructive" });
+    }
+  };
+
   const openRecebimentoDialog = (pedido: PedidoCompra) => {
     setRecPedido(pedido);
     setRecItens(
@@ -649,20 +660,14 @@ export default function RecebimentoComprasPage() {
                     onChange={e => {
                       const files = e.target.files;
                       if (!files) return;
-                      Array.from(files).forEach(file => {
-                        if (file.size > 2 * 1024 * 1024) {
+                      Array.from(files).forEach(async file => {
+                        const comp = await comprimirArquivo(file);
+                        if (comp.size > 2 * 1024 * 1024) {
                           toast({ title: `Arquivo "${file.name}" excede 2MB`, variant: "destructive" });
                           return;
                         }
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          setRecAnexos(prev => [...prev, {
-                            nome: file.name,
-                            tipo: file.type,
-                            dados: reader.result as string,
-                          }]);
-                        };
-                        reader.readAsDataURL(file);
+                        const dados = await lerArquivoBase64(comp);
+                        setRecAnexos(prev => [...prev, { nome: comp.name, tipo: comp.type, dados }]);
                       });
                       e.target.value = "";
                     }}
@@ -799,20 +804,23 @@ export default function RecebimentoComprasPage() {
                     </TableBody>
                   </Table>
                   {r.observacaoGeral && <p className="text-xs text-muted-foreground mt-2">Obs: {r.observacaoGeral}</p>}
-                  {r.anexosNF && r.anexosNF.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {r.anexosNF.map((a, i) => (
-                        <a
-                          key={i}
-                          href={a.dados}
-                          download={a.nome}
-                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                        >
-                          <Download className="h-3 w-3" />{a.nome}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  <div className="mt-3 border-t pt-2">
+                    <p className="text-xs font-medium mb-1">Documentos da NF {r.notaFiscal || "(sem número)"}</p>
+                    {r.anexosNF && r.anexosNF.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {r.anexosNF.map((a, i) => (
+                          <div key={i} className="flex items-center gap-3 text-xs">
+                            <FileText className="h-3 w-3 text-muted-foreground" />
+                            <span className="truncate max-w-[260px]" title={a.nome}>{a.nome}</span>
+                            <button type="button" onClick={() => abrirAnexo(a)} className="text-primary hover:underline">Visualizar</button>
+                            <a href={a.dados} download={a.nome} className="inline-flex items-center gap-1 text-primary hover:underline">
+                              <Download className="h-3 w-3" />Baixar
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className="text-xs text-muted-foreground">Nenhum documento anexado.</p>}
+                  </div>
                 </CardContent>
               </Card>
             ))}
