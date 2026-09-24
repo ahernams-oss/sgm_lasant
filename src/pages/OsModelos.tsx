@@ -121,7 +121,7 @@ const OsModelosPage = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2" disabled={modelos.length === 0}>
-                  <Download className="h-4 w-4" /> Exportar
+                  <Download className="h-4 w-4" /> Exportar{selecionados.size > 0 ? ` (${selecionados.size})` : ""}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
