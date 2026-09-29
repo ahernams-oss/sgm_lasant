@@ -123,6 +123,7 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
+  const queryClient = useQueryClient();
   const _ssSavedFilters = loadPersistedFilters<{ search: string; filterCliente: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; filterPrioridade: string; filterSetorCritico: string; filterDataInicio: string; filterDataFim: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
@@ -1671,7 +1672,7 @@ export default function SolicitacaoServicosPage() {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
+      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) { setViewTarget(null); queryClient.invalidateQueries({ queryKey: ["solicitacoes_servicos"] }); } }}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto">
           <DialogHeader className="relative">
             <DialogTitle className="flex items-center gap-2 pr-16">
