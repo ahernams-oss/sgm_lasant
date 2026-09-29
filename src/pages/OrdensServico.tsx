@@ -388,6 +388,7 @@ export default function OrdensServicoPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [relatorioOpen, setRelatorioOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [viewOS, setViewOS] = useState<OrdemServico | null>(null);
   const [viewSSTarget, setViewSSTarget] = useState<SolicitacaoServico | null>(null);
   const { orcamentos: orcamentosAll, reload: reloadOrcamentos } = useOrcamentos();
@@ -2514,7 +2515,7 @@ export default function OrdensServicoPage() {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={!!viewOS} onOpenChange={o => { if (!o) setViewOS(null); }}>
+      <Dialog open={!!viewOS} onOpenChange={o => { if (!o) { setViewOS(null); queryClient.invalidateQueries({ queryKey: ["ordens_servico"] }); } }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
