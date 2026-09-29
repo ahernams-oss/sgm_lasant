@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, useCallback, useRef, useEffect, type ReactNode } from "react"; // OS page
 import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
