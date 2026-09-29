@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useSearchParams, Link } from "react-router-dom";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
