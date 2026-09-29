@@ -1673,7 +1673,7 @@ export default function SolicitacaoServicosPage() {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) { setViewTarget(null); queryClient.invalidateQueries({ queryKey: ["solicitacoes_servicos"] }); } }}>
+      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) closeViewDialog(); }}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto">
           <DialogHeader className="relative">
             <DialogTitle className="flex items-center gap-2 pr-16">
@@ -1959,7 +1959,7 @@ export default function SolicitacaoServicosPage() {
             );
           })()}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setViewTarget(null)}>Fechar</Button>
+            <Button variant="outline" onClick={closeViewDialog}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
