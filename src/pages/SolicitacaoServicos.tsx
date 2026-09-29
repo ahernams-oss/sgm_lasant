@@ -1278,6 +1278,16 @@ export default function SolicitacaoServicosPage() {
             <SelectItem value="nao">Não impressas</SelectItem>
           </SelectContent>
         </Select>
+        <Button variant="ghost" onClick={() => {
+          setSearch("");
+          setFilterDataInicio(""); setFilterDataFim("");
+          setFilterCliente("all"); localStorage.setItem("ss_filtroCliente", "all");
+          setFilterTipo("all"); setFilterSituacao("all"); setFilterPrioridade("all");
+          setFilterSetorCritico("all"); setFilterVisitado("all"); setFilterOrigem("all"); setFilterImpresso("all");
+          setPage(1);
+        }}>
+          <X className="mr-2 h-4 w-4" />Limpar filtros
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" disabled={!filtered.length}>
