@@ -184,6 +184,10 @@ export default function SolicitacaoServicosPage() {
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
   
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
+  const closeViewDialog = () => {
+    setViewTarget(null);
+    queryClient.invalidateQueries({ queryKey: ["solicitacoes_servicos"] });
+  };
 
   // Diálogo de duplicidade (mesmo setor, últimos 5 dias, descrição similar)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
