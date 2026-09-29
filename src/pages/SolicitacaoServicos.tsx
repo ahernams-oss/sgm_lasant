@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { loadPersistedFilters, usePersistFilters } from "@/lib/persistedFilters";
 import { useSearchParams, Link } from "react-router-dom";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
@@ -123,6 +124,7 @@ export default function SolicitacaoServicosPage() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(7);
+  const queryClient = useQueryClient();
   const _ssSavedFilters = loadPersistedFilters<{ search: string; filterCliente: string; filterTipo: string; filterSituacao: string; filterVisitado: string; filterOrigem: string; filterImpresso: string; filterPrioridade: string; filterSetorCritico: string; filterDataInicio: string; filterDataFim: string; }>("solicitacao_servicos_filters_v1");
   const [search, setSearch] = useState(_ssSavedFilters?.search ?? "");
   const [filterCliente, setFilterCliente] = useState(() => localStorage.getItem("ss_filtroCliente") || "all");
@@ -182,6 +184,10 @@ export default function SolicitacaoServicosPage() {
   const [prioridadeOnly, setPrioridadeOnly] = useState(false);
   
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
+  const closeViewDialog = () => {
+    setViewTarget(null);
+    queryClient.invalidateQueries({ queryKey: ["solicitacoes_servicos"] });
+  };
 
   // Diálogo de duplicidade (mesmo setor, últimos 5 dias, descrição similar)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
@@ -1671,7 +1677,7 @@ export default function SolicitacaoServicosPage() {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) setViewTarget(null); }}>
+      <Dialog open={!!viewTarget} onOpenChange={(o) => { if (!o) closeViewDialog(); }}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto">
           <DialogHeader className="relative">
             <DialogTitle className="flex items-center gap-2 pr-16">
@@ -1957,7 +1963,7 @@ export default function SolicitacaoServicosPage() {
             );
           })()}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setViewTarget(null)}>Fechar</Button>
+            <Button variant="outline" onClick={closeViewDialog}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
