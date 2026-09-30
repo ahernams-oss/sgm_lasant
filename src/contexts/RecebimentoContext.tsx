@@ -75,6 +75,10 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
       }, 0);
   };
 
+  // Quantidade esperada líquida: pedida menos a rejeitada
+  const qtdEsperada = (p: any, pi: any) =>
+    Math.max(0, pi.quantidade - ((p.itensRejeitados ?? []) as any[]).filter((r) => r.itemId === pi.itemId).reduce((a, r) => a + (Number(r.quantidade) || 0), 0));
+
   const registrarRecebimento = async (data: Omit<Recebimento, "id" | "dataRecebimento" | "tipo">) => {
     const pedido = pedidos.find(p => p.id === data.pedidoId);
     if (!pedido) return;
@@ -82,7 +86,7 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
     const allFullyReceived = pedido.itens.every(pi => {
       const jaRecebido = getTotalRecebidoPorItem(pedido.id, pi.itemId);
       const recebendoAgora = data.itens.find(i => i.itemId === pi.itemId)?.quantidadeRecebida || 0;
-      return (jaRecebido + recebendoAgora) >= pi.quantidade;
+      return (jaRecebido + recebendoAgora) >= qtdEsperada(pedido, pi);
     });
 
     const tipo = allFullyReceived ? "Total" : "Parcial";
@@ -110,7 +114,7 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
 
     if (allFullyReceived) {
       updatePedidoStatus(pedido.id, "Entregue", data.usuario, `Recebimento total - NF: ${data.notaFiscal || "N/A"}`);
-    } else if (pedido.status !== "Entregue Parcial") {
+    } else if (pedido.status !== "Entregue Parcial" && pedido.status !== "Rejeição Parcial") {
       updatePedidoStatus(pedido.id, "Entregue Parcial", data.usuario, `Recebimento parcial - NF: ${data.notaFiscal || "N/A"}`);
     }
 
@@ -125,7 +129,7 @@ export function RecebimentoProvider({ children }: { children: ReactNode }) {
             const item = r.itens.find(i => i.itemId === pi.itemId);
             return sum + (item?.quantidadeRecebida || 0);
           }, 0);
-        return jaRecebido >= pi.quantidade;
+        return jaRecebido >= qtdEsperada(p, pi);
       });
     });
 

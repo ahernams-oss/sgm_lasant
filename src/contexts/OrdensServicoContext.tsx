@@ -71,7 +71,7 @@ export interface RetornoPendenteOS {
 
 interface OrdensServicoContextType {
   ordens: OrdemServico[];
-  addOrdem: (d: any) => Promise<void>;
+  addOrdem: (d: any) => Promise<any>;
   updateOrdem: (id: string, d: any) => Promise<void>;
   deleteOrdem: (id: string) => Promise<void>;
   loading: boolean;
@@ -135,7 +135,7 @@ export function OrdensServicoProvider({ children }: { children: ReactNode }) {
   });
   const invalidate = () => qc.invalidateQueries({ queryKey: QK });
 
-  const addOrdem = async (d: any) => { await insertRow("ordens_servico", d); invalidate(); };
+  const addOrdem = async (d: any) => { const row = await insertRow("ordens_servico", d); invalidate(); return row; };
   const updateOrdem = async (id: string, d: any) => { await updateRow("ordens_servico", id, d); invalidate(); };
   const deleteOrdem = async (id: string) => {
     const stored = localStorage.getItem("usuarioLogado") || sessionStorage.getItem("usuarioLogado");
