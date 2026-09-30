@@ -186,7 +186,8 @@ export default function SolicitacaoServicosPage() {
   const [viewTarget, setViewTarget] = useState<SolicitacaoServico | null>(null);
   const closeViewDialog = () => {
     setViewTarget(null);
-    queryClient.invalidateQueries({ queryKey: ["solicitacoes_servicos"] });
+    // Revalida em segundo plano apenas se o cache estiver desatualizado (tempo real cobre o restante)
+    queryClient.invalidateQueries({ queryKey: ["solicitacoes_servicos"], refetchType: "none" });
   };
 
   // Diálogo de duplicidade (mesmo setor, últimos 5 dias, descrição similar)
