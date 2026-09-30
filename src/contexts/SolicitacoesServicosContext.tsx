@@ -1,7 +1,8 @@
 // Solicitações de Serviços Context
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabaseHelper";
+import { supabase } from "@/integrations/supabase/client";
 import { useProviderGate, useActivateProvider } from "@/lib/providerGate";
 
 export interface HistoricoEntry {
@@ -70,11 +71,41 @@ export function SolicitacoesServicosProvider({ children }: { children: ReactNode
     queryFn: async () => (await fetchAll("solicitacoes_servicos", "numero")).map(rowToSolicitacao),
     staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000,
   });
-  const invalidate = () => qc.invalidateQueries({ queryKey: QK });
+  // Atualização incremental do cache: evita recarregar a tabela inteira a cada alteração
+  const upsertCache = (row: any) => {
+    if (!row?.id) return;
+    const item = rowToSolicitacao(row);
+    qc.setQueryData<SolicitacaoServico[]>(QK, (old) => {
+      const list = old ?? [];
+      const idx = list.findIndex((s) => s.id === item.id);
+      if (idx === -1) return [...list, item].sort((a, b) => a.numero - b.numero);
+      const copy = list.slice(); copy[idx] = item; return copy;
+    });
+  };
+  const removeCache = (id: string) =>
+    qc.setQueryData<SolicitacaoServico[]>(QK, (old) => (old ?? []).filter((s) => s.id !== id));
+  const fetchOne = async (id: string) => {
+    const { data } = await (supabase as any).from("solicitacoes_servicos").select("*").eq("id", id).maybeSingle();
+    if (data) upsertCache(data);
+  };
 
-  const addSolicitacao = async (d: any) => { await insertRow("solicitacoes_servicos", d); invalidate(); };
-  const updateSolicitacao = async (id: string, d: any) => { await updateRow("solicitacoes_servicos", id, d); invalidate(); };
-  const deleteSolicitacao = async (id: string) => { await deleteRow("solicitacoes_servicos", id); invalidate(); };
+  // Tempo real: alterações feitas por outros usuários aparecem sem recarregar
+  useEffect(() => {
+    if (!__active) return;
+    const ch = supabase
+      .channel("rt-solicitacoes-servicos")
+      .on("postgres_changes", { event: "*", schema: "public", table: "solicitacoes_servicos" }, (p: any) => {
+        if (p.eventType === "DELETE") removeCache(p.old?.id);
+        else if (p.new?.id) fetchOne(p.new.id);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [__active]);
+
+  const addSolicitacao = async (d: any) => { const row = await insertRow("solicitacoes_servicos", d); if (row) upsertCache(row); };
+  const updateSolicitacao = async (id: string, d: any) => { if (await updateRow("solicitacoes_servicos", id, d)) await fetchOne(id); };
+  const deleteSolicitacao = async (id: string) => { if (await deleteRow("solicitacoes_servicos", id)) removeCache(id); };
 
   return (
     <SolicitacoesServicosContext.Provider value={{ solicitacoes, addSolicitacao, updateSolicitacao, deleteSolicitacao }}>
