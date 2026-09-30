@@ -333,6 +333,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     // Agregação por categoria (sem BDI)
     const catMap = new Map<string, number>();
     let totalGeral = 0;
+    let totalGeralBdi = 0;
     const totalSemBdi = (o: any) => {
       const { sco, est } = totalOS(o);
       return sco + est;
@@ -340,6 +341,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     ordensFiltradas.forEach(o => {
       const total = totalSemBdi(o);
       totalGeral += total;
+      totalGeralBdi += totalOS(o).total;
       const cat = o.categoria || "SEM CATEGORIA";
       catMap.set(cat, (catMap.get(cat) || 0) + total);
     });
@@ -349,17 +351,19 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
 
     if (formato === "excel") {
       const data = ordensFiltradas.map(o => {
-        const total = totalSemBdi(o);
+        const { sco, est, bdi, total } = totalOS(o);
         return {
           "OS": formatNumeroAno(o.numero, o.createdAt),
           "Unidade": o.clienteNome || "-",
           "Categoria": o.categoria || "-",
-          "Valor": Number(total.toFixed(2)),
+          "Valor": Number((sco + est).toFixed(2)),
+          "BDI (%)": Number(bdi.toFixed(2)),
+          "Valor com BDI": Number(total.toFixed(2)),
         };
       });
-      data.push({ "OS": "" as any, "Unidade": `Nº de OS: ${ordensFiltradas.length}` as any, "Categoria": "Total Geral" as any, "Valor": Number(totalGeral.toFixed(2)) });
+      data.push({ "OS": "" as any, "Unidade": `Nº de OS: ${ordensFiltradas.length}` as any, "Categoria": "Total Geral" as any, "Valor": Number(totalGeral.toFixed(2)), "BDI (%)": "" as any, "Valor com BDI": Number(totalGeralBdi.toFixed(2)) });
       const ws = (await getXLSX()).utils.json_to_sheet(data);
-      ws["!cols"] = [{ wch: 14 }, { wch: 40 }, { wch: 30 }, { wch: 14 }];
+      ws["!cols"] = [{ wch: 14 }, { wch: 40 }, { wch: 30 }, { wch: 14 }, { wch: 10 }, { wch: 16 }];
       const wsCat = (await getXLSX()).utils.json_to_sheet(catList.map(c => ({ Categoria: c.nome, Valor: Number(c.valor.toFixed(2)), Percentual: `${c.pct.toFixed(2)}%` })));
       const wb = (await getXLSX()).utils.book_new();
       (await getXLSX()).utils.book_append_sheet(wb, ws, "Fechamento");
@@ -397,19 +401,22 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     // Tabela principal
     doc.addPage();
     const rows = ordensFiltradas.map(o => {
-      const total = totalSemBdi(o);
-      return [formatNumeroAno(o.numero, o.createdAt), o.clienteNome || "-", o.categoria || "-", fmtBRL(total)];
+      const { sco, est, bdi, total } = totalOS(o);
+      return [
+        formatNumeroAno(o.numero, o.createdAt), o.clienteNome || "-", o.categoria || "-",
+        fmtBRL(sco + est), `${bdi.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`, fmtBRL(total),
+      ];
     });
     (await getAutoTable())(doc, {
       startY: 14,
-      head: [["OS", "Unidade", "Categoria", "Valor"]],
+      head: [["OS", "Unidade", "Categoria", "Valor", "BDI", "Valor com BDI"]],
       body: rows,
       styles: { fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [245, 247, 250] },
-      columnStyles: { 0: { cellWidth: 22 }, 3: { halign: "right", cellWidth: 30 } },
+      columnStyles: { 0: { cellWidth: 22 }, 3: { halign: "right", cellWidth: 28 }, 4: { halign: "right", cellWidth: 16 }, 5: { halign: "right", cellWidth: 30 } },
       foot: [
-        [{ content: `Nº de OS: ${ordensFiltradas.length}`, colSpan: 2 }, "Total Geral", fmtBRL(totalGeral)],
+        [{ content: `Nº de OS: ${ordensFiltradas.length}`, colSpan: 2 }, "Total Geral", fmtBRL(totalGeral), "-", fmtBRL(totalGeralBdi)],
       ],
       footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
     });
