@@ -180,7 +180,7 @@ export default function RecebimentoComprasPage() {
   const pedidoTemItensPendentes = (p: PedidoCompra) => {
     return p.itens.some(pi => {
       const recebido = getTotalRecebidoPorItem(p.id, pi.itemId);
-      return recebido < pi.quantidade;
+      return recebido < pi.quantidade - qtdJaRejeitada(p, pi.itemId);
     });
   };
 
