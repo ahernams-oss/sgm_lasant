@@ -75,6 +75,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Sessão do backend expirou ou falhou ao renovar: encerra o login local para pedir novo acesso
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_OUT" || (!session && event !== "INITIAL_SESSION")) && readStored()) {
+        setUsuarioLogado(null);
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
 
   // Keep logged user in sync with usuarios list
   useEffect(() => {
