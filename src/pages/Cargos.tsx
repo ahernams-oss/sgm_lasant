@@ -432,6 +432,14 @@ const Cargos = () => {
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Pesquisar cargos..." value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} className="pl-9 h-9" />
               </div>
+              <Button type="button" variant="outline" size="sm" className="h-9 gap-1" disabled={!filteredCargos.length}
+                onClick={async () => { const { gerarPdfCargosEpisNrs } = await import("@/lib/gerarRelatorioCargos"); await gerarPdfCargosEpisNrs(filteredCargos, [search && `Busca: ${search}`, filterNivel !== "todos" && `Nível: ${filterNivel}`].filter(Boolean).join(" · ") || undefined); }}>
+                <FileText className="h-4 w-4" /> PDF
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="h-9 gap-1" disabled={!filteredCargos.length}
+                onClick={async () => { const { gerarExcelCargosEpisNrs } = await import("@/lib/gerarRelatorioCargos"); await gerarExcelCargosEpisNrs(filteredCargos); }}>
+                <FileText className="h-4 w-4" /> Excel
+              </Button>
             </div>
           </div>
           {filteredCargos.length === 0 ? (
