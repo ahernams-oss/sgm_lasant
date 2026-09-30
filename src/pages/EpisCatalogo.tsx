@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { HardHat, Plus, Search, Trash2, Pencil, Check, X } from "lucide-react";
+import { HardHat, Plus, Search, Trash2, Pencil, Check, X, FileDown, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -123,9 +123,17 @@ export default function EpisCatalogoPage() {
         <div className="section-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <h2 className="section-title mb-0">EPIs Cadastrados ({filtered.length})</h2>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar..." className="pl-9 h-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Pesquisar..." className="pl-9 h-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              </div>
+              <Button size="sm" variant="outline" className="gap-1" disabled={!filtered.length} onClick={async () => { const m = await import("@/lib/gerarRelatorioEpisCatalogo"); await m.gerarPdfEpisCatalogo(filtered, search ? `Filtro: ${search}` : undefined); }}>
+                <FileDown className="h-4 w-4" /> PDF
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1" disabled={!filtered.length} onClick={async () => { const m = await import("@/lib/gerarRelatorioEpisCatalogo"); await m.gerarExcelEpisCatalogo(filtered); }}>
+                <FileSpreadsheet className="h-4 w-4" /> Excel
+              </Button>
             </div>
           </div>
 
