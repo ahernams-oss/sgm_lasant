@@ -261,15 +261,15 @@ const RequisicaoGrid = () => {
   const filteredRequisicoes = useMemo(() => {
     let result = requisicoes;
     if (search.trim()) {
-      const term = search.toLowerCase();
-      result = result.filter(
-        (r) =>
-          r.cargoNome.toLowerCase().includes(term) ||
-          r.unidade.toLowerCase().includes(term) ||
-          (r.nomeSubstituido || "").toLowerCase().includes(term) ||
-          (r.origemVaga || "").toLowerCase().includes(term) ||
-          r.dataCriacao.toLowerCase().includes(term)
-      );
+      const norm = (v: any) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const term = norm(search.trim()).replace(/^(rp|rc)-?/, "");
+      const termNum = term.replace(/^0+/, "");
+      result = result.filter((r: any) => {
+        const num = String(r.numero ?? "");
+        if (termNum && /^\d+$/.test(term) && (num === termNum || num.includes(termNum))) return true;
+        return [r.cargoNome, r.unidade, r.nomeSubstituido, r.origemVaga, r.dataCriacao, r.solicitante, r.status, num]
+          .some((f) => norm(f).includes(term));
+      });
     }
     if (filterStatus !== "todos") {
       result = result.filter((r) => r.status === filterStatus);
@@ -369,7 +369,7 @@ const RequisicaoGrid = () => {
           <Input type="date" value={filterDataAte} onChange={(e) => setFilterDataAte(e.target.value)} className="h-9 w-[140px] text-xs" placeholder="Até" title="Data final" />
           <div className="relative w-52">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Pesquisar requisições..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+            <Input placeholder="Pesquisar requisições..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9 h-9" />
           </div>
         </div>
       </div>
