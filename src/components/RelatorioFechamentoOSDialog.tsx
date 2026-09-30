@@ -45,10 +45,10 @@ const PERIODOS: { value: Periodo; label: string; desc: string }[] = [
 ];
 
 const TIPOS: { value: TipoRelatorio; label: string; desc: string }[] = [
-  { value: "fechamento_validadas", label: "Fechamento (Validadas)", desc: "Apenas OSs Validadas — OS, Unidade, Categoria e Valor, com totais e gráfico por categoria." },
+  { value: "fechamento_validadas", label: "Fechamento (Validadas)", desc: "Apenas OSs Validadas — OS, Unidade, Categoria, Valor, BDI e Valor com BDI, com totais e gráfico por categoria." },
   { value: "fechamento_local", label: "Fechamento (Validadas) por Local", desc: "OSs Validadas segmentadas por Local, com resumo dos tipos de OS e gráfico ao final de cada local." },
   { value: "fechamento_categoria", label: "Fechamento por Categoria", desc: "Apenas OSs Validadas, agrupadas por categoria com Nº OS, Setor, Valor e Valor com BDI, totais e gráficos." },
-  { value: "fechamento_faturadas", label: "Fechamento (Faturadas)", desc: "Apenas OSs Faturadas — OS, Unidade, Categoria e Valor, com totais e gráfico por categoria (período pela Data de Faturamento)." },
+  { value: "fechamento_faturadas", label: "Fechamento (Faturadas)", desc: "Apenas OSs Faturadas — OS, Unidade, Categoria, Valor, BDI e Valor com BDI, com totais e gráfico por categoria (período pela Data de Faturamento)." },
   { value: "fechamento_faturadas_local", label: "Fechamento (Faturadas) por Local", desc: "OSs Faturadas segmentadas por Local, com resumo dos tipos de OS e gráfico ao final de cada local (período pela Data de Faturamento)." },
   { value: "analitico", label: "Analítico (detalhado)", desc: "Lista completa de OSs com nº, cliente, situação, prioridade, datas e descrição." },
   { value: "sintetico", label: "Sintético (resumo)", desc: "Resumo por situação e por cliente, com totais." },
@@ -941,6 +941,7 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     const dataIni = fmtData(intervalo.ini.toISOString());
     const dataFimStr = fmtData(intervalo.fim.toISOString());
     const totalSemBdi = (o: any) => { const { sco, est } = totalOS(o); return sco + est; };
+    const totalGeralBdi = ordensFiltradas.reduce((s, o) => s + totalOS(o).total, 0);
 
     // Agrupa por local
     const locMap = new Map<string, OrdemServico[]>();
@@ -970,20 +971,25 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
       const geral: any[] = [];
       const resumo: any[] = [];
       locais.forEach(([loc, list]) => {
-        list.forEach(o => geral.push({
-          "Local": loc,
-          "OS": formatNumeroAno(o.numero, o.createdAt),
-          "Unidade": o.clienteNome || "-",
-          "Tipo de OS": o.tipoOs?.descricao || "-",
-          "Categoria": o.categoria || "-",
-          "Valor": Number(totalSemBdi(o).toFixed(2)),
-        }));
+        list.forEach(o => {
+          const { sco, est, bdi, total } = totalOS(o);
+          geral.push({
+            "Local": loc,
+            "OS": formatNumeroAno(o.numero, o.createdAt),
+            "Unidade": o.clienteNome || "-",
+            "Tipo de OS": o.tipoOs?.descricao || "-",
+            "Categoria": o.categoria || "-",
+            "Valor": Number((sco + est).toFixed(2)),
+            "BDI (%)": Number(bdi.toFixed(2)),
+            "Valor com BDI": Number(total.toFixed(2)),
+          });
+        });
         tiposDoLocal(list).forEach(t => resumo.push({
           "Local": loc, "Tipo de OS": t.nome, "Qtd": t.qtd, "Valor": Number(t.valor.toFixed(2)),
         }));
       });
       const ws = (await getXLSX()).utils.json_to_sheet(geral);
-      ws["!cols"] = [{ wch: 30 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 26 }, { wch: 14 }];
+      ws["!cols"] = [{ wch: 30 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 26 }, { wch: 14 }, { wch: 10 }, { wch: 16 }];
       (await getXLSX()).utils.book_append_sheet(wb, ws, "Fechamento por Local");
       const wsR = (await getXLSX()).utils.json_to_sheet(resumo);
       wsR["!cols"] = [{ wch: 30 }, { wch: 24 }, { wch: 8 }, { wch: 14 }];
@@ -1022,42 +1028,49 @@ export default function RelatorioFechamentoOSDialog({ open, onOpenChange, ordens
     doc.text("Resumo Geral por Local", pw / 2, 16, { align: "center" });
     (await getAutoTable())(doc, {
       startY: 22,
-      head: [["Local", "Qtd OS", "Valor", "%"]],
+      head: [["Local", "Qtd OS", "Valor", "Valor com BDI", "%"]],
       body: locais.map(([loc, list]) => {
         const v = list.reduce((s, o) => s + totalSemBdi(o), 0);
-        return [loc, String(list.length), fmtBRL(v), `${totalGeral > 0 ? ((v / totalGeral) * 100).toFixed(2) : "0,00"}%`];
+        const vb = list.reduce((s, o) => s + totalOS(o).total, 0);
+        return [loc, String(list.length), fmtBRL(v), fmtBRL(vb), `${totalGeral > 0 ? ((v / totalGeral) * 100).toFixed(2) : "0,00"}%`];
       }),
-      foot: [["TOTAL", String(ordensFiltradas.length), fmtBRL(totalGeral), "100,00%"]],
+      foot: [["TOTAL", String(ordensFiltradas.length), fmtBRL(totalGeral), fmtBRL(totalGeralBdi), "100,00%"]],
       styles: { fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
       footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [245, 247, 250] },
-      columnStyles: { 1: { halign: "center", cellWidth: 20 }, 2: { halign: "right", cellWidth: 34 }, 3: { halign: "right", cellWidth: 22 } },
+      columnStyles: { 1: { halign: "center", cellWidth: 18 }, 2: { halign: "right", cellWidth: 30 }, 3: { halign: "right", cellWidth: 32 }, 4: { halign: "right", cellWidth: 20 } },
     });
 
     // Uma seção por local
     for (const [loc, list] of locais) {
       const totalLocal = list.reduce((s, o) => s + totalSemBdi(o), 0);
+      const totalLocalBdi = list.reduce((s, o) => s + totalOS(o).total, 0);
       doc.addPage();
       doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(30, 58, 107);
       doc.text(`Local: ${loc}`, 14, 16);
       doc.setTextColor(30, 30, 30);
       (await getAutoTable())(doc, {
         startY: 22,
-        head: [["OS", "Unidade", "Tipo de OS", "Categoria", "Valor"]],
-        body: list.map(o => [
-          formatNumeroAno(o.numero, o.createdAt),
-          o.clienteNome || "-",
-          o.tipoOs?.descricao || "-",
-          o.categoria || "-",
-          fmtBRL(totalSemBdi(o)),
-        ]),
-        foot: [[{ content: `Nº de OS: ${list.length}`, colSpan: 3 } as any, "Total do Local", fmtBRL(totalLocal)]],
+        head: [["OS", "Unidade", "Tipo de OS", "Categoria", "Valor", "BDI", "Valor com BDI"]],
+        body: list.map(o => {
+          const { sco, est, bdi, total } = totalOS(o);
+          return [
+            formatNumeroAno(o.numero, o.createdAt),
+            o.clienteNome || "-",
+            o.tipoOs?.descricao || "-",
+            o.categoria || "-",
+            fmtBRL(sco + est),
+            `${bdi.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`,
+            fmtBRL(total),
+          ];
+        }),
+        foot: [[{ content: `Nº de OS: ${list.length}`, colSpan: 3 } as any, "Total do Local", fmtBRL(totalLocal), "-", fmtBRL(totalLocalBdi)]],
         styles: { fontSize: 8.5, cellPadding: 2 },
         headStyles: { fillColor: [30, 58, 107], textColor: 255, fontStyle: "bold" },
         footStyles: { fillColor: [230, 235, 245], textColor: 30, fontStyle: "bold" },
         alternateRowStyles: { fillColor: [245, 247, 250] },
-        columnStyles: { 0: { cellWidth: 22 }, 4: { halign: "right", cellWidth: 30 } },
+        columnStyles: { 0: { cellWidth: 20 }, 4: { halign: "right", cellWidth: 26 }, 5: { halign: "right", cellWidth: 14 }, 6: { halign: "right", cellWidth: 28 } },
       });
 
       // Resumo dos tipos de OS do local
