@@ -785,6 +785,12 @@ export default function SolicitacaoServicosPage() {
         case "situacao":
           cmp = (a.situacao || "").localeCompare(b.situacao || "");
           break;
+        case "valorOrcamento": {
+          const vA = Number(orcamentos.find(o => o.solicitacaoId === a.id)?.valorTotal ?? 0);
+          const vB = Number(orcamentos.find(o => o.solicitacaoId === b.id)?.valorTotal ?? 0);
+          cmp = vA - vB;
+          break;
+        }
         case "os": {
           const osA = ordens.find(o => o.solicitacaoId === a.id)?.numero ?? 0;
           const osB = ordens.find(o => o.solicitacaoId === b.id)?.numero ?? 0;
@@ -929,12 +935,13 @@ export default function SolicitacaoServicosPage() {
     equipamento: { label: <SortHeader field="equipamento">Equipamento</SortHeader> },
     descricao: { label: <SortHeader field="descricao">Descrição</SortHeader> },
     situacao: { label: <SortHeader field="situacao">Situação</SortHeader> },
+    valorOrcamento: { label: <SortHeader field="valorOrcamento">Valor Orçamento</SortHeader>, className: "whitespace-nowrap" },
     os: { label: <SortHeader field="os">OS</SortHeader>, className: "whitespace-nowrap" },
     visitado: { label: <SortHeader field="visitado">Visitado</SortHeader>, className: "w-20 text-center" },
   };
   const { order: colOrder, setOrder: setColOrder } = useColumnOrder(
     "solicitacao_servicos.lista",
-    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "os", "visitado"]
+    ["numero", "dataHora", "solicitante", "tipo", "cliente", "local", "pavimento", "setor", "equipamento", "descricao", "situacao", "valorOrcamento", "os", "visitado"]
   );
 
   const allPageIds = paginated.map(s => s.id);
@@ -1367,7 +1374,7 @@ export default function SolicitacaoServicosPage() {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={15} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={16} className="text-center text-muted-foreground py-8">
                   Nenhuma solicitação cadastrada
                 </TableCell>
               </TableRow>
@@ -1449,6 +1456,14 @@ export default function SolicitacaoServicosPage() {
                       )}
                     </div>
                   ),
+                },
+                valorOrcamento: {
+                  node: orcSS ? (
+                    <span className="font-medium whitespace-nowrap">
+                      {Number(orcSS.valorTotal || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                  ) : "-",
+                  className: "text-right text-xs",
                 },
                 os: {
                   node: osVinculada ? (
@@ -1581,7 +1596,7 @@ export default function SolicitacaoServicosPage() {
           {filterSituacao === "Orçamento Disponível" && filtered.length > 0 && (
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={14} className="text-right font-semibold">
+                <TableCell colSpan={15} className="text-right font-semibold">
                   Total Orçamento Disponível ({filtered.length}):{" "}
                   {filtered
                     .reduce((acc, s) => acc + Number(orcamentos.find(o => o.solicitacaoId === s.id)?.valorTotal ?? 0), 0)

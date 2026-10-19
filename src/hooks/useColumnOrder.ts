@@ -12,12 +12,28 @@ export function useColumnOrder(pageKey: string, defaultKeys: string[]) {
   const [order, setOrder] = useState<string[]>(defaultKeys);
   const loadedRef = useRef(false);
 
-  // Reconcile with defaults: keep saved order, drop missing, append new
+  // Reconcile with defaults: keep saved order, drop removed columns and place
+  // newly added ones next to their default neighbour instead of at the end.
   const reconcile = useCallback(
     (saved: string[]) => {
-      const filtered = saved.filter((k) => defaultKeys.includes(k));
-      const missing = defaultKeys.filter((k) => !filtered.includes(k));
-      return [...filtered, ...missing];
+      const result = saved.filter((k) => defaultKeys.includes(k));
+      const missing = defaultKeys.filter((k) => !result.includes(k));
+      for (const key of missing) {
+        const defIdx = defaultKeys.indexOf(key);
+        let insertAt = -1;
+        for (let i = defIdx - 1; i >= 0; i--) {
+          const found = result.indexOf(defaultKeys[i]);
+          if (found !== -1) { insertAt = found + 1; break; }
+        }
+        if (insertAt === -1) {
+          for (let i = defIdx + 1; i < defaultKeys.length; i++) {
+            const found = result.indexOf(defaultKeys[i]);
+            if (found !== -1) { insertAt = found; break; }
+          }
+        }
+        result.splice(insertAt === -1 ? result.length : insertAt, 0, key);
+      }
+      return result;
     },
     [defaultKeys]
   );
