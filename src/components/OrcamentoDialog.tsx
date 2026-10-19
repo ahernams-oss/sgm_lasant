@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { useLimiteAprovacao } from "@/hooks/useLimiteAprovacao";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const { addOrcamento, updateOrcamento } = useOrcamentos();
   const { categorias: categoriasCadastradas } = useCategoriasServicos();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
 
@@ -382,6 +384,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
   const handleAprovar = async () => {
     if (!existingOrcamento) return;
+    if (!podeAprovar(Number(existingOrcamento.valorTotal) || 0, "os")) return;
     const data = {
       status: "Aprovado",
       aprovado_por: usuarioLogado?.nome || "",
