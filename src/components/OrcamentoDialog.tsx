@@ -58,6 +58,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
   const { addOrcamento, updateOrcamento } = useOrcamentos();
   const { categorias: categoriasCadastradas } = useCategoriasServicos();
   const { usuarioLogado } = useAuth();
+  const { podeAprovar } = useLimiteAprovacao();
   const { empresa } = useEmpresa();
   const { toast } = useToast();
 
