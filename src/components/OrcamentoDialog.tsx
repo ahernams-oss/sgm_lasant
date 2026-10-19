@@ -382,6 +382,7 @@ export default function OrcamentoDialog({ open, onOpenChange, solicitacao, exist
 
   const handleAprovar = async () => {
     if (!existingOrcamento) return;
+    if (!podeAprovar(Number(existingOrcamento.valorTotal) || 0, "os")) return;
     const data = {
       status: "Aprovado",
       aprovado_por: usuarioLogado?.nome || "",
