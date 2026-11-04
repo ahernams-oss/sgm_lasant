@@ -29,6 +29,15 @@ import { ShieldCheck, Search, CheckCircle2 } from "lucide-react";
 
 const STATUS_PERMITIDOS = ["Executada", "Serviço Re-executado"];
 
+const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const valorOS = (o: OrdemServico) => {
+  const sco = (o.materiais || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
+  const est = (o.materiaisEstoque || []).reduce((s, m) => s + (Number(m.valorTotal) || 0), 0);
+  const bdi = Number(o.bdi) || 0;
+  return (sco + est) * (1 + bdi / 100);
+};
+
 export default function ConfirmarLoteOs() {
   const { ordens, updateOrdem } = useOrdensServico();
   const { usuarioLogado } = useAuth();
@@ -289,12 +298,13 @@ export default function ConfirmarLoteOs() {
               <TableHead>Descrição do Serviço</TableHead>
               <TableHead className="w-32">Solicitante</TableHead>
               <TableHead className="w-40 text-center">Situação</TableHead>
+              <TableHead className="w-36 text-right">Valor da OS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
                   <ShieldCheck className="h-10 w-10 mx-auto mb-2 opacity-30" />
                   Nenhuma OS disponível para confirmação
                 </TableCell>
@@ -321,6 +331,7 @@ export default function ConfirmarLoteOs() {
                   <TableCell className="text-center">
                     <Badge variant="outline">{s.situacao}</Badge>
                   </TableCell>
+                  <TableCell className="text-right font-semibold">{fmtBRL(valorOS(s))}</TableCell>
                 </TableRow>
               ))
             )}
